@@ -1,0 +1,26 @@
+version: "3"
+services:
+    bot:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        restart: unless-stopped
+        depends_on:
+            - mongodb
+        links:
+            - mongodb
+        networks:
+            - backend
+    mongodb:
+        image: mongo:latest
+        restart: unless-stopped
+        ports:
+            - "27017:27017"
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: root
+            MONGO_INITDB_ROOT_PASSWORD: root
+        networks:
+            - backend
+networks:
+    backend:
+        driver: bridge
