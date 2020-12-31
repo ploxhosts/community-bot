@@ -1,8 +1,4 @@
-![Total file size](https://img.shields.io/github/languages/code-size/PloxHost-LLC/community-bot)
-
-![File count](https://img.shields.io/github/directory-file-count/PloxHost-LLC/community-bot)
-
-![Python version](https://img.shields.io/badge/python-v3.8-blue)
+![Total file size](https://img.shields.io/github/languages/code-size/PloxHost-LLC/community-bot) ![File count](https://img.shields.io/github/directory-file-count/PloxHost-LLC/community-bot) ![Python version](https://img.shields.io/badge/python-v3.8-blue)
 
 # PloxHost Community Bot
 
