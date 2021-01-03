@@ -57,10 +57,9 @@ class Help(commands.Cog):
                 if c.lower() in ["", "help"]:  # Ignore these
                     pass
                 else:
-                    embed.add_field(name=c, value=self.bot.get_cog(c).description, inline=False)
+                    embed.add_field(name=c, value=self.bot.get_cog(c).description, inline=True)
             embed.add_field(name="To get more detailed information", value=f"{prefix}help <cog> for example: `{prefix}help Mod`", inline=False)
         else:
-            print(cog)
             try:
                 if self.bot.get_cog(cog.capitalize()):  # Check if it exists
                     pass
@@ -78,9 +77,9 @@ class Help(commands.Cog):
                         for subcmd in x.commands:
                             embed.add_field(name=f"{x.name.capitalize()} {subcmd.name.capitalize()}",
                                             value=f"Description: {x.description}\nUsage: {prefix}{subcmd.usage}",
-                                            inline=False)
+                                            inline=True)
                     embed.add_field(name=f"{x.name.capitalize()}",
-                                    value=f"Description: {x.description}\nUsage: {prefix}{x.usage}", inline=False)
+                                    value=f"Description: {x.description}\nUsage: {prefix}{x.usage}", inline=True)
             except:
                 embed.add_field(name="No cogs found", value="You have used a name of a non existent cog.", inline=False)
 

@@ -45,7 +45,13 @@ class Chat(commands.Cog):
                 if await self.delete_message(message) == "Deleted":
                     guild = self.bot.get_guild(message.guild.id)
                     channel = guild.get_channel(message.channel.id)
-                    await channel.send("A Message was deleted as it contained a banned word.")
+                    messages = await channel.history(limit=5).flatten()
+                    done = False
+                    for message2 in messages:
+                        if message2.content == "A Message was deleted as it contained a banned word.":
+                            done = True
+                    if not done:
+                        await channel.send("A Message was deleted as it contained a banned word.")
         # <(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>
 
     async def check_contents_both(self, message1, message2):
@@ -71,7 +77,13 @@ class Chat(commands.Cog):
             else:
                 if message1_date.second + random.randint(4, 15) >= message2_date.second:
                     if await self.delete_message(message2) == "Deleted":
-                        await message2.channel.send("We do not allow duplicate messages")
+                        messages = await message2.channel.history(limit=5).flatten()
+                        done = False
+                        for message3 in messages:
+                            if message3.content == "We do not allow duplicate messages" or message3.content == "A Message was deleted as it contained a banned word.":
+                                done = True
+                        if not done:
+                            await message2.channel.send("We do not allow duplicate messages")
 
         if message1.attachments is not None and message2.attachments is not None:  # Could be multiple image
             if len(message1.attachments) == len(message2.attachments) and len(
@@ -84,7 +96,13 @@ class Chat(commands.Cog):
                     if attachment1.size == attachment2.size or attachment1.filename == attachment2.filename:  # The bytes are the same so the image is 99% the same
                         try:
                             if await self.delete_message(message2) == "Deleted":
-                                await message2.channel.send("We do not allow duplicate images/files being posted!")
+                                messages = await message2.channel.history(limit=5).flatten()
+                                done = False
+                                for message3 in messages:
+                                    if message3.content == "We do not allow duplicate messages" or message3.content == "We do not allow duplicate images/files being posted!":
+                                        done = True
+                                if not done:
+                                    await message2.channel.send("We do not allow duplicate images/files being posted!")
                         except discord.NotFound:  # Deleted
                             pass
 

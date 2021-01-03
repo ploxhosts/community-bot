@@ -298,10 +298,12 @@ class Economy(commands.Cog):
         if choice == chance:
             end_total = await self.add_money(ctx.author.id, ctx.guild.id, bet)
             embed = Embed(color=0xffffff, title="🪙 You chose right!")
+            embed.add_field(name="You earned", value=f"${bet}", inline=True)
         else:
             end_total = await self.take_money(ctx.author.id, ctx.guild.id, bet)
             embed = Embed(color=0xffffff, title="📉 You chose wrong!")
-        embed.add_field(name="You earned", value=f"${bet}", inline=True)
+            embed.add_field(name="You lost", value=f"${bet}", inline=True)
+
         embed.add_field(name="Total Balance", value=f"${end_total}", inline=True)
         await ctx.send(embed=embed)
 

@@ -15,6 +15,7 @@ class Error_handling(commands.Cog):
         prefix = "?"
         for x in posts.find({"guild_id": ctx.guild.id}):
             prefix = x['prefix']
+
         def get_listed(start_list: list):
             end_list = []
             for role in start_list:
@@ -67,9 +68,8 @@ class Error_handling(commands.Cog):
             embed.add_field(name="Error:",
                             value=f"\n{error}\nUsage: {prefix}{ctx.command.usage}", inline=False)
 
-
         else:
-            await ctx.send(f"Error has been generated! Please contact the developers!")
+            await ctx.send(f"Something happened, retry the command. If the issue persists contact the developers! ")
             raise error
         embed.set_footer(text="PloxHost community bot")
         await ctx.send(embed=embed)
