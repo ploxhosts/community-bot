@@ -100,9 +100,7 @@ class Levels(commands.Cog):
             exp = x["exp"]
         embed = discord.Embed(color=0xffffff)
         embed.add_field(name=f"{user.name}", value=f"Has {exp} xp and are on level {level}", inline=True)
-        final_message = await ctx.send(embed=embed)
-        await asyncio.sleep(10)
-        await final_message.delete()
+        await ctx.send(embed=embed)
 
     @commands.group(invoke_without_command=True, case_sensitive=False,
                     description="Enable/Disable leveling on your server",

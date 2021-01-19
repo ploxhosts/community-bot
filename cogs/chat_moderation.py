@@ -127,6 +127,9 @@ class Chat(commands.Cog):
             allowed_invites = x["allowed_invites"]
             log_channel = x["log_channel"]
             ignore_roles = x["ignore_roles"]
+            ignore_channels_mod = x["mod_ignore_channels"]
+        if message.channel.id in ignore_channels_mod:
+            return
         for x in ignore_roles:
             role = message.guild.get_role(x)
             if role in message.author.roles:

@@ -1,6 +1,7 @@
+import datetime
+
 import discord
 from discord.ext import commands
-import datetime
 
 
 class Events(commands.Cog):
@@ -119,8 +120,17 @@ class Events(commands.Cog):
                 "prefix": "?",  # Default prefix
                 "leveling_code": 1,  # Boolean value to allow leveling system to work, default yes
                 "voice_leveling_code": 1,  # Boolean value to allow voice leveling to work, default yes
-                "welcome_channel": 0,  # Setting up a welcome channel to send embeds/images to
-                "welcome_code": 0,  # If welcome messages should be sent, default no
+
+                "welcome": {
+                    "channel": 0,  # Setting up a welcome channel to send embeds/images to
+                    "code": 0,  # If welcome messages should be sent, default no
+                },
+                "suggestions": {
+                    "intake_channel": 0,
+                    "approved_channel": 0,
+                    "denied_channel": 0,
+                    
+                },
                 "chat_moderation": 1,  # If chat moderation is enabled, default yes
                 "log_channel": 0,  # Where mod logs are sent
                 "blacklisted_domains": [],  # Domains that cannot be sent
@@ -132,6 +142,31 @@ class Events(commands.Cog):
                 # Leveling doesn't happen here helpful to disable level up messages in these channels
                 "mod_ignore_channels": [],
                 # Auto moderation and logging ignore this channel helpful for staff chats or similar
+                "extra_settings": {},
+
+            })
+        posts = db.servereconomy
+        if posts.find(
+                {'guild_id': message.guild.id}).count() > 0:  # Adds a guild to the database in case of any downtime
+            pass
+        else:
+            posts.insert_one({
+                "guild_id": message.guild.id,
+                "level": 0,  # Upgrade a guild for higher taxes
+                "balance": 1000,  # Balance can be used for advertisement or buy things for the economy using it
+                "tax_rate": 5,  # 5 % by default
+                "computer": {
+                    "firewall": 1,  # How secure it is to attack, higher the more secure
+                    "antivirus": 1,  # Stops viruses, higher the more secure
+                    "sdk": 1,  # Breach a firewall, higher the more powerful
+                    "malware": 1,  # make viruses, the higher the more powerful
+
+                },
+                "weapons": {
+                    # Here goes any weapons they have and the multiplier. For example having "nukes": 100 will mean 100 * damage of a nuke and a nuke aims to destroy level ups of a guild and so on by reducing money, messing up taxes, lowering levels of power and such.
+                    "sns": 10  # default sticks and stones for weapons
+                },
+                "worth": message.guild.member_count/100
 
             })
 

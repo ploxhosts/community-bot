@@ -1,8 +1,6 @@
-<<<<<<< HEAD
 # community-bot
 
 An open sourced community projected created for our discord server. 
-=======
 ![Total file size](https://img.shields.io/github/languages/code-size/PloxHost-LLC/community-bot) ![File count](https://img.shields.io/github/directory-file-count/PloxHost-LLC/community-bot) ![Python version](https://img.shields.io/badge/python-v3.8-blue)
 
 # PloxHost Community Bot
@@ -52,4 +50,3 @@ Now you can commit and push to your repository or continue to make changes. All 
 - The code must not be malicious/harmful. Code that is written in a way where it risks exposing the database(No SQL injection), insecure admin commands(banning without appropriate permissions) and/or creating anything illegal will not be allowed.
 
 - Finally, be nice and leave a few comments here and there. Think "what is my thinking process" and just write it down. Keep them short but being funny is allowed.
->>>>>>> upstream/test

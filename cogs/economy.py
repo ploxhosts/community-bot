@@ -321,7 +321,7 @@ class Economy(commands.Cog):
         embed.set_footer(text="PloxHost community bot | Lottery system")
         await ctx.send(embed=embed)
 
-    @lotterycmd.command(name="buy", aliases=["purchase", "own"], usage="buy daily 100", no_pm=True)
+    @lotterycmd.command(name="buy", aliases=["purchase", "own"], usage="lottery buy daily 100", no_pm=True)
     async def lotterybuy(self, ctx, option, amount: int):
         if await self.get_money(ctx.author.id, ctx.guild.id) < amount:
             return await ctx.send("Not enough money to buy this!")
