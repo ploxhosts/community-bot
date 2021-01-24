@@ -35,7 +35,7 @@ You must create a file named `.env` with the contents of the template file. Fill
 
 You can now run the code using `python main.py` in the command line or by pressing run in your ide.
 
-Now you can commit and push to your repository or continue to make changes. All features need to meet a few requirements before being added, but those are in the heading named `steps before contributing` but once met you can open a pull request and wait for an answer.
+Now you can commit and push to your repository or continue to make changes. All features need to meet a few requirements before being added, but those are in the heading named `steps before contributing` but once met you can open a pull request to the branch test and wait for an answer.
 
 ## Steps before contributing
 
