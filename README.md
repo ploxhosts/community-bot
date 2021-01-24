@@ -50,3 +50,13 @@ Now you can commit and push to your repository or continue to make changes. All 
 - The code must not be malicious/harmful. Code that is written in a way where it risks exposing the database(No SQL injection), insecure admin commands(banning without appropriate permissions) and/or creating anything illegal will not be allowed.
 
 - Finally, be nice and leave a few comments here and there. Think "what is my thinking process" and just write it down. Keep them short but being funny is allowed.
+
+## What if I need help to contribute?
+
+`/cogs/example.py` contains everything you need to get started with a new cog. From deleting data to making data it has it all.
+
+### Want to help people with bot development? 
+
+Feel free to update the example.py cog with additional helpful information/comments.
+
+
