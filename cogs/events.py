@@ -92,7 +92,7 @@ class Events(commands.Cog):
                 "mod_ignore_channels": [],
                 # Auto moderation and logging ignore this channel helpful for staff chats or similar
                 "max_mentions": 0,  # Amount of mentions in a message before getting banned
-                "on_mass_mention": 4,  # 0 = Do nothing, 1 = Mute with auto_mute, 2 = kick, 3 = temp_ban, 4 = perm_ban
+                "on_mass_mention": 0,  # 0 = Do nothing, 1 = Mute with auto_mute, 2 = kick, 3 = temp_ban, 4 = perm_ban
                 "auto_temp_ban_time": 1440,  # Minutes an auto temp ban lasts/ 24 hours
 
                 "max_caps": 0,  # Percent of the message to reject if it has too many capitals

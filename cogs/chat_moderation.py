@@ -72,10 +72,13 @@ class Chat(commands.Cog):
             if ban_on_mass_mention == 1:  # Mute
                 posts = db.pending_mutes
                 posts.insert_one(
-                    {"guild_id": message.guild.id, "user_id": message.author.id, "time": auto_mute_time * 60, "issued": time.time()})
+                    {"guild_id": message.guild.id, "user_id": message.author.id, "time": auto_mute_time * 60,
+                     "issued": time.time()})
                 posts = db.player_data
 
-                logs.append({"type": "MUTED", "warn_id": tools.generate_flake(), "reason": "Mass mention", "issuer": "SYSTEM", "time": time_warned.strftime('%c')})
+                logs.append(
+                    {"type": "MUTED", "warn_id": tools.generate_flake(), "reason": "Mass mention", "issuer": "SYSTEM",
+                     "time": time_warned.strftime('%c')})
 
                 posts.update_one({"user_id": message.author.id, "guild_id": message.guild.id},
                                  {"$set": {"mod_logs": logs}})
@@ -99,7 +102,8 @@ class Chat(commands.Cog):
                 posts = db.player_data
 
                 logs.append(
-                    {"type": "TEMP-BANNED", "warn_id": tools.generate_flake(), "reason": "Mass mention", "issuer": "SYSTEM",
+                    {"type": "TEMP-BANNED", "warn_id": tools.generate_flake(), "reason": "Mass mention",
+                     "issuer": "SYSTEM",
                      "time": time_warned.strftime('%c')})
 
                 posts.update_one({"user_id": message.author.id, "guild_id": message.guild.id},
@@ -262,24 +266,28 @@ class Chat(commands.Cog):
             description="This helps you config the chat moderation system",
             color=0xeee657)
         embed.add_field(
-            name="Disable/Enable chat mod",
+            name="Enable/Disable chat mod",
             value=f"{prefix}chat mod <enable|disable>",
             inline=False)
         embed.add_field(
-            name="Disable/Enable chat mod",
+            name="Add/Remove blacklisted words",
             value=f"{prefix}chat words  <add|remove|list>",
             inline=False)
         embed.add_field(
-            name="Disable/Enable chat mod",
+            name="Add/Remove blacklisted links",
             value=f"{prefix}chat link <add|remove|list>",
             inline=False)
         embed.add_field(
-            name="Disable/Enable chat mod",
+            name="Add/Remove role bypass",
             value=f"{prefix}chat role <add|remove|list>",
             inline=False)
         embed.add_field(
-            name="Disable/Enable chat mod",
+            name="Add/Remove allowed invites",
             value=f"{prefix}chat invites <add|remove|list>",
+            inline=False)
+        embed.add_field(
+            name="Set/Reset max mentions",
+            value=f"{prefix}chat mentions <set|reset>",
             inline=False)
         await ctx.send(embed=embed)
 
@@ -543,17 +551,30 @@ class Chat(commands.Cog):
         posts = db.serversettings
         log_channel = 0
         max_mentions = 0
+        on_mass_mention = 0
 
         for x in posts.find({"guild_id": ctx.guild.id}):
             log_channel = x["auto_mod"]["log_channel"]
-            chat_moderation = x["auto_mod"]["max_mentions"]
+            max_mentions = x["auto_mod"]["max_mentions"]
+            on_mass_mention = x["auto_mod"]["on_mass_mention"]
 
         if option.lower() in ["set", "add", "limit"]:
-            posts.update_one({"guild_id": ctx.guild.id},
-                             {"$set": {"auto_mod.max_mentions": 1}})
+            def check(m):
+                return m.author == ctx.author and m.channel == ctx.channel
 
-            await self.send_log_embed(log_channel, f"{ctx.author.name} Enabled chat moderation and anti raid",
-                                      f"Messages containing banned words, links, excessive emojis and spam will be deleted!")
+            await ctx.send(
+                "Please select a number from this list:\n1. Auto mute\n2. Auto kick\n3.Temp ban\n4. Perm ban")
+            msg = await self.bot.wait_for('message', check=check)
+            try:
+                on_mass_mention = int(msg.content)
+
+            except:
+                return await ctx.send("Please choose a valid number!")
+            posts.update_one({"guild_id": ctx.guild.id},
+                             {"$set": {"auto_mod.max_mentions": value, "auto_mod.on_mass_mention": on_mass_mention}})
+
+            await self.send_log_embed(log_channel, f"{ctx.author.name} Set max mentions to {max_mentions}",
+                                      f"Messages containing spam pings will be moderated!")
 
             await ctx.send(f"Allowed chat moderation and anti raid!")
         elif option.lower() in ["reset", "disable", "stop"]:
@@ -564,11 +585,67 @@ class Chat(commands.Cog):
                                       f"Messages containing spam pings will not be moderated!")
 
             await ctx.send(f"Disallowed chat moderation and anti raid!")
-        else:
-            if max_mentions:
-                await ctx.send("Chat moderation is on!")
-            else:
-                await ctx.send("Chat moderation is off!")
+
+    @chat.command(name="bans", aliases=["ban"], usage="chat bans <set|reset> <value>")
+    @commands.has_permissions(manage_guild=True)
+    async def bans(self, ctx, option, value: int):
+        db = self.database.bot
+        posts = db.serversettings
+        log_channel = 0
+        auto_temp_ban_time = 0
+
+        for x in posts.find({"guild_id": ctx.guild.id}):
+            log_channel = x["auto_mod"]["log_channel"]
+            auto_temp_ban_time = x["auto_mod"]["auto_temp_ban_time"]
+
+        if option.lower() in ["set", "add", "limit"]:
+
+            posts.update_one({"guild_id": ctx.guild.id},
+                             {"$set": {"auto_mod.auto_temp_ban_time": value}})
+
+            await self.send_log_embed(log_channel, f"{ctx.author.name} Set Auto temp ban time set to {auto_temp_ban_time}",
+                                      f"Users who get temp banned get unbanned after {auto_temp_ban_time} minutes!")
+
+            await ctx.send(f"Allowed chat moderation and anti raid!")
+        elif option.lower() in ["reset", "disable", "stop"]:
+            posts.update_one({"guild_id": ctx.guild.id},
+                             {"$set": {"auto_mod.auto_temp_ban_time": 0}})
+
+            await self.send_log_embed(log_channel, f"{ctx.author.name} Disabled temp bans",
+                                      f"No one will be banned if they are deemed to be raiding your server!")
+
+            await ctx.send(f"Disallowed chat moderation and anti raid!")
+
+    @chat.command(name="mutes", aliases=["mute"], usage="chat mutes <set|reset> <value>")
+    @commands.has_permissions(manage_guild=True)
+    async def mutes(self, ctx, option, value: int):
+        db = self.database.bot
+        posts = db.serversettings
+        log_channel = 0
+        auto_mute_time = 0
+
+        for x in posts.find({"guild_id": ctx.guild.id}):
+            log_channel = x["auto_mod"]["log_channel"]
+            auto_mute_time = x["auto_mod"]["auto_mute_time"]
+
+        if option.lower() in ["set", "add", "limit"]:
+
+            posts.update_one({"guild_id": ctx.guild.id},
+                             {"$set": {"auto_mod.auto_mute_time": value}})
+
+            await self.send_log_embed(log_channel,
+                                      f"{ctx.author.name} Set Auto mute time set to {auto_mute_time}",
+                                      f"Users who get temp banned get un muted after {auto_mute_time} minutes!")
+
+            await ctx.send(f"Allowed chat moderation and anti raid!")
+        elif option.lower() in ["reset", "disable", "stop"]:
+            posts.update_one({"guild_id": ctx.guild.id},
+                             {"$set": {"auto_mod.auto_mute_time": 0}})
+
+            await self.send_log_embed(log_channel, f"{ctx.author.name} Disabled auto mutes",
+                                      f"Members will not be muted!")
+
+            await ctx.send(f"Disallowed chat moderation and anti raid!")
 
 def setup(bot):
     bot.add_cog(Chat(bot))
