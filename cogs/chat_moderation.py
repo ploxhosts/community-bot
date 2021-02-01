@@ -289,6 +289,14 @@ class Chat(commands.Cog):
             name="Set/Reset max mentions",
             value=f"{prefix}chat mentions <set|reset>",
             inline=False)
+        embed.add_field(
+            name="Set/Reset temp ban time",
+            value=f"{prefix}chat bans <set|reset> <minutes>",
+            inline=False)
+        embed.add_field(
+            name="Set/Reset auto mute time",
+            value=f"{prefix}chat mutes <set|reset> <minutes>",
+            inline=False)
         await ctx.send(embed=embed)
 
     @chat.command(name="words", aliases=["word", "text"], usage="chat words <add|remove|list>")
@@ -586,7 +594,7 @@ class Chat(commands.Cog):
 
             await ctx.send(f"Disallowed chat moderation and anti raid!")
 
-    @chat.command(name="bans", aliases=["ban"], usage="chat bans <set|reset> <value>")
+    @chat.command(name="bans", aliases=["ban"], usage="chat bans <set|reset> <minutes>")
     @commands.has_permissions(manage_guild=True)
     async def bans(self, ctx, option, value: int):
         db = self.database.bot
@@ -616,7 +624,7 @@ class Chat(commands.Cog):
 
             await ctx.send(f"Disallowed chat moderation and anti raid!")
 
-    @chat.command(name="mutes", aliases=["mute"], usage="chat mutes <set|reset> <value>")
+    @chat.command(name="mutes", aliases=["mute"], usage="chat mutes <set|reset> <minutes>")
     @commands.has_permissions(manage_guild=True)
     async def mutes(self, ctx, option, value: int):
         db = self.database.bot
