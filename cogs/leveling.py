@@ -29,11 +29,11 @@ class Levels(commands.Cog):
             db = self.database.bot
             posts = db.serversettings
             for x in posts.find({"guild_id": message.guild.id}):
-                status = x['leveling_code']
+                status = x['levels']["enabled"]
                 if status == 0 or status is None:
                     return
 
-            posts = db.stats
+            posts = db.player_data
 
             # Now use a tiny bit of ram
 
@@ -85,7 +85,7 @@ class Levels(commands.Cog):
         level = 0
 
         db = self.database.bot
-        posts = db.stats
+        posts = db.player_data
 
         if user is None:
             for x in posts.find({"user_id": ctx.author.id, "guild_id": ctx.guild.id}):
@@ -121,10 +121,10 @@ class Levels(commands.Cog):
         db = self.database.bot
         posts = db.serversettings
         if choice == "enable":
-            posts.update_one({"guild_id": ctx.guild.id}, {"$set": {"leveling_code": 1}})
+            posts.update_one({"guild_id": ctx.guild.id}, {"$set": {"levels.enabled": 1}})
             await ctx.send(f"Leveling has been enabled")
         elif choice == "disable":
-            posts.update_one({"guild_id": ctx.guild.id}, {"$set": {"leveling_code": 0}})
+            posts.update_one({"guild_id": ctx.guild.id}, {"$set": {"levels.enabled": 0}})
             await ctx.send(f"Leveling has been disabled")
 
     @leveling.command(name="voice", description="Disable/Enable voice chat leveling",
@@ -133,10 +133,10 @@ class Levels(commands.Cog):
         db = self.database.bot
         posts = db.serversettings
         if choice == "enable":
-            posts.update_one({"guild_id": ctx.guild.id}, {"$set": {"voice_leveling_code": 1}})
+            posts.update_one({"guild_id": ctx.guild.id}, {"$set": {"levels.voice_enabled": 1}})
             await ctx.send(f"Voice leveling has been enabled")
         elif choice == "disable":
-            posts.update_one({"guild_id": ctx.guild.id}, {"$set": {"voice_leveling_code": 0}})
+            posts.update_one({"guild_id": ctx.guild.id}, {"$set": {"levels.voice_enabled": 0}})
             await ctx.send(f"Voice leveling has been disabled")
 
 

@@ -1,14 +1,10 @@
+import datetime
+import time
+
 import discord
 from discord.ext import commands, tasks
-import datetime
-import asyncio
-import time
-import random
 
-
-def generate_flake():
-    flake = (int((time.time() - 946702800) * 1000) << 23) + random.SystemRandom().getrandbits(23)
-    return flake
+import tools
 
 
 class Mod(commands.Cog):
@@ -18,28 +14,30 @@ class Mod(commands.Cog):
         self.bot = bot
         self.database = bot.database
 
+
     @commands.command(name="warn", description="Warn someone", usage="warn @user <reason>")
     @commands.has_permissions(manage_messages=True)
     async def warn(self, ctx, user: discord.Member, *, reason: str = None):
         db = self.database.bot
-        posts = db.warnings
+        posts = db.player_data
+        logs = []
         if reason is None:
             await ctx.send("Please provide a reason!")
             return
         time_warned = datetime.datetime.now()
         a = 0
         for x in posts.find({"guild_id": ctx.guild.id, "user_id": user.id}):
-            a += 1
+            logs = x["mod_logs"]
+
+        a = len(logs)
         a += 1
-        warn_id = generate_flake()
+        warn_id = tools.generate_flake()
 
-        posts.insert_one({"user_id": user.id,
-                          "guild_id": ctx.guild.id,
-                          "reason": reason,
-                          "issuer": ctx.author.id,
-                          "time": time_warned.strftime('%c'),
-                          "warn_id": warn_id})
+        logs.append({"type": "WARNED", "warn_id": warn_id, "reason": reason, "issuer": ctx.author.id,
+                     "time": time_warned.strftime('%c')})
 
+        posts.update_one({"user_id": user.id, "guild_id": ctx.guild.id},
+                         {"$set": {"mod_logs": logs}})
         embed = discord.Embed(colour=discord.Colour(0xac6f8f), description=f"You have been warned!")
         embed.add_field(name="Reason:", value=f"{reason}", inline=False)
         embed.add_field(name="ID:", value=f"{warn_id}", inline=False)
@@ -57,52 +55,66 @@ class Mod(commands.Cog):
 
     @commands.command(name="unwarn", description="Remove a warn someone", usage="unwarn @user <warn number> <reason>")
     @commands.has_permissions(manage_messages=True)
-    async def unwarn(self, ctx, user: discord.Member, warn_id, *, reason: str = None):
+    async def unwarn(self, ctx, user: discord.Member, warn_id, *, reason="No reason provided."):
         db = self.database.bot
-        posts = db.warnings
-        if reason is None:
-            await ctx.send("Please provide a reason!")
-            return
-        a = -1
+        posts = db.player_data
+        logs = []
         for x in posts.find({"guild_id": ctx.guild.id, "user_id": user.id}):
-            a += 1
-            warn_id = x["warn_id"]
-        posts.delete_one({"warn_id": warn_id})
+            logs = x["mod_logs"]
+        a = len(logs) - 1
 
-        embed = discord.Embed(colour=0xac6f8f, description=f"Warning with id {warn_id} has been removed!",
-                              icon_url=f"{user.avatar_url}")
-        embed.add_field(name="Reason", value=f"{reason}", inline=False)
-        embed.add_field(name="You now have:", value=f"{a} warnings", inline=True)
-        embed.set_footer(text="PloxHost community bot | Moderation")
-        await user.send(embed=embed)
-        await ctx.send(f"{user.mention}'s warning {warn_id} has been removed!")
-        await ctx.message.delete()
+        found = False
+        for i, o in enumerate(logs):
+            if o.attr == int(warn_id):
+                del logs[i]
+                found = True
+                break
+        if found:
+            embed = discord.Embed(colour=0xac6f8f, description=f"Warning with id {warn_id} has been removed!",
+                                  icon_url=f"{user.avatar_url}")
+            embed.add_field(name="Reason", value=f"{reason}", inline=False)
+            embed.add_field(name="You now have:", value=f"{a} warnings", inline=True)
+            embed.set_footer(text="PloxHost community bot | Moderation")
+            await user.send(embed=embed)
+            await ctx.send(f"{user.mention}'s warning {warn_id} has been removed!")
+            await ctx.message.delete()
+        else:
+            await ctx.send("That warning could not be found!")
 
     @commands.command(name="warnings", description="View someone's warnings", usage="warnings @user")
     @commands.has_permissions(manage_messages=True)
     async def warnings(self, ctx, user: discord.Member):
         db = self.database.bot
-        posts = db.warnings
+        posts = db.player_data
         lista = []
         a = 0
+        message = "No warnings found!"
         for x in posts.find({"guild_id": ctx.guild.id, "user_id": user.id}):
-            a += 1
-            issuer = x['issuer']
-            reason = x['reason']
-            warn_id = x["warn_id"]
-            warner = self.bot.get_user(issuer)
-            lista.append(f"{a}. Warned by {warner.name}#{warner.discriminator} for {reason}\n ID: {warn_id}\n")
-        x = "\n".join(lista)
+            for log in x["mod_logs"]:
+                a += 1
+                issuer = log['issuer']
+                reason = log['reason']
+                warn_id = log["warn_id"]
+                if issuer != "SYSTEM":
+                    warner = self.bot.get_user(issuer)
+                    lista.append(
+                        f"{a}. Warned by **{warner.name}#{warner.discriminator}** for {reason}\n ID: {warn_id}\n")
+                else:
+                    lista.append(f"{a}. Warned by **SYSTEM** for {reason}\n ID: {warn_id}\n")
+        if lista:
+            print("here")
+            message = "\n".join(lista)
+
         embed = discord.Embed(colour=0xac6f8f, description=f"{user}'s Warning's",
                               icon_url=f"{user.avatar_url}")
-        embed.add_field(name="Warnings", value=f"{x}", inline=False)
+        embed.add_field(name="Warnings", value=f"{message}", inline=False)
         embed.set_footer(text="PloxHost community bot | Moderation")
         await ctx.send(embed=embed)
 
     @commands.command(name="kick", description="Kick someone", usage="kick @user <reason>")
     @commands.has_permissions(kick_members=True)
     @commands.bot_has_permissions(kick_members=True)
-    async def kick(self, ctx, member:discord.Member, *, reason="No reason"):
+    async def kick(self, ctx, member: discord.Member, *, reason="No reason"):
         db = self.database.bot
         posts = db.warnings
         await member.send(f"You were kicked from {ctx.guild} for {reason}")

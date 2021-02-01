@@ -25,11 +25,11 @@ class VLevels(commands.Cog):
         posts = db.serversettings
 
         for x in posts.find({"guild_id": member.guild.id}):
-            status = x['leveling_code']
+            status = x["levels"]['voice_enabled']
             if status == 0 or status is None:
                 return
 
-        posts = db.stats
+        posts = db.player_data
 
         for x in posts.find({"user_id": member.id, "guild_id": member.guild.id}):
             level = x["level"]
