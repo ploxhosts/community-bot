@@ -65,6 +65,7 @@ class Chat(commands.Cog):
                         await channel.send("A message was deleted as it contained a banned word.")
         time_warned = datetime.datetime.now()
         if len(message.mentions) > MAX_MENTIONS != 0:
+            print("Execute mass mentions")
             guild = self.bot.get_guild(message.guild.id)
             channel = guild.get_channel(message.channel.id)
             if await self.delete_message(message) == "Deleted":
@@ -359,7 +360,7 @@ class Chat(commands.Cog):
         BANNED_LINKS = []
         for x in posts.find({"guild_id": ctx.guild.id}):
             BANNED_LINKS = x["auto_mod"]["blacklisted_domains"]
-            log_channel = x["auto_mod"]["log_channel"]
+            log_channel = x["log_channel"]
 
         if option.lower() in ["add", "addition", "insert"]:
             if text.lower() in BANNED_LINKS:
@@ -409,7 +410,7 @@ class Chat(commands.Cog):
             return role is None
 
         for x in posts.find({"guild_id": ctx.guild.id}):
-            log_channel = x["auto_mod"]["log_channel"]
+            log_channel = x["log_channel"]
             ignore_roles = x["auto_mod"]["ignore_roles"]
 
         if option.lower() in ["add", "ignore"]:
@@ -458,7 +459,7 @@ class Chat(commands.Cog):
             return setting is None
 
         for x in posts.find({"guild_id": ctx.guild.id}):
-            log_channel = x["auto_mod"]["log_channel"]
+            log_channel = x["log_channel"]
             allowed_invites = x["auto_mod"]["allowed_invites"]
 
         if option.lower() in ["add", "ignore", "allow"]:
@@ -528,7 +529,7 @@ class Chat(commands.Cog):
         chat_moderation = 0
 
         for x in posts.find({"guild_id": ctx.guild.id}):
-            log_channel = x["auto_mod"]["log_channel"]
+            log_channel = x["log_channel"]
             chat_moderation = x["auto_mod"]["chat_moderation"]
         if option.lower() in ["on", "enable", "allow", "engage"]:
             posts.update_one({"guild_id": ctx.guild.id},
@@ -562,7 +563,7 @@ class Chat(commands.Cog):
         on_mass_mention = 0
 
         for x in posts.find({"guild_id": ctx.guild.id}):
-            log_channel = x["auto_mod"]["log_channel"]
+            log_channel = x["log_channel"]
             max_mentions = x["auto_mod"]["max_mentions"]
             on_mass_mention = x["auto_mod"]["on_mass_mention"]
 
@@ -603,7 +604,7 @@ class Chat(commands.Cog):
         auto_temp_ban_time = 0
 
         for x in posts.find({"guild_id": ctx.guild.id}):
-            log_channel = x["auto_mod"]["log_channel"]
+            log_channel = x["log_channel"]
             auto_temp_ban_time = x["auto_mod"]["auto_temp_ban_time"]
 
         if option.lower() in ["set", "add", "limit"]:
@@ -633,7 +634,7 @@ class Chat(commands.Cog):
         auto_mute_time = 0
 
         for x in posts.find({"guild_id": ctx.guild.id}):
-            log_channel = x["auto_mod"]["log_channel"]
+            log_channel = x["log_channel"]
             auto_mute_time = x["auto_mod"]["auto_mute_time"]
 
         if option.lower() in ["set", "add", "limit"]:
