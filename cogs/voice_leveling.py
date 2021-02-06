@@ -1,7 +1,7 @@
-import discord
 import datetime
 import math
-from discord.ext import commands, tasks
+
+from discord.ext import commands
 
 
 class VLevels(commands.Cog):

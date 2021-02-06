@@ -20,7 +20,7 @@ def get_prefix(bot, message):
 
     if not message.guild:
         return commands.when_mentioned_or(prefix)(bot, message)
-    db = database.client.bot
+    db = database.bot
     collection = db.serversettings
 
     result = collection.find_one({"guild_id": message.guild.id})
@@ -45,6 +45,7 @@ bot.database = database  # for use else where
 @bot.event
 async def on_ready():
     members = len(set(bot.get_all_members()))
+    print(bot.guilds)
     print('-----------------')
     print(f"Logged in as {bot.user.id} \nin {len(bot.guilds)} servers with {members} members")
     print('-----------------')

@@ -1,5 +1,5 @@
+import asyncio
 import datetime
-import time
 
 import discord
 from discord.ext import commands, tasks
@@ -7,13 +7,166 @@ from discord.ext import commands, tasks
 import tools
 
 
+# noinspection SpellCheckingInspection
 class Mod(commands.Cog):
     """Moderation commands like ban/kick"""
 
     def __init__(self, bot):
         self.bot = bot
         self.database = bot.database
+        self.un_ban.start()
+        self.un_mute.start()
 
+    @tasks.loop(seconds=30.0)
+    async def un_mute(self):
+        db = self.database.bot
+        posts = db.pending_mutes
+        for user in posts.find({}):
+            try:
+                user_id = user["user_id"]
+                guild_id = user["guild_id"]
+                ban_time = user["time"]
+                if ban_time is not None:
+                    iat = user["issued"]
+                    roles = user["roles"]
+                    current_time_utc = datetime.datetime.now()
+                    change = current_time_utc - iat
+                    minutes_change = change.total_seconds() / 60
+                    if ban_time - minutes_change <= 0:
+                        posts2 = db.serversettings
+                        role = posts2.find_one({"guild_id": guild_id})['muted_role_id']
+                        guild = self.bot.get_guild(guild_id)
+                        role = guild.get_role(role)
+                        member = guild.get_member(user_id)
+                        await member.remove_roles(role, reason="Muted expired")
+                        posts.delete_one({"user_id": user_id, "guild_id": guild_id})
+                        for role in roles:
+                            try:
+                                role_f = guild.get_role(role)
+                                await member.add_roles(role_f)
+                            except AttributeError:
+                                pass
+            except AttributeError:
+                pass
+
+    @tasks.loop(seconds=30.0)
+    async def un_ban(self):
+        db = self.database.bot
+        posts = db.pending_bans
+        for user in posts.find({}):
+            user_id = user["user_id"]
+            guild_id = user["guild_id"]
+            ban_time = user["time"]
+            iat = user["issued"]
+            current_time_utc = datetime.datetime.now()
+            change = current_time_utc - iat
+            minutes_change = change.seconds / 60
+            if ban_time - minutes_change <= 0:
+                guild = self.bot.get_guild(guild_id)
+                user = await self.bot.fetch_user(user_id)
+                await guild.unban(user, reason="Temp ban expiry")
+                posts.delete_one({"user_id": user_id, "guild_id": guild_id})
+
+    @un_ban.before_loop
+    async def before_un_ban(self):
+        await self.bot.wait_until_ready()
+
+    @un_mute.before_loop
+    async def before_un_mute(self):
+        await self.bot.wait_until_ready()
+
+    async def send_log_embed(self, channel, title, message):
+        if channel == 0:
+            return
+
+        embed = discord.Embed(colour=0xac6f8f, title=title)
+        embed.add_field(name="Message:", value=f"\n{message}", inline=False)
+        embed.set_footer(text="PloxHost community bot | Chat Moderation")
+        log_channel = self.bot.get_channel(channel)
+
+        await log_channel.send(embed=embed)
+
+    async def create_muted_role(self, guild):
+        db = self.database.bot
+        posts = db.serversettings
+        role = posts.find_one({"guild_id": guild.id})['muted_role_id']
+        if not role:
+            role = await guild.create_role(name="Muted", reason="Muted role is needed")
+            for category in guild.categories:
+                perms = category.overwrites_for(role)
+                perms.send_messages = False
+                await category.set_permissions(role, overwrite=perms, reason="Muted!")
+            for channel in guild.channels:
+                if not channel.permissions_synced:
+                    perms = channel.overwrites_for(role)
+                    perms.send_messages = False
+                    await channel.set_permissions(role, overwrite=perms, reason="Muted!")
+            posts.update_one({"guild_id": guild.id},
+                             {"$set": {"muted_role_id": role.id}})
+        else:
+            role = guild.get_role(role)
+        return role
+
+    async def give_muted_role(self, guild, member, user_id, role, duration):
+        if role not in member.roles:
+            await member.add_roles(role, reason="Muted")
+            db = self.database.bot
+            posts = db.serversettings
+            channel = posts.find_one({"guild_id": guild.id})['log_channel']
+            await self.send_log_embed(channel, f"Muted {member.name}#{member.discriminator} for {duration}",
+                                      f"Muted {member.display_name} with id of: {user_id}")
+            return True
+        else:
+            return False
+
+    @commands.command(name="mute", description="Mute someone", usage="mute @user <time> <reason>")
+    @commands.has_permissions(manage_messages=True)
+    async def mute(self, ctx, member: discord.Member, duration="perm"):
+        role = await self.create_muted_role(ctx.guild)
+        role_list = member.roles
+        # noinspection PyTypeChecker
+        res = await self.give_muted_role(ctx.guild, member, member.id, role, duration)
+        if res:
+            await ctx.send(f"Successfully muted {member.name} for {duration}")
+            duration_formatted = tools.get_time(duration)
+            db = self.database.bot
+            posts = db.pending_mutes
+            role_list2 = []
+            for role_it in role_list:
+                if role_it.name != "@everyone":
+                    await member.remove_roles(role_it, reason="Muted")
+                    role_list2.append(role_it.id)
+            posts.insert_one(
+                {"guild_id": ctx.guild.id, "user_id": member.id, "time": duration_formatted,
+                 "issued": datetime.datetime.now(), "roles": role_list2})
+            if duration_formatted is not None and (duration_formatted * 60) < 800:
+                await asyncio.sleep(duration_formatted * 60)
+                posts.delete_many({"guild_id": ctx.guild.id, "user_id": member.id})
+                await member.remove_roles(role, reason="Mute expired")
+                for role_it in role_list:
+                    if role_it.name != "@everyone":
+                        await member.add_roles(role_it, reason="Mute expired")
+        else:
+            await ctx.send(
+                f"Could not mute {member.name}, they may already have the role.\n Try removing their role or resetting the channel permissions.")
+
+    @commands.command(name="unmute", description="Remove a mute from someone", usage="unmute @user")
+    @commands.has_permissions(manage_messages=True)
+    async def unmute(self, ctx, member: discord.Member):
+        role = await self.create_muted_role(ctx.guild)
+        db = self.database.bot
+        posts = db.pending_mutes
+        for user in posts.find({"user_id": member.id, "guild_id": ctx.guild.id}):
+            roles = user["roles"]
+            await member.remove_roles(role, reason="Muted expired")
+            posts.delete_one({"user_id": member.id, "guild_id": ctx.guild.id})
+            for role in roles:
+                try:
+                    role_f = ctx.guild.get_role(role)
+                    await member.add_roles(role_f)
+                except AttributeError:
+                    pass
+        await ctx.send(f"Unmuted {member.name}!")
 
     @commands.command(name="warn", description="Warn someone", usage="warn @user <reason>")
     @commands.has_permissions(manage_messages=True)
@@ -25,14 +178,14 @@ class Mod(commands.Cog):
             await ctx.send("Please provide a reason!")
             return
         time_warned = datetime.datetime.now()
-        a = 0
         for x in posts.find({"guild_id": ctx.guild.id, "user_id": user.id}):
             logs = x["mod_logs"]
 
         a = len(logs)
+        if not a:
+            a = 0
         a += 1
         warn_id = tools.generate_flake()
-
         logs.append({"type": "WARNED", "warn_id": warn_id, "reason": reason, "issuer": ctx.author.id,
                      "time": time_warned.strftime('%c')})
 
@@ -120,7 +273,7 @@ class Mod(commands.Cog):
         await member.send(f"You were kicked from {ctx.guild} for {reason}")
         await member.kick(reason=reason)
         await ctx.message.delete()
-        warn_id = generate_flake()
+        warn_id = tools.generate_flake()
         time_warned = datetime.datetime.now()
         posts.insert_one({"user_id": member.id,
                           "guild_id": ctx.guild.id,
@@ -149,7 +302,7 @@ class Mod(commands.Cog):
         else:
             await ctx.guild.ban(user=user, reason=reason)
             await ctx.send(f"{user} has been banned for {reason}")
-        warn_id = generate_flake()
+        warn_id = tools.generate_flake()
         time_warned = datetime.datetime.now()
         posts.insert_one({"user_id": user.id,
                           "guild_id": ctx.guild.id,

@@ -6,6 +6,7 @@ import time
 import random
 
 
+# noinspection PyBroadException
 class Suggestions(commands.Cog):
     """Commands for suggesting new features"""
 
@@ -13,13 +14,12 @@ class Suggestions(commands.Cog):
         self.bot = bot
         self.database = bot.database
 
-    @commands.command(name='suggest', aliases=["suggestion"], usage="suggest <Title | suggestion>")
+    @commands.command(name='suggest', aliases=["suggestion"], usage="suggest <suggestion>")
     async def suggest(self, ctx, *, suggestion):
         db = self.database.bot
         posts = db.serversettings
 
         suggestions_config = 0
-        prefix = ""
         flake = (int((time.time() - 946702800) * 1000) << 23) + random.SystemRandom().getrandbits(23)
 
         for x in posts.find({"guild_id": ctx.guild.id}):
@@ -32,11 +32,11 @@ class Suggestions(commands.Cog):
         embed.set_footer(text=f"ID: {flake} | PloxHost community bot suggestions")
         embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar_url)
 
-        message = ""
-
         channel = ctx.guild.get_channel(suggestions_channel)
         message = await channel.send(embed=embed)
-
+        await message.add_reaction("✅")
+        await message.add_reaction("🟧")
+        await message.add_reaction("❌")
         posts = db.suggestions
         posts.insert_one({"guild_id": ctx.guild.id, "user_id": ctx.author.id, "message_id": message.id,
                           "time_sent": datetime.datetime.now().timestamp(), "status": "awaiting for approval",
@@ -45,12 +45,12 @@ class Suggestions(commands.Cog):
         await asyncio.sleep(1)
         await ctx.message.delete()
 
-
     @commands.group(name='suggestions', aliases=["suggests"], usage="suggestions")
     async def suggestions(self, ctx):
         pass
 
-    @suggestions.command(name='approve', aliases=["approvesuggestion", "suggestapprove", "accept", "acceptsuggestion"], usage="suggestions approve <id> <reason>")
+    @suggestions.command(name='approve', aliases=["approvesuggestion", "suggestapprove", "accept", "acceptsuggestion"],
+                         usage="suggestions approve <id> <reason>")
     @commands.has_permissions(manage_guild=True)
     async def approve(self, ctx, flake: int, *, reason=None):
         db = self.database.bot
@@ -112,7 +112,8 @@ class Suggestions(commands.Cog):
                     await message_sent_obj.delete()  # We want to overwrite the previous message
 
             sent_messages = [newmsg.id]
-        posts.update_one({"guild_id": ctx.guild.id, "message_id": message_id}, {"$set": {"status": "approved", "sent_messages": sent_messages}})
+        posts.update_one({"guild_id": ctx.guild.id, "message_id": message_id},
+                         {"$set": {"status": "approved", "sent_messages": sent_messages}})
 
     @suggestions.command(name='deny', aliases=["denysuggestion", "reject"], usage="suggestions deny <id> <reason>")
     @commands.has_permissions(manage_guild=True)
@@ -175,8 +176,10 @@ class Suggestions(commands.Cog):
                     await message_sent_obj.delete()  # We want to overwrite the previous message
 
             sent_messages = [newmsg.id]
-        posts.update_one({"guild_id": ctx.guild.id, "message_id": message_id}, {"$set": {"status": "denied", "sent_messages": sent_messages}})
+        posts.update_one({"guild_id": ctx.guild.id, "message_id": message_id},
+                         {"$set": {"status": "denied", "sent_messages": sent_messages}})
 
+    # noinspection PyBroadException
     @suggestions.command(name="setup", alias=["channels"], usage="suggestions setup")
     @commands.has_permissions(manage_guild=True)
     async def setup(self, ctx):
@@ -189,9 +192,6 @@ class Suggestions(commands.Cog):
         embed = discord.Embed(color=0xFF0000, description="Where should suggestions be sent?")
         embed.set_footer(text=f"PloxHost community bot | Suggestions Setup")
         first_message = await ctx.send(embed=embed)
-        intake_channel = 0
-        denied_channel = 0
-        accepted_channel = 0
         try:
             intake = await self.bot.wait_for('message', check=check, timeout=10)
         except asyncio.TimeoutError:
@@ -203,8 +203,8 @@ class Suggestions(commands.Cog):
             intake_channel = intake.channel_mentions[0].id
         except:
             return await ctx.send("It must be a channel mention!")
-
-        embed = discord.Embed(color=0xFF0000, description="Where should suggestions be accepted?\n This can left as 0 to use the same channel as before")
+        embed = discord.Embed(color=0xFF0000,
+                              description="Where should suggestions be accepted?\n This can left as 0 to use the same channel as before")
         embed.add_field(name="Suggestions channel", value=f"{intake_channel}")
         embed.set_footer(text=f"PloxHost community bot | Suggestions Setup")
         await first_message.edit(embed=embed)
@@ -246,7 +246,9 @@ class Suggestions(commands.Cog):
         embed.set_footer(text=f"PloxHost community bot | Suggestions Setup")
         await first_message.edit(embed=embed)
 
-        posts.update_one({"guild_id": ctx.guild.id}, {"$set": {"suggestions": {"intake_channel": intake_channel, "approved_channel": accepted_channel, "denied_channel": denied_channel}}})
+        posts.update_one({"guild_id": ctx.guild.id}, {"$set": {
+            "suggestions": {"intake_channel": intake_channel, "approved_channel": accepted_channel,
+                            "denied_channel": denied_channel}}})
 
 
 def setup(bot):

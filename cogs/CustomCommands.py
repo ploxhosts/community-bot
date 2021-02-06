@@ -97,11 +97,11 @@ class CustomCommands(commands.Cog):
         db = self.database.bot
         posts = db.customcommand
 
-        commands = []
+        c_commands = ["You have no custom commands. Please create one!"]
         for x in posts.find({"guild_id": ctx.guild.id}):
-            commands.append(x["command"])
+            c_commands.append(x["command"])
 
-        end_list = "\n".join(commands)
+        end_list = "\n".join(c_commands)
         embed = discord.Embed(colour=0xac6f8f)
         embed.add_field(name="Command list", value=f"\n\n{end_list}", inline=False)
         embed.set_footer(text="PloxHost community bot | Custom Commands")

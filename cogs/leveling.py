@@ -21,6 +21,7 @@ class Levels(commands.Cog):
             return
         if message.author.bot is True:
             return
+        # noinspection PyBroadException
         try:
             exp = 0
             level = 0
@@ -75,7 +76,7 @@ class Levels(commands.Cog):
                                  {"$set": {"exp": exp, "level": level}})
                 await asyncio.sleep(5)
                 await delete_me.delete()
-        except Exception:
+        except:
             pass
 
     @commands.command(name="level", description="Get the level of yourself or someone else",

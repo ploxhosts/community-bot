@@ -12,7 +12,7 @@ class Example(commands.Cog):
     @commands.command(name="example", aliases=["examples"],
                       usage="example <text>")  # You can run it as ?example or ?examples and make sure to have the full usage of how the command gets executed. Do not include the prefix!
     async def example_cmd(self, ctx, *, text):
-        ctx.send(f"`{text}`")  # Send the text back
+        await ctx.send(f"`{text}` - Sent by {ctx.author.name}")  # Send the text back
 
     # Need to use a database to store information?
     # Store it in a separate collection

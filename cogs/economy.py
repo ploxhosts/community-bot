@@ -189,7 +189,7 @@ class Economy(commands.Cog):
                          {"$set": {"balance": money_total}})
         return money_total
 
-    async def get_money(self,  user_id, guild_id):
+    async def get_money(self, user_id, guild_id):
         db = self.database.bot
         posts = db.economy
         user = posts.find_one({"user_id": user_id})
@@ -385,24 +385,26 @@ class Economy(commands.Cog):
         embed.set_footer(text="PloxHost community bot | Economy system")
         await user.send(embed=embed)
 
-    @commands.command(name="deposit", aliases=["storemoney", "storecash"], usage="deposit <amount>", no_pm=True)
-    async def deposit(self, ctx, amount: int):
+    @commands.command(name="deposit", aliases=["storemoney", "storecash", "dep"], usage="deposit <amount>", no_pm=True)
+    async def deposit(self, ctx, amount):
+        db = self.database.bot
+        posts = db.economy
+        if amount == "all":
+            amount = posts.find_one({"user_id": ctx.author.id})['cash'][str(ctx.guild.id)]
         if await self.get_money(ctx.author.id, ctx.guild.id) < amount:
             return await ctx.send("Not enough cash to deposit this amount!")
 
-        db = self.database.bot
-        posts = db.economy
         await self.take_money(ctx.author.id, ctx.guild.id, amount)
         await self.add_balance(ctx.author.id, amount)
         data = posts.find_one({"user_id": ctx.author.id})
         embed = Embed(color=0xffffff,
-                      title=f"Deposited {amount} in bank account of {ctx.author.name}#{ctx.author.discriminator}")
+                      title=f"Deposited ${amount} in bank account of {ctx.author.name}#{ctx.author.discriminator}")
         embed.add_field(name="💰Total Balance:", value=f"${data['balance']}", inline=True)
         embed.add_field(name="💸Total Cash:", value=f"${data['cash'][str(ctx.guild.id)]}", inline=True)
         embed.set_footer(text="PloxHost community bot | Economy system")
         await ctx.send(embed=embed)
 
-    @commands.command(name="withdraw", aliases=["takemoney", "withdrawnmoney", "withdrawmoney"],
+    @commands.command(name="withdraw", aliases=["takemoney", "withdrawnmoney", "withdrawmoney", "with"],
                       usage="withdraw <amount>", no_pm=True)
     async def withdraw(self, ctx, amount: int):
         if await self.get_bank(ctx.author.id) < amount:
@@ -415,7 +417,7 @@ class Economy(commands.Cog):
         await self.add_money(ctx.author.id, ctx.guild.id, amount)
         data = posts.find_one({"user_id": ctx.author.id})
         embed = Embed(color=0xffffff,
-                      title=f"Withdrawn {amount} from bank account of {ctx.author.name}#{ctx.author.discriminator}")
+                      title=f"Withdrawn ${amount} from bank account of {ctx.author.name}#{ctx.author.discriminator}")
         embed.add_field(name="💰Total Balance:", value=f"${data['balance']}", inline=True)
         embed.add_field(name="💸Total Cash:", value=f"${data['cash'][str(ctx.guild.id)]}", inline=True)
         embed.set_footer(text="PloxHost community bot | Economy system")

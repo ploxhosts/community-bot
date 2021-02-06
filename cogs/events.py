@@ -103,7 +103,7 @@ class Events(commands.Cog):
 
             },
             "log_channel": 0,  # Where mod logs are sent
-
+            "muted_role_id": 0,  # Muted role id
             "extra_settings": {},
             "linked_guilds": {},  # guild_id with a parent or child or mutual where bans get transferred
         }
@@ -151,19 +151,23 @@ class Events(commands.Cog):
                 posts.insert_one(self.get_user_stats(member.id, member.guild.id))
         except IndexError:
             posts.insert_one(self.get_user_stats(member.id, member.guild.id))
-        posts1 = db.economy
-        if posts1.find({"user_id": member.id}).count() > 0:  # Adds a user to the database in case of any downtime
+        posts = db.economy
+        if posts.find({"user_id": member.id}).count() > 0:  # Adds a user to the database in case of any downtime
             cash = {}
             guilds = []
-            for user in posts1.find({"user_id": member.id}):
+            for user in posts.find({"user_id": member.id}):
                 cash = user["cash"]
                 guilds = user["guilds"]
             cash[str(member.guild.id)] = 10
             guilds.append(member.guild.id)
-            posts1.update_one({"user_id": member.id},
-                              {"$set": {"cash": cash, "guilds": guilds}})
+            posts.update_one({"user_id": member.id},
+                             {"$set": {"cash": cash, "guilds": guilds}})
         else:
-            posts1.insert_one(self.get_economy_user(member.id, member.guild.id))
+            posts.insert_one(self.get_economy_user(member.id, member.guild.id))
+        posts = db.pending_mutes
+        if posts.find_one({"guild_id": member.guild.id, "user_id": member.id}):
+            role = await member.guild.get_role(db.serversettings.find({'guild_id': member.guild.id})["muted_role_id"])
+            await member.add_roles(role, reason="Mute evaded")
 
     @commands.Cog.listener()
     async def on_message(self, message):

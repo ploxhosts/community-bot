@@ -1,10 +1,12 @@
+import asyncio
+import datetime
 import random
 import re
 from urllib.parse import urlparse
-import time
+
 import discord
 from discord.ext import commands
-import datetime
+
 import tools
 
 
@@ -15,6 +17,40 @@ class Chat(commands.Cog):
         self.bot = bot
         self.database = bot.database
 
+    async def create_muted_role(self, guild):
+        db = self.database.bot
+        posts = db.serversettings
+        role = posts.find_one({"guild_id": guild.id})['muted_role_id']
+        if not role:
+            role = await guild.create_role(name="Muted", reason="Muted role is needed")
+            for category in guild.categories:
+                perms = category.overwrites_for(role)
+                perms.send_messages = False
+                await category.set_permissions(role, overwrite=perms, reason="Muted!")
+            for channel in guild.channels:
+                if not channel.permissions_synced:
+                    perms = channel.overwrites_for(role)
+                    perms.send_messages = False
+                    await channel.set_permissions(role, overwrite=perms, reason="Muted!")
+            posts.update_one({"guild_id": guild.id},
+                             {"$set": {"muted_role_id": role.id}})
+        else:
+            role = guild.get_role(role)
+        return role
+
+    async def give_muted_role(self, guild, member, user_id, role, duration):
+        if role not in member.roles:
+            await member.add_roles(role, reason="Muted")
+            db = self.database.bot
+            posts = db.serversettings
+            channel = posts.find_one({"guild_id": guild.id})['log_channel']
+            await self.send_log_embed(channel, f"Muted {member.name}#{member.discriminator} for {duration}",
+                                      f"Muted {member.display_name} with id of: {user_id}")
+            return True
+        else:
+            return False
+
+    # noinspection PyMethodMayBeStatic
     async def delete_message(self, message):
         try:
             await message.delete()
@@ -35,14 +71,15 @@ class Chat(commands.Cog):
 
     async def check_contents_once(self, message):
         BANNED_WORDS = []
+        log_channel = 0
         MAX_MENTIONS = 0
         ban_on_mass_mention = 0
         auto_temp_ban_time = 1440
         auto_mute_time = 30
         db = self.database.bot
         posts = db.serversettings
-        logs = []
         for x in posts.find({"guild_id": message.guild.id}):
+            log_channel = x["log_channel"]
             BANNED_WORDS = x["auto_mod"]["banned_words"]
             MAX_MENTIONS = x["auto_mod"]["max_mentions"]
             ban_on_mass_mention = x["auto_mod"]["on_mass_mention"]
@@ -50,7 +87,8 @@ class Chat(commands.Cog):
             auto_mute_time = x["auto_mod"]["auto_mute_time"]
         posts = db.player_data
         logs = posts.find_one({"user_id": message.author.id, "guild_id": message.guild.id})["mod_logs"]
-
+        if not logs:
+            logs = []
         for bad_word in BANNED_WORDS:
             if bad_word in message.content.lower():
                 if await self.delete_message(message) == "Deleted":
@@ -65,16 +103,23 @@ class Chat(commands.Cog):
                         await channel.send("A message was deleted as it contained a banned word.")
         time_warned = datetime.datetime.now()
         if len(message.mentions) > MAX_MENTIONS != 0:
-            print("Execute mass mentions")
+            print("Lets go1")
             guild = self.bot.get_guild(message.guild.id)
             channel = guild.get_channel(message.channel.id)
             if await self.delete_message(message) == "Deleted":
                 await channel.send("A message was deleted as it contained too many mentions.")
+                await self.send_log_embed(log_channel, "Mass mention attempt",
+                                          f"{message.author.name} with the id of {message.author.id}\nTried to mention {len(message.mentions)} people!")
             if ban_on_mass_mention == 1:  # Mute
                 posts = db.pending_mutes
+                role_list = []
+                for role_it in message.author.roles:
+                    if role_it.name != "@everyone":
+                        await message.author.remove_roles(role_it, reason="Muted")
+                        role_list.append(role_it.id)
                 posts.insert_one(
-                    {"guild_id": message.guild.id, "user_id": message.author.id, "time": auto_mute_time * 60,
-                     "issued": time.time()})
+                    {"guild_id": message.guild.id, "user_id": message.author.id, "time": auto_mute_time,
+                     "issued": time_warned, "roles": role_list})
                 posts = db.player_data
 
                 logs.append(
@@ -83,6 +128,9 @@ class Chat(commands.Cog):
 
                 posts.update_one({"user_id": message.author.id, "guild_id": message.guild.id},
                                  {"$set": {"mod_logs": logs}})
+
+                await self.give_muted_role(message.guild, message.author, message.author.id,
+                                           await self.create_muted_role(message.guild), auto_mute_time)
             elif ban_on_mass_mention == 2:  # Kick
                 posts = db.player_data
 
@@ -98,17 +146,21 @@ class Chat(commands.Cog):
             elif ban_on_mass_mention == 3:  # Temp ban
                 posts = db.pending_bans
                 posts.insert_one(
-                    {"guild_id": message.guild.id, "user_id": message.author.id, "time": auto_mute_time * 60,
-                     "issued": time.time()})
+                    {"guild_id": message.guild.id, "user_id": message.author.id, "time": auto_temp_ban_time,
+                     "issued": time_warned})
                 posts = db.player_data
 
+                warn_id = tools.generate_flake()
                 logs.append(
-                    {"type": "TEMP-BANNED", "warn_id": tools.generate_flake(), "reason": "Mass mention",
+                    {"type": "TEMP-BANNED", "warn_id": warn_id, "reason": "Mass mention",
                      "issuer": "SYSTEM",
                      "time": time_warned.strftime('%c')})
 
                 posts.update_one({"user_id": message.author.id, "guild_id": message.guild.id},
                                  {"$set": {"mod_logs": logs}})
+                await guild.ban(user=message.author,
+                                reason=f"Mass mention - auto moderation(TEMP BAN) with warn id id of {warn_id}",
+                                delete_message_days=0)
             elif ban_on_mass_mention == 4:  # Perm ban
                 posts = db.player_data
 
@@ -151,8 +203,8 @@ class Chat(commands.Cog):
                         messages = await message2.channel.history(limit=5).flatten()
                         done = False
                         for message3 in messages:
-                            if message3.content == "We do not allow duplicate messages" or message3.content == "A Message was deleted as it contained a banned word.":
-                                done = True
+                            # Do something with duplicate messages
+                            done = True
                         if not done:
                             await message2.channel.send("We do not allow duplicate messages")
 
@@ -249,7 +301,7 @@ class Chat(commands.Cog):
             timeout_time = random.randint(10, 30)
             try:
                 msg = await self.bot.wait_for('message', check=check, timeout=timeout_time)
-            except Exception:
+            except asyncio.TimeoutError:
                 return
             await self.check_contents_once(msg)
             await self.check_contents_both(message, msg)
@@ -358,6 +410,7 @@ class Chat(commands.Cog):
         db = self.database.bot
         posts = db.serversettings
         BANNED_LINKS = []
+        log_channel = 0
         for x in posts.find({"guild_id": ctx.guild.id}):
             BANNED_LINKS = x["auto_mod"]["blacklisted_domains"]
             log_channel = x["log_channel"]
@@ -560,12 +613,10 @@ class Chat(commands.Cog):
         posts = db.serversettings
         log_channel = 0
         max_mentions = 0
-        on_mass_mention = 0
 
         for x in posts.find({"guild_id": ctx.guild.id}):
             log_channel = x["log_channel"]
             max_mentions = x["auto_mod"]["max_mentions"]
-            on_mass_mention = x["auto_mod"]["on_mass_mention"]
 
         if option.lower() in ["set", "add", "limit"]:
             def check(m):
@@ -577,7 +628,7 @@ class Chat(commands.Cog):
             try:
                 on_mass_mention = int(msg.content)
 
-            except:
+            except ValueError:
                 return await ctx.send("Please choose a valid number!")
             posts.update_one({"guild_id": ctx.guild.id},
                              {"$set": {"auto_mod.max_mentions": value, "auto_mod.on_mass_mention": on_mass_mention}})
@@ -612,10 +663,11 @@ class Chat(commands.Cog):
             posts.update_one({"guild_id": ctx.guild.id},
                              {"$set": {"auto_mod.auto_temp_ban_time": value}})
 
-            await self.send_log_embed(log_channel, f"{ctx.author.name} Set Auto temp ban time set to {auto_temp_ban_time}",
-                                      f"Users who get temp banned get unbanned after {auto_temp_ban_time} minutes!")
+            await self.send_log_embed(log_channel,
+                                      f"{ctx.author.name} Set Auto temp ban time set to {value}",
+                                      f"Users who get temp banned get unbanned after {value} minutes!")
 
-            await ctx.send(f"Allowed chat moderation and anti raid!")
+            await ctx.send(f"Set the temp ban time to {value} minutes!")
         elif option.lower() in ["reset", "disable", "stop"]:
             posts.update_one({"guild_id": ctx.guild.id},
                              {"$set": {"auto_mod.auto_temp_ban_time": 0}})
@@ -623,7 +675,7 @@ class Chat(commands.Cog):
             await self.send_log_embed(log_channel, f"{ctx.author.name} Disabled temp bans",
                                       f"No one will be banned if they are deemed to be raiding your server!")
 
-            await ctx.send(f"Disallowed chat moderation and anti raid!")
+            await ctx.send(f"Temp ban time disabled!")
 
     @chat.command(name="mutes", aliases=["mute"], usage="chat mutes <set|reset> <minutes>")
     @commands.has_permissions(manage_guild=True)
@@ -646,7 +698,7 @@ class Chat(commands.Cog):
                                       f"{ctx.author.name} Set Auto mute time set to {auto_mute_time}",
                                       f"Users who get temp banned get un muted after {auto_mute_time} minutes!")
 
-            await ctx.send(f"Allowed chat moderation and anti raid!")
+            await ctx.send(f"Allowed auto chat muting!")
         elif option.lower() in ["reset", "disable", "stop"]:
             posts.update_one({"guild_id": ctx.guild.id},
                              {"$set": {"auto_mod.auto_mute_time": 0}})
@@ -654,7 +706,8 @@ class Chat(commands.Cog):
             await self.send_log_embed(log_channel, f"{ctx.author.name} Disabled auto mutes",
                                       f"Members will not be muted!")
 
-            await ctx.send(f"Disallowed chat moderation and anti raid!")
+            await ctx.send(f"Disallowed auto chat muting!")
+
 
 def setup(bot):
     bot.add_cog(Chat(bot))

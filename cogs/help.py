@@ -2,8 +2,6 @@ from typing import Iterator
 
 import discord
 from discord.ext import commands
-import datetime
-import asyncio
 
 
 class Help(commands.Cog):
@@ -19,7 +17,8 @@ class Help(commands.Cog):
                     yield cmd
 
     @commands.command(name="help", description="Returns all commands available",
-                      aliases=["command", "commands", "commandslist", "listcommands", "lscmds", "cmds", "lscommands"], usage="help")
+                      aliases=["command", "commands", "commandslist", "listcommands", "lscmds", "cmds", "lscommands"],
+                      usage="help")
     async def help(self, ctx, cog=None):
         db = self.database.bot
         posts = db.serversettings
@@ -58,14 +57,15 @@ class Help(commands.Cog):
                     pass
                 else:
                     embed.add_field(name=c, value=self.bot.get_cog(c).description, inline=True)
-            embed.add_field(name="To get more detailed information", value=f"{prefix}help <cog> for example: `{prefix}help Mod`", inline=False)
+            embed.add_field(name="To get more detailed information",
+                            value=f"{prefix}help <cog> for example: `{prefix}help Mod`", inline=False)
         else:
+            # noinspection PyBroadException
             try:
                 if self.bot.get_cog(cog.capitalize()):  # Check if it exists
                     pass
 
                 embed = discord.Embed(colour=0xac6f8f, title=f"{cog.capitalize()} commands")
-
 
                 if cog.lower() in ["customcommands", "customcommand", "cc"]:  # Generates some errors
                     cog = "CustomCommands"

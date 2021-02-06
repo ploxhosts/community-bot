@@ -49,7 +49,6 @@ class EventsMod(commands.Cog):
 
         await log_channel.send(embed=embed)
 
-
     async def send_edit_embed(self, channel, message, edits):
         if channel == 0:
             return
@@ -120,10 +119,15 @@ class EventsMod(commands.Cog):
                 posts.update_one({"message_id": message.message_id},
                                  {"$set": {"deleted": True}})
             user = await self.bot.fetch_user(author_id)
-            await self.send_delete_embed(log_channel, user.name, author_id, message_content,message.message_id)
+            await self.send_delete_embed(log_channel, user.name, author_id, message_content, message.message_id)
 
     @commands.Cog.listener()
     async def on_raw_message_edit(self, message):
+        try:
+            if message.data["author"]["bot"]:
+                return
+        except KeyError:
+            return
         if "content" in message.data:
             db = self.database.bot
             posts = db.serversettings
@@ -182,7 +186,16 @@ class EventsMod(commands.Cog):
                                      {"$set": {"deleted": True}})
             if message_content != "":
                 user = await self.bot.fetch_user(author_id)
-                await self.send_delete_embed(log_channel, user.name, author_id, message_content, ids)
+                # Do something with deleted message
+                # await self.send_delete_embed(log_channel, user.name, author_id, message_content, ids)
+        channel_ex = self.bot.get_channel(message.channel_id)
+        embed = discord.Embed(colour=0xac6f8f, title=f"Bulk Message delete")
+        embed.add_field(name="Messages purged:", value=f"\n{len(message.message_ids)}", inline=False)
+        embed.add_field(name="Channel:", value=f"\n{channel_ex.mention}", inline=False)
+        embed.set_footer(text="PloxHost community bot | Logging and monitoring")
+        log_channel = self.bot.get_channel(log_channel)
+
+        await log_channel.send(embed=embed)
 
 
 def setup(bot):
