@@ -206,7 +206,7 @@ class Chat(commands.Cog):
                             # Do something with duplicate messages
                             done = True
                         if not done:
-                            await message2.channel.send("We do not allow duplicate messages")
+                            # Do something with duplicate messages
 
         if message1.attachments is not None and message2.attachments is not None:  # Could be multiple image
             if len(message1.attachments) == len(message2.attachments) and len(
