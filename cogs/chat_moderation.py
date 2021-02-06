@@ -206,6 +206,7 @@ class Chat(commands.Cog):
                             # Do something with duplicate messages
                             done = True
                         if not done:
+                            pass
                             # Do something with duplicate messages
 
         if message1.attachments is not None and message2.attachments is not None:  # Could be multiple image
