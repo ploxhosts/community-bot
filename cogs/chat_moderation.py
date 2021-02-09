@@ -2,6 +2,7 @@ import asyncio
 import datetime
 import random
 import re
+from collections import Counter
 from urllib.parse import urlparse
 
 import discord
@@ -16,6 +17,9 @@ class Chat(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.database = bot.database
+        self.message_cache = {}
+        self.muted_users = []
+        self.spam_warned_users = []
 
     async def create_muted_role(self, guild):
         db = self.database.bot
@@ -70,8 +74,14 @@ class Chat(commands.Cog):
         await log_channel.send(embed=embed)
 
     async def check_contents_once(self, message):
+        if message.author.bot:
+            return
+        spam_msg = None
+        time_warned = datetime.datetime.now()
+        c = Counter()
         BANNED_WORDS = []
         log_channel = 0
+        prefix = "?"
         MAX_MENTIONS = 0
         ban_on_mass_mention = 0
         auto_temp_ban_time = 1440
@@ -80,15 +90,97 @@ class Chat(commands.Cog):
         posts = db.serversettings
         for x in posts.find({"guild_id": message.guild.id}):
             log_channel = x["log_channel"]
+            prefix = x["prefix"]
             BANNED_WORDS = x["auto_mod"]["banned_words"]
             MAX_MENTIONS = x["auto_mod"]["max_mentions"]
             ban_on_mass_mention = x["auto_mod"]["on_mass_mention"]
             auto_temp_ban_time = x["auto_mod"]["auto_temp_ban_time"]
             auto_mute_time = x["auto_mod"]["auto_mute_time"]
+
         posts = db.player_data
         logs = posts.find_one({"user_id": message.author.id, "guild_id": message.guild.id})["mod_logs"]
         if not logs:
             logs = []
+
+        if not self.message_cache.get(message.author.id):
+            self.message_cache[message.author.id] = [
+                {"content": message.content, "id": message.id, "time_sent": datetime.datetime.now()}]
+        else:
+            if not str(message.content).startswith(prefix):
+                content = list(self.message_cache.get(message.author.id))
+                content.append({"content": message.content, "id": message.id, "time_sent": datetime.datetime.now()})
+                self.message_cache.update({message.author.id: content})
+        message_list = list(self.message_cache.get(message.author.id))
+        if len(message_list) > 3:
+            duplicate_items = []
+
+            for item in message_list:  # Count the occurrence
+                c[item["content"]] += 1
+
+            for x in message_list:
+                if c.get(x["content"]) > 1:  # If more than once add it to duplicate items
+                    if x not in duplicate_items:
+                        duplicate_items.append(x)
+            if duplicate_items:
+                time_diff = duplicate_items[0]["time_sent"] - duplicate_items[-1]["time_sent"]
+                if time_diff.total_seconds() <= 12:
+                    for x in duplicate_items:
+                        if c.get(x["content"]) > 6:  # Mute
+                            goThrough = True
+                            try:
+                                for muted_user in self.muted_users:  # If in cache
+                                    if muted_user["id"] == message.author.id:
+                                        goThrough = False
+                            except KeyError:
+                                pass
+                            if goThrough:
+                                self.muted_users.append(
+                                    {"id": message.author.id, "guild": message.guild.id, "time": auto_mute_time * 60})
+                                posts = db.pending_mutes
+                                role_list = []
+                                for role_it in message.author.roles:
+                                    if role_it.name != "@everyone":
+                                        await message.author.remove_roles(role_it, reason="Muted")
+                                        role_list.append(role_it.id)
+                                posts.insert_one(
+                                    {"guild_id": message.guild.id, "user_id": message.author.id,
+                                     "time": auto_mute_time * 60,
+                                     "issued": time_warned, "roles": role_list})
+                                posts = db.player_data
+
+                                logs.append(
+                                    {"type": "MUTED", "warn_id": tools.generate_flake(), "reason": "spam",
+                                     "issuer": "SYSTEM",
+                                     "time": time_warned.strftime('%c')})
+
+                                posts.update_one({"user_id": message.author.id, "guild_id": message.guild.id},
+                                                 {"$set": {"mod_logs": logs}})
+
+                                await self.give_muted_role(message.guild, message.author, message.author.id,
+                                                           await self.create_muted_role(message.guild),
+                                                           auto_mute_time * 60)
+                                await message.author.send(
+                                    f"You have been muted in {message.guild} for {auto_mute_time * 60} minutes for spam!")
+                        elif c.get(x["content"]) > 3:
+                            done = True
+                            found_user = False
+                            for warned_users in self.spam_warned_users:
+                                if warned_users["user"] == message.author.id:
+                                    found_user = True
+                                    diff = datetime.datetime.now() - warned_users["time"]
+                                    if diff.total_seconds() > 60:
+                                        done = False
+                                        self.spam_warned_users.remove(warned_users)
+                            if not found_user:
+                                done = False
+                            if not done:
+                                spam_msg = await message.channel.send("Please do not send duplicate messages!")
+                                self.spam_warned_users.append(
+                                    {"user": message.author.id, "guild": message.guild.id, "time": time_warned})
+                if (len(message_list)) > 10:
+                    time_diff = duplicate_items[-1]["time_sent"] - duplicate_items[0]["time_sent"]
+                    if time_diff.total_seconds() > 13:
+                        self.message_cache.pop(message.author.id)
         for bad_word in BANNED_WORDS:
             if bad_word in message.content.lower():
                 if await self.delete_message(message) == "Deleted":
@@ -101,9 +193,8 @@ class Chat(commands.Cog):
                             done = True
                     if not done:
                         await channel.send("A message was deleted as it contained a banned word.")
-        time_warned = datetime.datetime.now()
+
         if len(message.mentions) > MAX_MENTIONS != 0:
-            print("Lets go1")
             guild = self.bot.get_guild(message.guild.id)
             channel = guild.get_channel(message.channel.id)
             if await self.delete_message(message) == "Deleted":
@@ -112,25 +203,29 @@ class Chat(commands.Cog):
                                           f"{message.author.name} with the id of {message.author.id}\nTried to mention {len(message.mentions)} people!")
             if ban_on_mass_mention == 1:  # Mute
                 posts = db.pending_mutes
-                role_list = []
-                for role_it in message.author.roles:
-                    if role_it.name != "@everyone":
-                        await message.author.remove_roles(role_it, reason="Muted")
-                        role_list.append(role_it.id)
-                posts.insert_one(
-                    {"guild_id": message.guild.id, "user_id": message.author.id, "time": auto_mute_time,
-                     "issued": time_warned, "roles": role_list})
-                posts = db.player_data
+                if posts.find_one({"guild_id": message.guild.id, "user_id": message.author.id}):
+                    pass
+                else:
+                    role_list = []
+                    for role_it in message.author.roles:
+                        if role_it.name != "@everyone":
+                            await message.author.remove_roles(role_it, reason="Muted")
+                            role_list.append(role_it.id)
+                    posts.insert_one(
+                        {"guild_id": message.guild.id, "user_id": message.author.id, "time": auto_mute_time,
+                         "issued": time_warned, "roles": role_list})
+                    posts = db.player_data
 
-                logs.append(
-                    {"type": "MUTED", "warn_id": tools.generate_flake(), "reason": "Mass mention", "issuer": "SYSTEM",
-                     "time": time_warned.strftime('%c')})
+                    logs.append(
+                        {"type": "MUTED", "warn_id": tools.generate_flake(), "reason": "Mass mention",
+                         "issuer": "SYSTEM",
+                         "time": time_warned.strftime('%c')})
 
-                posts.update_one({"user_id": message.author.id, "guild_id": message.guild.id},
-                                 {"$set": {"mod_logs": logs}})
+                    posts.update_one({"user_id": message.author.id, "guild_id": message.guild.id},
+                                     {"$set": {"mod_logs": logs}})
 
-                await self.give_muted_role(message.guild, message.author, message.author.id,
-                                           await self.create_muted_role(message.guild), auto_mute_time)
+                    await self.give_muted_role(message.guild, message.author, message.author.id,
+                                               await self.create_muted_role(message.guild), auto_mute_time)
             elif ban_on_mass_mention == 2:  # Kick
                 posts = db.player_data
 
@@ -174,41 +269,43 @@ class Chat(commands.Cog):
                 await guild.ban(user=message.author.id, reason="Mass mention - auto moderation", delete_message_days=0)
                 await channel.send(
                     f"{message.author.id} | {message.author.name} has been banned from the server for mentioning too many people!")
+        urls = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+',
+                          message.content)
+        spam_links = []
+        for url in urls:
+            if urls.count(url) > 2:
+                spam_links.append(url)
+            
+        if spam_links:
+            posts = db.player_data
+            await message.delete()
+            role_list = []
+            for role_it in message.author.roles:
+                if role_it.name != "@everyone":
+                    await message.author.remove_roles(role_it, reason="Muted")
+                    role_list.append(role_it.id)
+            posts.insert_one(
+                {"guild_id": message.guild.id, "user_id": message.author.id, "time": auto_mute_time,
+                 "issued": time_warned, "roles": role_list})
+            posts = db.player_data
 
+            logs.append(
+                {"type": "MUTED", "warn_id": tools.generate_flake(), "reason": ":Link spam",
+                 "issuer": "SYSTEM",
+                 "time": time_warned.strftime('%c')})
+
+            posts.update_one({"user_id": message.author.id, "guild_id": message.guild.id},
+                             {"$set": {"mod_logs": logs}})
+
+            await self.give_muted_role(message.guild, message.author, message.author.id,
+                                       await self.create_muted_role(message.guild), auto_mute_time)
+
+        if spam_msg:
+            await asyncio.sleep(10)
+            await spam_msg.delete()
         # <(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>
 
     async def check_contents_both(self, message1, message2):
-        message1_date = message1.created_at
-        message2_date = message2.created_at
-
-        db = self.database.bot
-        posts = db.serversettings
-        prefix = "?"
-        for x in posts.find({"guild_id": message1.guild.id}):
-            prefix = x["prefix"]
-
-        if message2 is None:  # Only message 1 exists so chat filter
-            return await self.check_contents_once(message1)
-        else:
-            await self.check_contents_once(message2)
-        if message1.content == message2.content:  # Exactly the same content
-            if message1.content.lower() in ["lmao", "lol", "rofl", "rip", "xd",
-                                            "lmfao"]:  # Ignore any words like LOL or LMAO as spam as it's normally repeated
-                pass
-            elif message1.content[0] == prefix:  # ignore anything in a bot channel
-                pass
-            else:
-                if message1_date.second + random.randint(4, 15) >= message2_date.second:
-                    if await self.delete_message(message2) == "Deleted":
-                        messages = await message2.channel.history(limit=5).flatten()
-                        done = False
-                        for message3 in messages:
-                            # Do something with duplicate messages
-                            done = True
-                        if not done:
-                            pass
-                            # Do something with duplicate messages
-
         if message1.attachments is not None and message2.attachments is not None:  # Could be multiple image
             if len(message1.attachments) == len(message2.attachments) and len(
                     message1.attachments):  # Same amount it is about 2 images
@@ -294,8 +391,6 @@ class Chat(commands.Cog):
                     log_channel = self.bot.get_channel(log_channel)
                     await log_channel.send(embed=embed)
         if chat_moderation == 1:
-            await self.check_contents_once(message)
-
             def check(message2):
                 return message2.author == message.author and message2.channel == message.channel
 
@@ -665,7 +760,7 @@ class Chat(commands.Cog):
                              {"$set": {"auto_mod.auto_temp_ban_time": value}})
 
             await self.send_log_embed(log_channel,
-                                      f"{ctx.author.name} Set Auto temp ban time set to {value}",
+                                      f"{ctx.author.name} Set Auto temp ban time set to {value} from {auto_temp_ban_time}",
                                       f"Users who get temp banned get unbanned after {value} minutes!")
 
             await ctx.send(f"Set the temp ban time to {value} minutes!")
@@ -708,6 +803,40 @@ class Chat(commands.Cog):
                                       f"Members will not be muted!")
 
             await ctx.send(f"Disallowed auto chat muting!")
+
+    @chat.command(name="channel", aliases=["channels"], usage="chat channel <add|remove|list> <#channel>")
+    @commands.has_permissions(manage_guild=True)
+    async def channel(self, ctx, option, value: discord.TextChannel = "all"):
+        db = self.database.bot
+        posts = db.serversettings
+        log_channel = 0
+        mod_ignore_channels = []
+
+        for x in posts.find({"guild_id": ctx.guild.id}):
+            log_channel = x["log_channel"]
+            mod_ignore_channels = x["auto_mod"]["mod_ignore_channels"]
+
+        if option.lower() in ["set", "add", "ignore"]:
+            mod_ignore_channels.append(value.id)
+            posts.update_one({"guild_id": ctx.guild.id},
+                             {"$set": {"auto_mod.mod_ignore_channels": mod_ignore_channels}})
+
+            await self.send_log_embed(log_channel,
+                                      f"{ctx.author.name} Set Auto to spam ignore {value.mention}",
+                                      f"Any rule violations won't be stopped in this channel!")
+
+            await ctx.send(f"Disallowed moderation in {value.mention}!")
+        elif option.lower() in ["remove", "disable", "stop"]:
+            mod_ignore_channels.remove(value.id)
+            posts.update_one({"guild_id": ctx.guild.id},
+                             {"$set": {"auto_mod.mod_ignore_channels": mod_ignore_channels}})
+
+            await self.send_log_embed(log_channel, f"{ctx.author.name} Allowed auto moderation in {value.mention}",
+                                      f"Any rule violations will be stopped in this channel!")
+
+            await ctx.send(f"Allowed moderation in {value.mention}!")
+        else:
+            await ctx.send(mod_ignore_channels)
 
 
 def setup(bot):
