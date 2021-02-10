@@ -27,6 +27,7 @@ class CustomCommands(commands.Cog):
             for x in posts.find({"guild_id": message.guild.id, "command": splitted_content[0]}):
                 response = x["content"]
             if response != "":
+                await message.delete()
                 await message.channel.send(response)
         except IndexError:
             pass
