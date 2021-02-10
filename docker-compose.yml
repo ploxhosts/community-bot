@@ -1,9 +1,7 @@
 version: "3"
 services:
     bot:
-        build:
-            context: .
-            dockerfile: Dockerfile
+        image: registry.plox.host/ploxhost/communitybot:latest
         restart: unless-stopped
         depends_on:
             - mongodb
@@ -11,6 +9,10 @@ services:
             - mongodb
         networks:
             - backend
+        environment:
+            - prefix=?
+            - bot_token=TOKEN
+            - connection_string=mongodb://root:root@mongodb
     mongodb:
         image: mongo:latest
         restart: unless-stopped
@@ -26,3 +28,6 @@ services:
 networks:
     backend:
         driver: bridge
+
+volumes:
+    mongodb_combot: {}
