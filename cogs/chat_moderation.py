@@ -275,7 +275,7 @@ class Chat(commands.Cog):
         for url in urls:
             if urls.count(url) > 2:
                 spam_links.append(url)
-            
+
         if spam_links:
             posts = db.player_data
             await message.delete()
