@@ -78,8 +78,8 @@ class Help(commands.Cog):
                             embed.add_field(name=f"{x.name.capitalize()} {subcmd.name.capitalize()}",
                                             value=f"Description: {x.description}\nUsage: {prefix}{subcmd.usage}",
                                             inline=True)
-                    embed.add_field(name=f"{x.name.capitalize()}",
-                                    value=f"Description: {x.description}\nUsage: {prefix}{x.usage}", inline=True)
+                    # embed.add_field(name=f"{x.name.capitalize()}",
+                    #                 value=f"Description: {x.description}\nUsage: {prefix}{x.usage}", inline=True)
             except:
                 embed.add_field(name="No cogs found", value="You have used a name of a non existent cog.", inline=False)
 
