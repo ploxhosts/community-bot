@@ -4,7 +4,7 @@ import random
 import re
 from collections import Counter
 from urllib.parse import urlparse
-
+import tools
 import discord
 from discord.ext import commands
 
@@ -390,6 +390,7 @@ class Chat(commands.Cog):
                     embed.set_footer(text="PloxHost community bot | Chat filter")
                     log_channel = self.bot.get_channel(log_channel)
                     await log_channel.send(embed=embed)
+                    await message.author.send("Dm advertisement isn't allowed!")
         if chat_moderation == 1:
             def check(message2):
                 return message2.author == message.author and message2.channel == message.channel
@@ -420,7 +421,7 @@ class Chat(commands.Cog):
             inline=False)
         embed.add_field(
             name="Add/Remove blacklisted words",
-            value=f"{prefix}chat words  <add|remove|list>",
+            value=f"{prefix}chat words <add|remove|list>",
             inline=False)
         embed.add_field(
             name="Add/Remove blacklisted links",
@@ -449,7 +450,7 @@ class Chat(commands.Cog):
         await ctx.send(embed=embed)
 
     @chat.command(name="words", aliases=["word", "text"], usage="chat words <add|remove|list>")
-    @commands.has_permissions(manage_messages=True)
+    @tools.has_perm(manage_messages=True)
     async def words(self, ctx, option, *, text=None):
         db = self.database.bot
         posts = db.serversettings
@@ -501,7 +502,7 @@ class Chat(commands.Cog):
             await ctx.send(embed=em)
 
     @chat.command(name="links", aliases=["link"], usage="chat link <add|remove|list>")
-    @commands.has_permissions(manage_messages=True)
+    @tools.has_perm(manage_messages=True)
     async def links(self, ctx, option, *, text=None):
         db = self.database.bot
         posts = db.serversettings
@@ -548,7 +549,7 @@ class Chat(commands.Cog):
             await ctx.send(embed=em)
 
     @chat.command(name="role", aliases=["roles"], usage="chat role <add|remove|list>")
-    @commands.has_permissions(manage_guild=True)
+    @tools.has_perm(manage_guild=True)
     async def role(self, ctx, option, role: discord.Role = None):
         db = self.database.bot
         posts = db.serversettings
@@ -597,7 +598,7 @@ class Chat(commands.Cog):
             await ctx.send(embed=em)
 
     @chat.command(name="invites", aliases=["invite"], usage="chat invites <add|remove|list>")
-    @commands.has_permissions(manage_guild=True)
+    @tools.has_perm(manage_guild=True)
     async def invites(self, ctx, option, *, setting=None):
         db = self.database.bot
         posts = db.serversettings
@@ -670,7 +671,7 @@ class Chat(commands.Cog):
             return await ctx.send(f"Turned off invite detection and removal!")
 
     @chat.command(name="mod", aliases=["moderation"], usage="chat mod <enable|disable>")
-    @commands.has_permissions(manage_guild=True)
+    @tools.has_perm(manage_guild=True)
     async def mod(self, ctx, option="else"):
         db = self.database.bot
         posts = db.serversettings
@@ -703,7 +704,7 @@ class Chat(commands.Cog):
                 await ctx.send("Chat moderation is off!")
 
     @chat.command(name="mentions", aliases=["mention"], usage="chat mentions <set|reset> <value>")
-    @commands.has_permissions(manage_guild=True)
+    @tools.has_perm(manage_guild=True)
     async def mentions(self, ctx, option, value: int):
         db = self.database.bot
         posts = db.serversettings
@@ -743,7 +744,7 @@ class Chat(commands.Cog):
             await ctx.send(f"Disallowed chat moderation and anti raid!")
 
     @chat.command(name="bans", aliases=["ban"], usage="chat bans <set|reset> <minutes>")
-    @commands.has_permissions(manage_guild=True)
+    @tools.has_perm(manage_guild=True)
     async def bans(self, ctx, option, value: int):
         db = self.database.bot
         posts = db.serversettings
@@ -774,7 +775,7 @@ class Chat(commands.Cog):
             await ctx.send(f"Temp ban time disabled!")
 
     @chat.command(name="mutes", aliases=["mute"], usage="chat mutes <set|reset> <minutes>")
-    @commands.has_permissions(manage_guild=True)
+    @tools.has_perm(manage_guild=True)
     async def mutes(self, ctx, option, value: int):
         db = self.database.bot
         posts = db.serversettings
@@ -805,7 +806,7 @@ class Chat(commands.Cog):
             await ctx.send(f"Disallowed auto chat muting!")
 
     @chat.command(name="channel", aliases=["channels"], usage="chat channel <add|remove|list> <#channel>")
-    @commands.has_permissions(manage_guild=True)
+    @tools.has_perm(manage_guild=True)
     async def channel(self, ctx, option, value: discord.TextChannel = "all"):
         db = self.database.bot
         posts = db.serversettings

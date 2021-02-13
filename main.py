@@ -1,20 +1,30 @@
+import json
 import os
 import random
+
 import discord
 from discord.ext import commands, tasks
-import logging
 
 # Runs database connections and env
 from prepare import database
 
 token = os.getenv('bot_token')
 
-#logger = logging.getLogger('discord')
-#logger.setLevel(logging.DEBUG)
-#handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
-#handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-#logger.addHandler(handler)
+# logger = logging.getLogger('discord')
+# logger.setLevel(logging.DEBUG)
+# handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+# handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+# logger.addHandler(handler)
 
+
+with open('jokes.json') as json_file:
+    joke_list = json.load(json_file)
+    jokes = []
+    for joke in joke_list:
+        jokes.append(joke_list[str(joke)])
+
+
+# noinspection PyShadowingNames
 def get_prefix(bot, message):
     prefix = os.getenv("prefix") or "?"  # Default prefix specified in the env file or ? as default
 
@@ -79,18 +89,19 @@ async def on_guild_join(g):
 
 # Allow /cog/ restart command for the bot owner
 
-async def is_owner(self, ctx):
-    return ctx.author.id in [553614184735047712]  # Replace list with people who you trust
+async def is_owner(ctx):
+    return ctx.author.id in [553614184735047712, 148549003544494080,
+                             518854761714417664]  # Replace list with people who you trust
 
 
 @bot.command()
 @commands.check(is_owner)
-async def shutdown(self, ctx):
+async def shutdown(ctx):
     try:
-        await self.bot.logout()
-    except EnvironmentError as e:
-        print(e)
-        self.bot.clear()
+        await ctx.bot.logout()
+    except EnvironmentError as error:
+        print(error)
+        ctx.bot.clear()
 
 
 @bot.command()
@@ -107,8 +118,9 @@ async def reload(ctx, cog_name):
 
 # Used for the automatic change of status messages
 
-@tasks.loop(minutes=5.0, count=None, reconnect=True)
+@tasks.loop(minutes=3.0, count=None, reconnect=True)
 async def change_status():
+    unique_joke = str(random.choice(jokes)).replace("|", "").strip()
     statuses = ["?help | My dms are open ;)",
                 "?help | Open-Source on github",
                 "?help | $1 per gb Plox.Host",
@@ -117,7 +129,8 @@ async def change_status():
                 "Should you be cheating on your test?",
                 "Management to node 15, Management to node 15, meme incoming, thank you. ",
                 "Do I have friends?",
-                f"Some random joke failed to be rendered",
+                f"{unique_joke}",
+                "Some random joke failed to be rendered",
                 "HTML is a programming language no cap"]
     status = random.choice(statuses)
     await bot.change_presence(status=discord.Status.online, activity=discord.Game(status))

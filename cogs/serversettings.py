@@ -1,6 +1,6 @@
 from discord.ext import commands
 import discord
-
+import tools
 
 class Settings(commands.Cog):
     """Commands for setting up the bot"""
@@ -9,7 +9,7 @@ class Settings(commands.Cog):
         self.database = bot.database
 
     @commands.command(name='prefix', aliases=["setprefix"], usage="prefix <newprefix>")
-    @commands.has_permissions(manage_guild=True)
+    @tools.has_perm(manage_guild=True)
     async def prefix(self, ctx, *, new_prefix: str = None):
         db = self.database.bot
         posts = db.serversettings
@@ -25,7 +25,7 @@ class Settings(commands.Cog):
         await ctx.send(f"New prefix is `{new_prefix}` from `{prefix_org}`")
 
     @commands.command(name='logchannel', aliases=["setlogchannel", "logschannel"], usage="logchannel #channel")
-    @commands.has_permissions(manage_guild=True)
+    @tools.has_perm(manage_guild=True)
     async def logchannel(self, ctx, *, channel: discord.TextChannel = None):
         if channel is None:
             channel = ctx.channel

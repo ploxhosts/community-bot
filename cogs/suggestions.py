@@ -4,7 +4,7 @@ import asyncio
 import datetime
 import time
 import random
-
+import tools
 
 # noinspection PyBroadException
 class Suggestions(commands.Cog):
@@ -51,7 +51,7 @@ class Suggestions(commands.Cog):
 
     @suggestions.command(name='approve', aliases=["approvesuggestion", "suggestapprove", "accept", "acceptsuggestion"],
                          usage="suggestions approve <id> <reason>")
-    @commands.has_permissions(manage_guild=True)
+    @tools.has_perm(manage_guild=True)
     async def approve(self, ctx, flake: int, *, reason=None):
         db = self.database.bot
         posts = db.serversettings
@@ -116,7 +116,7 @@ class Suggestions(commands.Cog):
                          {"$set": {"status": "approved", "sent_messages": sent_messages}})
 
     @suggestions.command(name='deny', aliases=["denysuggestion", "reject"], usage="suggestions deny <id> <reason>")
-    @commands.has_permissions(manage_guild=True)
+    @tools.has_perm(manage_guild=True)
     async def deny(self, ctx, flake: int, *, reason=None):
         db = self.database.bot
         posts = db.serversettings
@@ -181,7 +181,7 @@ class Suggestions(commands.Cog):
 
     # noinspection PyBroadException
     @suggestions.command(name="setup", alias=["channels"], usage="suggestions setup")
-    @commands.has_permissions(manage_guild=True)
+    @tools.has_perm(manage_guild=True)
     async def setup(self, ctx):
         db = self.database.bot
         posts = db.serversettings

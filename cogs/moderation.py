@@ -1,6 +1,5 @@
 import asyncio
 import datetime
-
 import discord
 from discord.ext import commands, tasks
 
@@ -119,8 +118,13 @@ class Mod(commands.Cog):
         else:
             return False
 
+    @commands.command(name="test")
+    @tools.has_perm(manage_messages=True)
+    async def test(self, ctx):
+        print("tested")
+
     @commands.command(name="mute", description="Mute someone", usage="mute @user <time> <reason>")
-    @commands.has_permissions(manage_messages=True)
+    @tools.has_perm(manage_messages=True)
     async def mute(self, ctx, member: discord.Member, duration="perm"):
         role = await self.create_muted_role(ctx.guild)
         role_list = member.roles
@@ -151,7 +155,7 @@ class Mod(commands.Cog):
                 f"Could not mute {member.name}, they may already have the role.\n Try removing their role or resetting the channel permissions.")
 
     @commands.command(name="unmute", description="Remove a mute from someone", usage="unmute @user")
-    @commands.has_permissions(manage_messages=True)
+    @tools.has_perm(manage_messages=True)
     async def unmute(self, ctx, member: discord.Member):
         role = await self.create_muted_role(ctx.guild)
         db = self.database.bot
@@ -169,7 +173,7 @@ class Mod(commands.Cog):
         await ctx.send(f"Unmuted {member.name}!")
 
     @commands.command(name="warn", description="Warn someone", usage="warn @user <reason>")
-    @commands.has_permissions(manage_messages=True)
+    @tools.has_perm(manage_messages=True)
     async def warn(self, ctx, user: discord.Member, *, reason: str = None):
         db = self.database.bot
         posts = db.player_data
@@ -207,7 +211,7 @@ class Mod(commands.Cog):
         await ctx.message.delete()
 
     @commands.command(name="unwarn", description="Remove a warn someone", usage="unwarn @user <warn number> <reason>")
-    @commands.has_permissions(manage_messages=True)
+    @tools.has_perm(manage_messages=True)
     async def unwarn(self, ctx, user: discord.Member, warn_id, *, reason="No reason provided."):
         db = self.database.bot
         posts = db.player_data
@@ -235,7 +239,7 @@ class Mod(commands.Cog):
             await ctx.send("That warning could not be found!")
 
     @commands.command(name="warnings", description="View someone's warnings", usage="warnings @user")
-    @commands.has_permissions(manage_messages=True)
+    @tools.has_perm(manage_messages=True)
     async def warnings(self, ctx, user: discord.Member):
         db = self.database.bot
         posts = db.player_data
@@ -265,7 +269,7 @@ class Mod(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command(name="kick", description="Kick someone", usage="kick @user <reason>")
-    @commands.has_permissions(kick_members=True)
+    @tools.has_perm(kick_members=True)
     @commands.bot_has_permissions(kick_members=True)
     async def kick(self, ctx, member: discord.Member, *, reason="No reason"):
         db = self.database.bot
@@ -288,7 +292,7 @@ class Mod(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command(name="ban", description="Ban someone", usage="ban @user <reason>")
-    @commands.has_permissions(ban_members=True)
+    @tools.has_perm(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
     async def ban(self, ctx, user: discord.User, *, reason="No reason was provided."):
         db = self.database.bot
@@ -317,14 +321,14 @@ class Mod(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command(name="clear", aliases=["purge"], usage="purge <number of messages>")
-    @commands.has_permissions(manage_messages=True)
+    @tools.has_perm(manage_messages=True)
     @commands.bot_has_permissions(manage_messages=True)
     async def clear(self, ctx, amount: int):
         deleted_count = await ctx.channel.purge(limit=amount + 1)
         await ctx.send(f"{len(deleted_count)} messages got deleted")
 
     @commands.command(name="role", usage="role @user <Role>")
-    @commands.has_permissions(manage_roles=True)
+    @tools.has_perm(manage_roles=True)
     @commands.bot_has_permissions(manage_roles=True)
     async def role(self, ctx, member: discord.Member, role_asked: discord.Role):
         if role_asked in member.roles:

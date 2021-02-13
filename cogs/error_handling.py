@@ -1,7 +1,7 @@
 from discord.ext import commands
 from discord.ext.commands.errors import *
 import discord
-
+import sys
 
 class Error_handling(commands.Cog):
     def __init__(self, bot):
@@ -69,7 +69,15 @@ class Error_handling(commands.Cog):
                             value=f"\n{error}\nUsage: {prefix}{ctx.command.usage}", inline=False)
 
         else:
-            await ctx.send(f"Something happened, retry the command. If the issue persists contact the developers! ")
+            # noinspection PyBroadException
+            try:
+                error_channel = await self.bot.fetch_channel(809129113985876020)
+                await error_channel.send(f"Command: {ctx.command.name}\nGuild ID: {ctx.guild.id}\nUser ID: {ctx.author.id}\nError: {error}")
+                await ctx.send(
+                    f"Something happened, retry the command. If the issue persists contact the developers!")
+            except:
+                await ctx.send(
+                    f"Something happened, retry the command. If the issue persists contact the developers! Error:\n ```{error}```")
             raise error
         embed.set_footer(text="PloxHost community bot")
         await ctx.send(embed=embed)

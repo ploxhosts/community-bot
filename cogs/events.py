@@ -9,6 +9,13 @@ class Events(commands.Cog):
         self.bot = bot
         self.database = bot.database
 
+    def get_permissions_info(self, guild):
+        return {
+            "guild_id": guild.id,
+            "perm_nodes": {},
+            "bad_perm_nodes": {}
+        }
+
     def get_economy_user(self, member_id, guild_id):
         return {
             "user_id": member_id,
@@ -195,6 +202,13 @@ class Events(commands.Cog):
             pass
         else:
             posts.insert_one(self.get_server_economy(message.guild))
+
+        posts = db.permissions
+        if posts.find(
+                {'guild_id': message.guild.id}).count() > 0:  # Adds a guild to the database in case of any downtime
+            pass
+        else:
+            posts.insert_one(self.get_permissions_info(message.guild))
 
         # PLAYER LEVELING
 
