@@ -394,8 +394,8 @@ class Economy(commands.Cog):
         if await self.get_money(ctx.author.id, ctx.guild.id) < amount:
             return await ctx.send("Not enough cash to deposit this amount!")
 
-        await self.take_money(ctx.author.id, ctx.guild.id, amount)
-        await self.add_balance(ctx.author.id, amount)
+        await self.take_money(ctx.author.id, ctx.guild.id, int(amount))
+        await self.add_balance(ctx.author.id, int(amount))
         data = posts.find_one({"user_id": ctx.author.id})
         embed = Embed(color=0xffffff,
                       title=f"Deposited ${amount} in bank account of {ctx.author.name}#{ctx.author.discriminator}")
@@ -406,15 +406,18 @@ class Economy(commands.Cog):
 
     @commands.command(name="withdraw", aliases=["takemoney", "withdrawnmoney", "withdrawmoney", "with"],
                       usage="withdraw <amount>", no_pm=True)
-    async def withdraw(self, ctx, amount: int):
+    async def withdraw(self, ctx, amount):
         if await self.get_bank(ctx.author.id) < amount:
             return await ctx.send("Not enough cash to deposit this amount!")
 
         db = self.database.bot
         posts = db.economy
 
-        await self.take_balance(ctx.author.id, amount)
-        await self.add_money(ctx.author.id, ctx.guild.id, amount)
+        if amount == "all":
+            amount = posts.find_one({"user_id": ctx.author.id})['balance']
+
+        await self.take_balance(ctx.author.id, int(amount))
+        await self.add_money(ctx.author.id, ctx.guild.id, int(amount))
         data = posts.find_one({"user_id": ctx.author.id})
         embed = Embed(color=0xffffff,
                       title=f"Withdrawn ${amount} from bank account of {ctx.author.name}#{ctx.author.discriminator}")
