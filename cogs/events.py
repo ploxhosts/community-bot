@@ -9,10 +9,19 @@ class Events(commands.Cog):
         self.bot = bot
         self.database = bot.database
 
+    def get_permissions_info(self, guild):
+        return {
+            "guild_id": guild.id,
+            "perm_nodes": {},
+            "bad_perm_nodes": {},
+            "channel_perms": {}
+        }
+
     def get_economy_user(self, member_id, guild_id):
         return {
             "user_id": member_id,
             "balance": 100,
+            "balances": {str(guild_id): 0},
             "cash": {str(guild_id): 10},
             "stocks": {},
             "guilds": [],
@@ -62,7 +71,7 @@ class Events(commands.Cog):
         return {
             "guild_id": guild_id,
             "prefix": "?",  # Default prefix
-
+            "level": 0,
             "levels": {
                 "enabled": 1,  # Boolean value to allow leveling system to work, default yes
                 "voice_enabled": 1,  # Boolean value to allow voice leveling to work, default yes
@@ -162,6 +171,16 @@ class Events(commands.Cog):
             guilds.append(member.guild.id)
             posts.update_one({"user_id": member.id},
                              {"$set": {"cash": cash, "guilds": guilds}})
+            fields = {}
+            for x in posts.find({"user_id": member.id}):
+                fields = x
+            db_dict = self.get_economy_user(member.id, member.guild.id)
+            db_dict["_id"] = 0
+            if db_dict.keys() != fields:
+                for key, value in db_dict.items():
+                    if key not in fields.keys():
+                        posts.update_one({"user_id": member.id},
+                                         {"$set": {key: value}})
         else:
             posts.insert_one(self.get_economy_user(member.id, member.guild.id))
         posts = db.pending_mutes
@@ -186,15 +205,49 @@ class Events(commands.Cog):
 
         if posts.find(
                 {'guild_id': message.guild.id}).count() > 0:  # Adds a guild to the database in case of any downtime
-            pass
+            fields = {}
+            for x in posts.find({"guild_id": message.guild.id}):
+                fields = x
+            db_dict = self.get_server_settings(message.guild.id)
+            db_dict["_id"] = 0
+            if db_dict.keys() != fields:
+                for key, value in db_dict.items():
+                    if key not in fields.keys():
+                        posts.update_one({"guild_id": message.guild.id},
+                                         {"$set": {key: value}})
         else:
             posts.insert_one(self.get_server_settings(message.guild.id))
         posts = db.servereconomy
         if posts.find(
                 {'guild_id': message.guild.id}).count() > 0:  # Adds a guild to the database in case of any downtime
-            pass
+            fields = {}
+            for x in posts.find({"guild_id": message.guild.id}):
+                fields = x
+            db_dict = self.get_server_economy(message.guild)
+            db_dict["_id"] = 0
+            if db_dict.keys() != fields:
+                for key, value in db_dict.items():
+                    if key not in fields.keys():
+                        posts.update_one({"guild_id": message.guild.id},
+                                         {"$set": {key: value}})
         else:
             posts.insert_one(self.get_server_economy(message.guild))
+
+        posts = db.permissions
+        if posts.find(
+                {'guild_id': message.guild.id}).count() > 0:  # Adds a guild to the database in case of any downtime
+            fields = {}
+            for x in posts.find({"guild_id": message.guild.id}):
+                fields = x
+            db_dict = self.get_permissions_info(message.guild)
+            db_dict["_id"] = 0
+            if db_dict.keys() != fields:
+                for key, value in db_dict.items():
+                    if key not in fields.keys():
+                        posts.update_one({"guild_id": message.guild.id},
+                                         {"$set": {key: value}})
+        else:
+            posts.insert_one(self.get_permissions_info(message.guild))
 
         # PLAYER LEVELING
 
@@ -202,7 +255,18 @@ class Events(commands.Cog):
         if posts1.find(
                 {"user_id": message.author.id,
                  "guild_id": message.guild.id}).count() > 0:  # Adds a user to the database in case of any downtime
-            pass
+            fields = {}
+            for x in posts1.find({"user_id": message.author.id,
+                                  "guild_id": message.guild.id}):
+                fields = x
+            db_dict = self.get_user_stats(message.author.id, message.guild.id)
+            db_dict["_id"] = 0
+            if db_dict.keys() != fields:
+                for key, value in db_dict.items():
+                    if key not in fields.keys():
+                        posts1.update_one({"user_id": message.author.id,
+                                           "guild_id": message.guild.id},
+                                          {"$set": {key: value}})
         else:
             posts1.insert_one(self.get_user_stats(message.author.id, message.guild.id))
 
@@ -228,6 +292,17 @@ class Events(commands.Cog):
                 guilds.append(message.guild.id)
                 posts1.update_one({"user_id": message.author.id},
                                   {"$set": {"guilds": guilds}})
+            fields = {}
+            for x in posts1.find({"user_id": message.author.id}):
+                fields = x
+            db_dict = self.get_economy_user(message.author.id, message.guild.id)
+            db_dict["_id"] = 0
+            if db_dict.keys() != fields:
+                for key, value in db_dict.items():
+                    if key not in fields.keys():
+                        posts1.update_one({"user_id": message.author.id},
+                                          {"$set": {key: value}})
+
         else:
             posts1.insert_one(self.get_economy_user(message.author.id, message.guild.id))
 

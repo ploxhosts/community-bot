@@ -4,7 +4,7 @@ import asyncio
 import datetime
 import time
 import random
-
+import tools
 
 # noinspection PyBroadException
 class Suggestions(commands.Cog):
@@ -29,7 +29,7 @@ class Suggestions(commands.Cog):
 
         embed = discord.Embed(color=0xffffff)
         embed.add_field(name="Suggestion:", value=f"\n{suggestion}")
-        embed.set_footer(text=f"ID: {flake} | PloxHost community bot suggestions")
+        embed.set_footer(text=f"ID: {flake} | Ploxy suggestions")
         embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar_url)
 
         channel = ctx.guild.get_channel(suggestions_channel)
@@ -51,7 +51,7 @@ class Suggestions(commands.Cog):
 
     @suggestions.command(name='approve', aliases=["approvesuggestion", "suggestapprove", "accept", "acceptsuggestion"],
                          usage="suggestions approve <id> <reason>")
-    @commands.has_permissions(manage_guild=True)
+    @tools.has_perm(manage_guild=True)
     async def approve(self, ctx, flake: int, *, reason=None):
         db = self.database.bot
         posts = db.serversettings
@@ -88,7 +88,7 @@ class Suggestions(commands.Cog):
         else:
             embed.add_field(name="Suggestion:",
                             value=f"\n{suggestion}\n\n**Accepted by {ctx.author.mention}**")
-        embed.set_footer(text=f"ID: {flake} | PloxHost community bot suggestions")
+        embed.set_footer(text=f"ID: {flake} | Ploxy suggestions")
         embed.set_author(name=sender.name, icon_url=sender.avatar_url)
 
         channel = ctx.guild.get_channel(suggestions_channel)
@@ -116,7 +116,7 @@ class Suggestions(commands.Cog):
                          {"$set": {"status": "approved", "sent_messages": sent_messages}})
 
     @suggestions.command(name='deny', aliases=["denysuggestion", "reject"], usage="suggestions deny <id> <reason>")
-    @commands.has_permissions(manage_guild=True)
+    @tools.has_perm(manage_guild=True)
     async def deny(self, ctx, flake: int, *, reason=None):
         db = self.database.bot
         posts = db.serversettings
@@ -152,7 +152,7 @@ class Suggestions(commands.Cog):
         else:
             embed.add_field(name="Suggestion:",
                             value=f"\n{suggestion}\n\n**Denied by {ctx.author.mention}**")
-        embed.set_footer(text=f"ID: {flake} | PloxHost community bot suggestions")
+        embed.set_footer(text=f"ID: {flake} | Ploxy suggestions")
         embed.set_author(name=sender.name, icon_url=sender.avatar_url)
 
         channel = ctx.guild.get_channel(suggestions_channel)
@@ -181,7 +181,7 @@ class Suggestions(commands.Cog):
 
     # noinspection PyBroadException
     @suggestions.command(name="setup", alias=["channels"], usage="suggestions setup")
-    @commands.has_permissions(manage_guild=True)
+    @tools.has_perm(manage_guild=True)
     async def setup(self, ctx):
         db = self.database.bot
         posts = db.serversettings
@@ -190,7 +190,7 @@ class Suggestions(commands.Cog):
             return msg.channel == ctx.message.channel and msg.author == ctx.author
 
         embed = discord.Embed(color=0xFF0000, description="Where should suggestions be sent?")
-        embed.set_footer(text=f"PloxHost community bot | Suggestions Setup")
+        embed.set_footer(text=f"Ploxy | Suggestions Setup")
         first_message = await ctx.send(embed=embed)
         try:
             intake = await self.bot.wait_for('message', check=check, timeout=10)
@@ -206,7 +206,7 @@ class Suggestions(commands.Cog):
         embed = discord.Embed(color=0xFF0000,
                               description="Where should suggestions be accepted?\n This can left as 0 to use the same channel as before")
         embed.add_field(name="Suggestions channel", value=f"{intake_channel}")
-        embed.set_footer(text=f"PloxHost community bot | Suggestions Setup")
+        embed.set_footer(text=f"Ploxy | Suggestions Setup")
         await first_message.edit(embed=embed)
         try:
             intake = await self.bot.wait_for('message', check=check, timeout=10)
@@ -224,7 +224,7 @@ class Suggestions(commands.Cog):
                               description="Where should suggestions be denied?\n This can left as 0 to use the same channel as before")
         embed.add_field(name="Suggestions channel", value=f"{intake_channel}")
         embed.add_field(name="Accepted suggestions channel", value=f"{accepted_channel}")
-        embed.set_footer(text=f"PloxHost community bot | Suggestions Setup")
+        embed.set_footer(text=f"Ploxy | Suggestions Setup")
         await first_message.edit(embed=embed)
         try:
             intake = await self.bot.wait_for('message', check=check, timeout=10)
@@ -243,7 +243,7 @@ class Suggestions(commands.Cog):
         embed.add_field(name="Suggestions channel", value=f"{intake_channel}")
         embed.add_field(name="Accepted suggestions channel", value=f"{accepted_channel}")
         embed.add_field(name="Denied suggestions channel", value=f"{denied_channel}")
-        embed.set_footer(text=f"PloxHost community bot | Suggestions Setup")
+        embed.set_footer(text=f"Ploxy | Suggestions Setup")
         await first_message.edit(embed=embed)
 
         posts.update_one({"guild_id": ctx.guild.id}, {"$set": {

@@ -116,7 +116,7 @@ class Economy(commands.Cog):
                         embed = Embed(colour=0xac6f8f, description=f"You won the daily lottery!")
                         embed.add_field(name="Current balance:", value=f"{end_balance}", inline=False)
                         embed.add_field(name="Money earned:", value=f"{daily_money}", inline=False)
-                        embed.set_footer(text="PloxHost community bot | Lottery system")
+                        embed.set_footer(text="Ploxy | Lottery system")
                         await member.send(embed=embed)
                 if time.weekday() + 1 == 7:
                     if end_daily_winners:
@@ -125,7 +125,7 @@ class Economy(commands.Cog):
                             embed = Embed(colour=0xac6f8f, description=f"You won the weekly lottery!")
                             embed.add_field(name="Current balance:", value=f"{end_balance}", inline=False)
                             embed.add_field(name="Money earned:", value=f"{weekly_money}", inline=False)
-                            embed.set_footer(text="PloxHost community bot | Lottery system")
+                            embed.set_footer(text="Ploxy | Lottery system")
                             await member.send(embed=embed)
                 if calendar.monthrange(time.year, time.month)[1] == time.day:  # Monthly
                     if end_monthly_winners:
@@ -134,7 +134,7 @@ class Economy(commands.Cog):
                             embed = Embed(colour=0xac6f8f, description=f"You won the monthly lottery!")
                             embed.add_field(name="Current balance:", value=f"{end_balance}", inline=False)
                             embed.add_field(name="Money earned:", value=f"{monthly_money}", inline=False)
-                            embed.set_footer(text="PloxHost community bot | Lottery system")
+                            embed.set_footer(text="Ploxy | Lottery system")
                             await member.send(embed=embed)
 
             posts.update_one({"user_id": user["user_id"]},
@@ -281,7 +281,7 @@ class Economy(commands.Cog):
                 embed.add_field(name="You can't beg that soon",
                                 value=f"You must wait {round(seconds)} seconds for the police to eat their doughnuts again.",
                                 inline=False)
-        embed.set_footer(text="PloxHost community bot")
+        embed.set_footer(text="Ploxy")
         await ctx.send(embed=embed)
 
     @commands.command(name="coinflip", usage="coinflip <head|tails> <bet>", no_pm=True)
@@ -318,7 +318,7 @@ class Economy(commands.Cog):
         embed.add_field(name="Monthly lottery",
                         value=f"\n$100 per ticket, chosen at midnight on the last day of the month. Maximum 3 winners with 12 players.",
                         inline=True)
-        embed.set_footer(text="PloxHost community bot | Lottery system")
+        embed.set_footer(text="Ploxy | Lottery system")
         await ctx.send(embed=embed)
 
     @lotterycmd.command(name="buy", aliases=["purchase", "own"], usage="lottery buy daily 100", no_pm=True)
@@ -341,7 +341,7 @@ class Economy(commands.Cog):
 
         end_total = await self.take_money(ctx.author.id, ctx.guild.id, total)
         embed.add_field(name="Total Balance:", value=f"${end_total}", inline=True)
-        embed.set_footer(text="PloxHost community bot | Lottery system")
+        embed.set_footer(text="Ploxy | Lottery system")
         await ctx.send(embed=embed)
 
     @commands.command(name="balance", aliases=["bal"], usage="bal", no_pm=True)
@@ -356,7 +356,7 @@ class Economy(commands.Cog):
         embed = Embed(color=0xffffff, title=f"Balance of {user.name}#{user.discriminator}")
         embed.add_field(name="💰Total Balance:", value=f"${data['balance']}", inline=True)
         embed.add_field(name="💸Total Cash:", value=f"${data['cash'][str(ctx.guild.id)]}", inline=True)
-        embed.set_footer(text="PloxHost community bot | Economy system")
+        embed.set_footer(text="Ploxy | Economy system")
         await ctx.send(embed=embed)
 
     @commands.command(name="pay", aliases=["transfer"], usage="pay @user money", no_pm=True)
@@ -373,7 +373,7 @@ class Economy(commands.Cog):
         embed = Embed(color=0xffffff, title=f"Sent {user.name}#{user.discriminator} money")
         embed.add_field(name="💰Total Balance:", value=f"${data['balance']}", inline=True)
         embed.add_field(name="💸Total Cash:", value=f"${data['cash'][str(ctx.guild.id)]}", inline=True)
-        embed.set_footer(text="PloxHost community bot | Economy system")
+        embed.set_footer(text="Ploxy | Economy system")
         await ctx.send(embed=embed)
 
         data = posts.find_one({"user_id": user.id})
@@ -382,7 +382,7 @@ class Economy(commands.Cog):
         embed.add_field(name="📧Money received:", value=f"${money}", inline=True)
         embed.add_field(name="💰Total Balance:", value=f"${data['balance']}", inline=True)
         embed.add_field(name="💸Total Cash:", value=f"${data['cash'][str(ctx.guild.id)]}", inline=True)
-        embed.set_footer(text="PloxHost community bot | Economy system")
+        embed.set_footer(text="Ploxy | Economy system")
         await user.send(embed=embed)
 
     @commands.command(name="deposit", aliases=["storemoney", "storecash", "dep"], usage="deposit <amount>", no_pm=True)
@@ -394,33 +394,36 @@ class Economy(commands.Cog):
         if await self.get_money(ctx.author.id, ctx.guild.id) < amount:
             return await ctx.send("Not enough cash to deposit this amount!")
 
-        await self.take_money(ctx.author.id, ctx.guild.id, amount)
-        await self.add_balance(ctx.author.id, amount)
+        await self.take_money(ctx.author.id, ctx.guild.id, int(amount))
+        await self.add_balance(ctx.author.id, int(amount))
         data = posts.find_one({"user_id": ctx.author.id})
         embed = Embed(color=0xffffff,
                       title=f"Deposited ${amount} in bank account of {ctx.author.name}#{ctx.author.discriminator}")
         embed.add_field(name="💰Total Balance:", value=f"${data['balance']}", inline=True)
         embed.add_field(name="💸Total Cash:", value=f"${data['cash'][str(ctx.guild.id)]}", inline=True)
-        embed.set_footer(text="PloxHost community bot | Economy system")
+        embed.set_footer(text="Ploxy | Economy system")
         await ctx.send(embed=embed)
 
     @commands.command(name="withdraw", aliases=["takemoney", "withdrawnmoney", "withdrawmoney", "with"],
                       usage="withdraw <amount>", no_pm=True)
-    async def withdraw(self, ctx, amount: int):
+    async def withdraw(self, ctx, amount):
         if await self.get_bank(ctx.author.id) < amount:
             return await ctx.send("Not enough cash to deposit this amount!")
 
         db = self.database.bot
         posts = db.economy
 
-        await self.take_balance(ctx.author.id, amount)
-        await self.add_money(ctx.author.id, ctx.guild.id, amount)
+        if amount == "all":
+            amount = posts.find_one({"user_id": ctx.author.id})['balance']
+
+        await self.take_balance(ctx.author.id, int(amount))
+        await self.add_money(ctx.author.id, ctx.guild.id, int(amount))
         data = posts.find_one({"user_id": ctx.author.id})
         embed = Embed(color=0xffffff,
                       title=f"Withdrawn ${amount} from bank account of {ctx.author.name}#{ctx.author.discriminator}")
         embed.add_field(name="💰Total Balance:", value=f"${data['balance']}", inline=True)
         embed.add_field(name="💸Total Cash:", value=f"${data['cash'][str(ctx.guild.id)]}", inline=True)
-        embed.set_footer(text="PloxHost community bot | Economy system")
+        embed.set_footer(text="Ploxy | Economy system")
         await ctx.send(embed=embed)
 
 

@@ -1,7 +1,8 @@
 from discord.ext import commands
 from discord.ext.commands.errors import *
+from tools import RevokedAddedPerms, MissingAddedPerms
 import discord
-
+import sys
 
 class Error_handling(commands.Cog):
     def __init__(self, bot):
@@ -26,13 +27,25 @@ class Error_handling(commands.Cog):
             return ', '.join(end_list)
 
         error = getattr(exception, "original", exception)
-        embed = discord.Embed(colour=0xac6f8f, title="An error occurred")
+        embed = discord.Embed(colour=0xac6f8f)
 
         if hasattr(ctx.command, "on_error"):  # If a command has it's own handler
             return
 
         elif isinstance(error, CheckFailure):
-            embed.add_field(name="Error Message:", value=f"\n{error}", inline=False)
+            embed = discord.Embed(colour=0xac6f8f, description=f"{error}")
+            embed.set_footer(text="Ploxy | Permission Management")
+            await ctx.send(embed=embed)
+            return
+
+        elif isinstance(error, RevokedAddedPerms):
+            embed = discord.Embed(colour=0xac6f8f, description=f"{error}")
+            embed.set_footer(text="Ploxy | Permission Management")
+            await ctx.send(embed=embed)
+            return
+        elif isinstance(error, MissingPermissions):
+            embed = discord.Embed(colour=0xac6f8f, description=f"{error}")
+            embed.set_footer(text="Ploxy | Permission Management")
             await ctx.send(embed=embed)
             return
 
@@ -69,9 +82,17 @@ class Error_handling(commands.Cog):
                             value=f"\n{error}\nUsage: {prefix}{ctx.command.usage}", inline=False)
 
         else:
-            await ctx.send(f"Something happened, retry the command. If the issue persists contact the developers! ")
+            # noinspection PyBroadException
+            try:
+                error_channel = await self.bot.fetch_channel(809129113985876020)
+                await error_channel.send(f"Command: {ctx.command.name}\nGuild ID: {ctx.guild.id}\nUser ID: {ctx.author.id}\nError: {error}")
+                await ctx.send(
+                    f"Something happened, retry the command. If the issue persists contact the developers!")
+            except:
+                await ctx.send(
+                    f"Something happened, retry the command. If the issue persists contact the developers! Error:\n ```{error}```")
             raise error
-        embed.set_footer(text="PloxHost community bot")
+        embed.set_footer(text="Ploxy")
         await ctx.send(embed=embed)
 
 

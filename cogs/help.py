@@ -75,15 +75,21 @@ class Help(commands.Cog):
                     if isinstance(x, commands.Group):
                         # Is a command
                         for subcmd in x.commands:
+                            description = x.description
+                            if not description:
+                                description = "No description provided"
                             embed.add_field(name=f"{x.name.capitalize()} {subcmd.name.capitalize()}",
-                                            value=f"Description: {x.description}\nUsage: {prefix}{subcmd.usage}",
+                                            value=f"Description: {description}\n\nUsage: {prefix}{subcmd.usage}\n\n\u200b",
                                             inline=True)
-                    # embed.add_field(name=f"{x.name.capitalize()}",
-                    #                 value=f"Description: {x.description}\nUsage: {prefix}{x.usage}", inline=True)
+                    else:
+                        description = x.description
+                        if not description:
+                            description = "No description provided"
+                        embed.add_field(name=f"{x.name.capitalize()}", value=f"Description: {description}\n\nUsage: {prefix}{x.usage}\n\n\u200b", inline=True)
             except:
                 embed.add_field(name="No cogs found", value="You have used a name of a non existent cog.", inline=False)
 
-        embed.set_footer(text="PloxHost community bot | Help command")
+        embed.set_footer(text="Ploxy | Help command")
         return await ctx.send(embed=embed)
 
 
