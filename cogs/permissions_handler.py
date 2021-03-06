@@ -97,7 +97,27 @@ class Permissions(commands.Cog):
                 f"{rank.id}": [node.lower()]
             }})
 
-    @commands.group(name="permissions", aliases=["permission", "perm", "perms"],
+    def un_revoke_perm(self, guild, rank, node):
+        db = self.database.bot
+        collection = db.permissions
+        if collection.find({"guild_id": guild.id}).count() > 0:
+            bad_perms = self.get_bad_perms(guild)
+            if bad_perms.get(f"{rank.id}"):
+                if node.lower() not in bad_perms.get(f"{rank.id}"):
+                    return
+                bad_perms[f"{rank.id}"].remove(node.lower())
+            else:
+                return
+
+            collection.update_one({"guild_id": guild.id},
+                                  {"$set": {
+                                      "bad_perm_nodes": bad_perms}})
+        else:
+            collection.insert_one({"guild_id": guild.id, "perm_nodes": {}, "bad_perm_nodes": {
+                f"{rank.id}": [node.lower()]
+            }})
+
+    @commands.group(invoke_without_command=True, name="permissions", aliases=["permission", "perm", "perms"],
                     usage="permissions <grant|revoke> <permission group | permission node>")
     async def permissions(self, ctx):
         embed = discord.Embed(colour=0xac6f8f, title=f"Permissions Examples")
@@ -105,7 +125,7 @@ class Permissions(commands.Cog):
         embed.add_field(name="Take a given perm from role:", value="`?perms revoke admin command: Ban, Levels` - take a given permission from that rank to go back to default", inline=False)
         embed.add_field(name="Reject a  perm from role:", value="`?perms remove admin command: Ban` - stop that specific rank executing that command", inline=False)
         embed.add_field(name="Notes:", value="Use the permissions node `*` to give all permissions to a rank, helpful for developers. For example: `?perms grant admin *` or `?perms remove banned *`", inline=False)
-        embed.set_footer(text="PloxHost community bot | Permissions")
+        embed.set_footer(text="Ploxy | Permissions Management")
         await ctx.send(embed=embed)
 
     @permissions.command(name="grant", aliases=["add", "give"],
@@ -119,7 +139,7 @@ class Permissions(commands.Cog):
             f_node = node.replace("cmd", "command").strip()
             if "command" in f_node:
                 cor = "command"
-            if await self.valid_permission(cor, f_node.replace("command", "")):
+            if await self.valid_permission(cor, f_node.replace("command", "").replace(":", "")):
                 self.add_perm(ctx.guild, rank, f_node)
             else:
                 Failed_nodes.append(node)
@@ -149,7 +169,7 @@ class Permissions(commands.Cog):
             f_node = node.replace("cmd", "command").strip()
             if "command" in f_node:
                 cor = "command"
-            if await self.valid_permission(cor, f_node.replace("command", "")):
+            if await self.valid_permission(cor, f_node.replace("command", "").replace(":", "")):
                 if not self.remove_perm(ctx.guild, rank, f_node):
                     return await ctx.send(
                         f"It seems you used the wrong command. This rank does not have any existing permissions. Try the `permissions deny` command instead.")
@@ -181,7 +201,7 @@ class Permissions(commands.Cog):
             f_node = node.replace("cmd", "command").strip()
             if "command" in f_node:
                 cor = "command"
-            if await self.valid_permission(cor, f_node.replace("command", "")):
+            if await self.valid_permission(cor, f_node.replace("command", "").replace(":", "")):
                 self.revoke_perm(ctx.guild, rank, f_node)
             else:
                 Failed_nodes.append(node)
@@ -191,14 +211,14 @@ class Permissions(commands.Cog):
                     f_nodes.remove(Failed)
                 if f_nodes:
                     return await ctx.send(
-                        f"Added {','.join(f_nodes)} to {rank.name}. Failed to add {','.join(Failed_nodes)}")
+                        f"Added {','.join(f_nodes)} to {rank.name}. Failed to deny {','.join(Failed_nodes)}")
                 else:
-                    return await ctx.send(f"Failed to add {','.join(Failed_nodes)} to {rank.name}")
+                    return await ctx.send(f"Failed to deny {','.join(Failed_nodes)} to {rank.name}")
             else:
                 return await ctx.send(
                     f"Added {','.join(f_nodes)} to {rank.name}.")
         else:
-            return await ctx.send(f"Failed to add {','.join(Failed_nodes)} to {rank.name}")
+            return await ctx.send(f"Failed to deny {','.join(Failed_nodes)} to {rank.name}")
 
     @permissions.command(name="list",
                          usage="permissions list <rank>")
@@ -217,7 +237,7 @@ class Permissions(commands.Cog):
         embed = discord.Embed(colour=0xac6f8f, title=f"{rank.name.capitalize()}'s permissions")
         embed.add_field(name="Allowed:", value=good_perms, inline=False)
         embed.add_field(name="Strictly disabled:", value=bad_perms, inline=False)
-        embed.set_footer(text="PloxHost community bot | Permissions")
+        embed.set_footer(text="Ploxy | Permissions Management")
         await ctx.send(embed=embed)
 
 

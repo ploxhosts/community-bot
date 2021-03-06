@@ -71,7 +71,7 @@ class Events(commands.Cog):
         return {
             "guild_id": guild_id,
             "prefix": "?",  # Default prefix
-
+            "level": 0,
             "levels": {
                 "enabled": 1,  # Boolean value to allow leveling system to work, default yes
                 "voice_enabled": 1,  # Boolean value to allow voice leveling to work, default yes

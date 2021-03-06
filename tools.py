@@ -33,6 +33,22 @@ def get_time(word):
     return res
 
 
+class MissingAddedPerms(commands.CommandError):
+    def __init__(self, perm_node, cog_perm_node, role_name):
+        self.perm_node = perm_node
+        self.cog_perm_node = cog_perm_node
+        self.role_name = role_name
+        super().__init__(f'You require permissions for command: **{perm_node}** or cog: **{cog_perm_node}**. Try enabling it with the `perms grant` command.')
+
+
+class RevokedAddedPerms(commands.CommandError):
+    def __init__(self, perm_node, cog_perm_node, role_name):
+        self.perm_node = perm_node
+        self.cog_perm_node = cog_perm_node
+        self.role_name = role_name
+        super().__init__(f'Role `{role_name}` cannot run the command: **{perm_node}** or the cog: **{cog_perm_node}**. Try enabling it with the `perms grant` command.')
+
+
 def has_perm(**perms):
     invalid = set(perms) - set(discord.Permissions.VALID_FLAGS)
     if invalid:
@@ -58,39 +74,34 @@ def has_perm(**perms):
         perm_nodes = db_obj["perm_nodes"]
         bad_perm_nodes = db_obj["bad_perm_nodes"]
         for role in ctx.author.roles:
-
+            role: discord.Role
             # Negate perms, used if you want to stop a rank from executing a command but allow others too
             if str(role.id) in bad_perm_nodes:
-                print(bad_perm_nodes[f"{role.id}"])
                 for bad_perm in bad_perm_nodes[f"{role.id}"]:
+                    cog = ctx.cog
+                    cog: discord.ext.commands.Cog
+
                     if bad_perm == "*":
-                        print(f"Cannot run {ctx.command.name} due to bad all command")
-                        return
+                        raise RevokedAddedPerms(ctx.command.name, cog.qualified_name, role.name)
                     if "command" in bad_perm:
                         if ctx.command.name.lower() == bad_perm.replace("command:", "").strip().lower():
-                            print(f"Cannot run {ctx.command.name} due to bad command")
-                            return
+                            raise RevokedAddedPerms(ctx.command.name, cog.qualified_name, role.name)
                     else:
                         if ctx.cog.qualified_name.lower() == bad_perm.lower():
-                            print(f"Cannot run {ctx.command.name} due to bad cog")
-                            return
+                            raise RevokedAddedPerms(ctx.command.name, cog.qualified_name, role.name)
             if str(role.id) in perm_nodes:
                 for good_perm in perm_nodes[f"{role.id}"]:
                     if good_perm == "*":
-                        print(f"Ran {ctx.command.name} due to all commands")
                         return True
                     if "command" not in good_perm:
                         if ctx.cog.qualified_name.lower() == good_perm.lower():
-                            print(f"Ran {ctx.command.name} due to good cog")
                             return True
                     else:
                         if ctx.command.name.lower() == good_perm.replace("command:", "").strip().lower():
-                            print(f"Ran {ctx.command.name} due to good command")
                             return True
         if has_default_perms():
             return True
 
-        print(f"Command: {ctx.command.name.lower()}\nCog: {ctx.cog.name.lower()}")
-        return False
+        raise MissingAddedPerms(ctx.command.name.lower(), cog.qualified_name)
 
     return commands.check(predicate)

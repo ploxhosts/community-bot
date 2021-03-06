@@ -66,7 +66,7 @@ class CustomCommands(commands.Cog):
         embed = discord.Embed(colour=0xac6f8f, title="Custom command confirmation")
         embed.add_field(name="Command:", value=f"\n{command}", inline=False)
         embed.add_field(name="Response:", value=f"\n{content}", inline=False)
-        embed.set_footer(text="PloxHost community bot | Custom Commands")
+        embed.set_footer(text="Ploxy | Custom Commands")
         confirm_msg = await ctx.send(embed=embed)
 
         await confirm_msg.add_reaction("✅")
@@ -114,7 +114,7 @@ class CustomCommands(commands.Cog):
         end_list = "\n".join(c_commands)
         embed = discord.Embed(colour=0xac6f8f)
         embed.add_field(name=f"Command list of {inter} commands", value=f"\n\n{end_list}", inline=False)
-        embed.set_footer(text="PloxHost community bot | Custom Commands")
+        embed.set_footer(text="Ploxy | Custom Commands")
         await ctx.send(embed=embed)
 
 

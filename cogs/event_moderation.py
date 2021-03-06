@@ -44,7 +44,7 @@ class EventsMod(commands.Cog):
         embed.add_field(name="Message id:", value=f"\n{mid}", inline=False)
         embed.add_field(name="Author id:", value=f"\n{author_id}", inline=False)
         embed.add_field(name="Message:", value=f"\n{content}", inline=False)
-        embed.set_footer(text="PloxHost community bot | Logging and monitoring")
+        embed.set_footer(text="Ploxy | Logging and monitoring")
         log_channel = self.bot.get_channel(channel)
 
         await log_channel.send(embed=embed)
@@ -59,7 +59,7 @@ class EventsMod(commands.Cog):
         embed.add_field(name="Author id:", value=f"\n{message.data['author']['id']}", inline=False)
         embed.add_field(name="Message:", value=f"\n{message.data['content']}", inline=False)
         embed.add_field(name="Edit history:", value=f"\n{history}", inline=False)
-        embed.set_footer(text="PloxHost community bot | Logging and monitoring")
+        embed.set_footer(text="Ploxy | Logging and monitoring")
         log_channel = self.bot.get_channel(channel)
 
         await log_channel.send(embed=embed)
@@ -192,7 +192,7 @@ class EventsMod(commands.Cog):
         embed = discord.Embed(colour=0xac6f8f, title=f"Bulk Message delete")
         embed.add_field(name="Messages purged:", value=f"\n{len(message.message_ids)}", inline=False)
         embed.add_field(name="Channel:", value=f"\n{channel_ex.mention}", inline=False)
-        embed.set_footer(text="PloxHost community bot | Logging and monitoring")
+        embed.set_footer(text="Ploxy | Logging and monitoring")
         log_channel = self.bot.get_channel(log_channel)
 
         await log_channel.send(embed=embed)

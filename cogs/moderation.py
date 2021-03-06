@@ -80,7 +80,7 @@ class Mod(commands.Cog):
 
         embed = discord.Embed(colour=0xac6f8f, title=title)
         embed.add_field(name="Message:", value=f"\n{message}", inline=False)
-        embed.set_footer(text="PloxHost community bot | Chat Moderation")
+        embed.set_footer(text="Ploxy | Chat Moderation")
         log_channel = self.bot.get_channel(channel)
 
         await log_channel.send(embed=embed)
@@ -117,11 +117,6 @@ class Mod(commands.Cog):
             return True
         else:
             return False
-
-    @commands.command(name="test")
-    @tools.has_perm(manage_messages=True)
-    async def test(self, ctx):
-        print("tested")
 
     @commands.command(name="mute", description="Mute someone", usage="mute @user <time> <reason>")
     @tools.has_perm(manage_messages=True)
@@ -199,14 +194,14 @@ class Mod(commands.Cog):
         embed.add_field(name="Reason:", value=f"{reason}", inline=False)
         embed.add_field(name="ID:", value=f"{warn_id}", inline=False)
         embed.add_field(name="You now have:", value=f"{a} warnings", inline=True)
-        embed.set_footer(text="PloxHost community bot | Moderation")
+        embed.set_footer(text="Ploxy | Moderation")
         await user.send(embed=embed)
 
         embed = discord.Embed(colour=discord.Colour(0xac6f8f), description=f"{user.mention} has been warned!")
         embed.add_field(name="user ID:", value=f"{user.id}", inline=False)
         embed.add_field(name="Reason:", value=f"{reason}", inline=False)
         embed.add_field(name="ID:", value=f"{warn_id}", inline=False)
-        embed.set_footer(text="PloxHost community bot | Moderation")
+        embed.set_footer(text="Ploxy | Moderation")
         await ctx.send(embed=embed)
         await ctx.message.delete()
 
@@ -231,7 +226,7 @@ class Mod(commands.Cog):
                                   icon_url=f"{user.avatar_url}")
             embed.add_field(name="Reason", value=f"{reason}", inline=False)
             embed.add_field(name="You now have:", value=f"{a} warnings", inline=True)
-            embed.set_footer(text="PloxHost community bot | Moderation")
+            embed.set_footer(text="Ploxy | Moderation")
             await user.send(embed=embed)
             await ctx.send(f"{user.mention}'s warning {warn_id} has been removed!")
             await ctx.message.delete()
@@ -265,7 +260,7 @@ class Mod(commands.Cog):
         embed = discord.Embed(colour=0xac6f8f, description=f"{user}'s Warning's",
                               icon_url=f"{user.avatar_url}")
         embed.add_field(name="Warnings", value=f"{message}", inline=False)
-        embed.set_footer(text="PloxHost community bot | Moderation")
+        embed.set_footer(text="Ploxy | Moderation")
         await ctx.send(embed=embed)
 
     @commands.command(name="kick", description="Kick someone", usage="kick @user <reason>")
@@ -288,7 +283,7 @@ class Mod(commands.Cog):
         embed = discord.Embed(colour=0xac6f8f, description=f"{member.display_name} has been kicked!")
         embed.add_field(name="User ID:", value=f"{member.id}", inline=False)
         embed.add_field(name="Reason:", value=f"{reason}", inline=False)
-        embed.set_footer(text="PloxHost community bot | Moderation")
+        embed.set_footer(text="Ploxy | Moderation")
         await ctx.send(embed=embed)
 
     @commands.command(name="ban", description="Ban someone", usage="ban @user <reason>")
@@ -317,7 +312,7 @@ class Mod(commands.Cog):
         embed = discord.Embed(colour=0xac6f8f, description=f"{user.display_name} has been banned!")
         embed.add_field(name="User ID:", value=f"{user.id}", inline=False)
         embed.add_field(name="Reason:", value=f"{reason}", inline=False)
-        embed.set_footer(text="PloxHost community bot | Moderation")
+        embed.set_footer(text="Ploxy | Moderation")
         await ctx.send(embed=embed)
 
     @commands.command(name="clear", aliases=["purge"], usage="purge <number of messages>")

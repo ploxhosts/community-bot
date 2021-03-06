@@ -55,7 +55,6 @@ bot.database = database  # for use else where
 @bot.event
 async def on_ready():
     members = len(set(bot.get_all_members()))
-    print(bot.guilds)
     print('-----------------')
     print(f"Logged in as {bot.user.id} \nin {len(bot.guilds)} servers with {members} members")
     print('-----------------')

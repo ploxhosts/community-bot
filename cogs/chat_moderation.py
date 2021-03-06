@@ -68,7 +68,7 @@ class Chat(commands.Cog):
 
         embed = discord.Embed(colour=0xac6f8f, title=title)
         embed.add_field(name="Message:", value=f"\n{message}", inline=False)
-        embed.set_footer(text="PloxHost community bot | Chat Moderation")
+        embed.set_footer(text="Ploxy | Chat Moderation")
         log_channel = self.bot.get_channel(channel)
 
         await log_channel.send(embed=embed)
@@ -387,7 +387,7 @@ class Chat(commands.Cog):
                     embed.add_field(name="Message:", value=f"\n{message.content}", inline=False)
                     embed.add_field(name="Message ID:", value=f"\n{message.id}", inline=False)
                     embed.add_field(name="Links:", value=f"\n{','.join(bad_links)}", inline=False)
-                    embed.set_footer(text="PloxHost community bot | Chat filter")
+                    embed.set_footer(text="Ploxy | Chat filter")
                     log_channel = self.bot.get_channel(log_channel)
                     await log_channel.send(embed=embed)
                     await message.author.send("Dm advertisement isn't allowed!")
@@ -497,7 +497,7 @@ class Chat(commands.Cog):
                 description_string = description_string + f"\n{keyword}"
 
             em = discord.Embed(title="Banned words list", description=description_string, color=855330)
-            em.set_footer(text="PloxHost community bot | Chat filter")
+            em.set_footer(text="Ploxy | Chat filter")
 
             await ctx.send(embed=em)
 
@@ -544,7 +544,7 @@ class Chat(commands.Cog):
                 description_string = description_string + f"\n{keyword}"
 
             em = discord.Embed(title="Banned links list", description=description_string, color=855330)
-            em.set_footer(text="PloxHost community bot | Chat filter")
+            em.set_footer(text="Ploxy | Chat filter")
 
             await ctx.send(embed=em)
 
@@ -593,7 +593,7 @@ class Chat(commands.Cog):
                 description_string = description_string + f"\n{keyword}"
 
             em = discord.Embed(title="Role bypass list", description=description_string, color=855330)
-            em.set_footer(text="PloxHost community bot | Chat filter")
+            em.set_footer(text="Ploxy | Chat filter")
 
             await ctx.send(embed=em)
 
@@ -650,7 +650,7 @@ class Chat(commands.Cog):
                 description_string = description_string + f"\n{keyword}"
 
             em = discord.Embed(title="Allowed invite list", description=description_string, color=855330)
-            em.set_footer(text="PloxHost community bot | Chat filter")
+            em.set_footer(text="Ploxy | Chat filter")
 
             await ctx.send(embed=em)
         elif option.lower() in ["enable", "on"]:
