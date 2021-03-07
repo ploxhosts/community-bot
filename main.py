@@ -102,6 +102,10 @@ async def shutdown(ctx):
         print(error)
         ctx.bot.clear()
 
+@bot.command()
+@commands.check(is_owner)
+async def testcmd(ctx):
+    await ctx.send("Tested!")
 
 @bot.command()
 @commands.check(is_owner)
