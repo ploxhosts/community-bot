@@ -2,6 +2,7 @@ version: "3"
 services:
     bot:
         image: registry.plox.host/ploxhost/communitybot:latest
+        pull_policy: always
         restart: unless-stopped
         depends_on:
             - mongodb
