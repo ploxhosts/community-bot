@@ -1,9 +1,13 @@
+import datetime
 import json
 import os
 import random
-
+import logging
+import sys
+import time
 import discord
 from discord.ext import commands, tasks
+import os
 
 # Runs database connections and env
 from prepare import database
@@ -49,12 +53,50 @@ bot.remove_command('help')  # Get rid of the default help command as there is no
 
 bot.database = database  # for use else where
 
+os.makedirs("logs", exist_ok=True)
+
+fileName = time.strftime("%Y-%m-%d-%H%M")
+
+for filename in os.listdir("logs"):
+
+    if filename.endswith(".log"):
+        f_name = filename.split("-")
+        year = int(f_name[0])
+        month = int(f_name[1])
+        day = int(f_name[2])
+        now = datetime.datetime.now()
+        if now.month - month >= 1:
+            os.remove(os.path.join("logs", filename))
+
+f = open(f"logs/{fileName}.log", "w")
+f.close()
+
+fileHandler = logging.FileHandler(f"logs/{fileName}.log")
+
+rootLogger = logging.getLogger()
+
+
+logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
+fileHandler.setFormatter(logFormatter)
+rootLogger.addHandler(fileHandler)
+
+consoleHandler = logging.StreamHandler()
+consoleHandler.setFormatter(logFormatter)
+rootLogger.addHandler(consoleHandler)
+
 
 # What gets executed when bot connects to discord's api
 
 @bot.event
 async def on_ready():
     members = len(set(bot.get_all_members()))
+    channel = bot.get_channel(809129113985876020)
+    if channel:
+        channel: discord.TextChannel
+        await channel.send(f"Logged in as {bot.user.id} \nin {len(bot.guilds)} servers with {members} members")
+    rootLogger.debug('-----------------')
+    rootLogger.debug(f"Logged in as {bot.user.id} \nin {len(bot.guilds)} servers with {members} members")
+    rootLogger.debug('-----------------')
     print('-----------------')
     print(f"Logged in as {bot.user.id} \nin {len(bot.guilds)} servers with {members} members")
     print('-----------------')
@@ -99,7 +141,7 @@ async def shutdown(ctx):
     try:
         await ctx.bot.logout()
     except EnvironmentError as error:
-        print(error)
+        rootLogger.error(error)
         ctx.bot.clear()
 
 @bot.command()
@@ -113,12 +155,28 @@ async def reload(ctx, cog_name):
     try:
         bot.unload_extension(f"cogs.{cog_name}")
         bot.load_extension(f"cogs.{cog_name}")
-        ctx.send(f"{cog_name} reloaded")
+        await ctx.send(f"{cog_name} reloaded")
     except Exception as exception:
-        print(f"{cog_name} can not be loaded:")
+        rootLogger.critical(f"{cog_name} can not be loaded: {exception}")
         raise exception
 
 
+@bot.command()
+@commands.check(is_owner)
+async def getserverfile(ctx, file= None):
+    if file is None:
+        files = []
+        for filename in os.listdir("logs"):
+            if filename.endswith(".log"):
+                files.append(filename)
+        await ctx.author.send("\n".join(files))
+    else:
+        try:
+            await ctx.author.send(file=discord.File(os.path.join("logs", file)))
+        except Exception as e:
+            await ctx.send("An error occurred!")
+            print(e)
+            rootLogger.critical(e)
 # Used for the automatic change of status messages
 
 @tasks.loop(minutes=3.0, count=None, reconnect=True)
@@ -147,7 +205,7 @@ for cog in os.listdir("cogs"):
             cog = f"cogs.{cog.replace('.py', '')}"
             bot.load_extension(cog)
         except Exception as e:
-            print(f"{cog} can not be loaded:")
+            rootLogger.critical(f"{cog} can not be loaded:")
             raise e
 
 # Start up the bot

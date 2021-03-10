@@ -29,7 +29,7 @@ class Nitro(commands.Cog):
         for user in boosters:
             if users[0] == "Unfortunately, you don't have any nitro boosters.":
                 users.clear()
-            seconds = user.premium_since
+            seconds = (user.premium_since - datetime.datetime.utcnow()).total_seconds()
             if seconds:
                 minutes = round(seconds / 60)
                 hours = round(minutes / 60)

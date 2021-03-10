@@ -25,9 +25,11 @@ class Events(commands.Cog):
             "cash": {str(guild_id): 10},
             "stocks": {},
             "guilds": [],
+            "multiplier": 0,
             "d_lottery_tickets": 0,
             "w_lottery_tickets": 0,
-            "m_lottery_tickets": 0
+            "m_lottery_tickets": 0,
+            "latest_update": datetime.datetime.utcnow()
         }
 
     def get_server_economy(self, guild):
@@ -47,7 +49,8 @@ class Events(commands.Cog):
                 # Here goes any weapons they have and the multiplier. For example having "nukes": 100 will mean 100 * damage of a nuke and a nuke aims to destroy level ups of a guild and so on by reducing money, messing up taxes, lowering levels of power and such.
                 "sns": 10  # default sticks and stones for weapons
             },
-            "worth": guild.member_count / 100
+            "worth": guild.member_count / 100,
+            "latest_update": datetime.datetime.utcnow()
 
         }
 
@@ -58,19 +61,45 @@ class Events(commands.Cog):
             "level": 0,
             "exp": 0,
             "multiplier": 1,  # For any boost they buy from the economy system
-            "user_rank": 0,  # premium user or not
-            "verified": False,  # Verification system
             "seconds_in_vc": 0,  # Total time spent in vc
             "time_since_join_vc": 0,  # Temporary value for saving vc time
             "latest_vc_channel": 0,  # Check their last channel they were in normally temp
             "message_time": datetime.datetime.utcnow(),
-            "mod_logs": []
+            "mod_logs": [],
+            "latest_update": datetime.datetime.utcnow()
+        }
+
+    def global_user_profile(self, member_id):
+        return {
+            "user_id": member_id,
+            "email": "",  # Alert if something happens/changes <- not marketing related
+            "notify_settings": {
+                "on_ban": False,
+                "on_kick": False,
+                "on_modify_settings": False,
+                "on_bot_major_update": True,
+                "on_admin_abuse": True
+            },
+            "guilds": {},  # web dashboard/ custom permission for web management of a server
+            "user_rank": 0,  # premium user or not
+            "coins": 0,  # For using for premium
+            "verified": False,  # Verification system
+            "last_seen": datetime.datetime.utcnow(),  # Last seen date
+            "on_website": False,  # Bonus if user is on website
+            "github": "",  # Used for contributors
+            "additions": 0,  # Used for contributors
+            "negations": 0,  # Used for contributors
+            "ranks": {"dev": False, "staff": False, "admin": False, "contributor": False},
+            # Ability to view pages on the website/cool icon
+            "latest_update": datetime.datetime.utcnow()
+
         }
 
     def get_server_settings(self, guild_id):
         return {
             "guild_id": guild_id,
             "prefix": "?",  # Default prefix
+            "users": {},
             "level": 0,
             "levels": {
                 "enabled": 1,  # Boolean value to allow leveling system to work, default yes
@@ -114,8 +143,49 @@ class Events(commands.Cog):
             "log_channel": 0,  # Where mod logs are sent
             "muted_role_id": 0,  # Muted role id
             "extra_settings": {},
+            "latest_update": datetime.datetime.utcnow(),
             "linked_guilds": {},  # guild_id with a parent or child or mutual where bans get transferred
         }
+
+    async def check_if_update(self, find, main_document, collection):
+        if collection.count_documents(find) > 0:
+            fields = {}
+            for x in collection.find(find):
+                fields = x
+            if "latest_update" in fields:
+                last_time = fields["latest_update"]
+                time_diff = datetime.datetime.utcnow() - last_time
+                if time_diff.total_seconds() > 3600:
+                    return
+            db_dict = main_document
+            db_dict["_id"] = 0
+            if db_dict.keys() != fields:
+                for key, value in db_dict.items():
+                    if key not in fields.keys():
+                        collection.update_one(find, {"$set": {key: value}})
+                    else:
+                        try:
+                            sub_dict = dict(value)
+                            for key2, value2 in sub_dict.items():
+                                if key2 not in fields[key].keys():
+                                    new_value = value
+                                    new_value[key2] = value2
+                                    collection.update_one(find,
+                                                          {"$set": {key: new_value}})
+                            for key2, value2 in fields[key].items():
+                                if key2 not in sub_dict.keys():
+                                    new_dict = {}
+                                    for item in sub_dict:
+                                        if item != key2:
+                                            new_dict[item] = sub_dict.get(item)
+                                    collection.update_one(find, {"$set": {key: new_dict}})
+                        except:
+                            pass
+                for key2, value2 in fields.items():
+                    if key2 not in db_dict:
+                        collection.update_one(find, {"$unset": {key2: 1}})
+            else:
+                collection.insert_one(main_document)
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):  # Update here to remove documents on a guild leave
@@ -161,6 +231,7 @@ class Events(commands.Cog):
         except IndexError:
             posts.insert_one(self.get_user_stats(member.id, member.guild.id))
         posts = db.economy
+
         if posts.find({"user_id": member.id}).count() > 0:  # Adds a user to the database in case of any downtime
             cash = {}
             guilds = []
@@ -171,18 +242,10 @@ class Events(commands.Cog):
             guilds.append(member.guild.id)
             posts.update_one({"user_id": member.id},
                              {"$set": {"cash": cash, "guilds": guilds}})
-            fields = {}
-            for x in posts.find({"user_id": member.id}):
-                fields = x
-            db_dict = self.get_economy_user(member.id, member.guild.id)
-            db_dict["_id"] = 0
-            if db_dict.keys() != fields:
-                for key, value in db_dict.items():
-                    if key not in fields.keys():
-                        posts.update_one({"user_id": member.id},
-                                         {"$set": {key: value}})
+            await self.check_if_update({"user_id": member.id}, self.get_economy_user(member.id, member.guild.id), posts)
         else:
             posts.insert_one(self.get_economy_user(member.id, member.guild.id))
+
         posts = db.pending_mutes
         if posts.find_one({"guild_id": member.guild.id, "user_id": member.id}):
             role = await member.guild.get_role(db.serversettings.find({'guild_id': member.guild.id})["muted_role_id"])
@@ -203,72 +266,21 @@ class Events(commands.Cog):
 
         posts = db.serversettings
 
-        if posts.find(
-                {'guild_id': message.guild.id}).count() > 0:  # Adds a guild to the database in case of any downtime
-            fields = {}
-            for x in posts.find({"guild_id": message.guild.id}):
-                fields = x
-            db_dict = self.get_server_settings(message.guild.id)
-            db_dict["_id"] = 0
-            if db_dict.keys() != fields:
-                for key, value in db_dict.items():
-                    if key not in fields.keys():
-                        posts.update_one({"guild_id": message.guild.id},
-                                         {"$set": {key: value}})
-        else:
-            posts.insert_one(self.get_server_settings(message.guild.id))
+        await self.check_if_update({"guild_id": message.guild.id}, self.get_server_settings(message.guild.id), posts)
+
         posts = db.servereconomy
-        if posts.find(
-                {'guild_id': message.guild.id}).count() > 0:  # Adds a guild to the database in case of any downtime
-            fields = {}
-            for x in posts.find({"guild_id": message.guild.id}):
-                fields = x
-            db_dict = self.get_server_economy(message.guild)
-            db_dict["_id"] = 0
-            if db_dict.keys() != fields:
-                for key, value in db_dict.items():
-                    if key not in fields.keys():
-                        posts.update_one({"guild_id": message.guild.id},
-                                         {"$set": {key: value}})
-        else:
-            posts.insert_one(self.get_server_economy(message.guild))
+        await self.check_if_update({"guild_id": message.guild.id}, self.get_server_economy(message.guild), posts)
+
+        posts = db.globalusers
+        await self.check_if_update({"user_id": message.author.id}, self.global_user_profile(message.author.id), posts)
 
         posts = db.permissions
-        if posts.find(
-                {'guild_id': message.guild.id}).count() > 0:  # Adds a guild to the database in case of any downtime
-            fields = {}
-            for x in posts.find({"guild_id": message.guild.id}):
-                fields = x
-            db_dict = self.get_permissions_info(message.guild)
-            db_dict["_id"] = 0
-            if db_dict.keys() != fields:
-                for key, value in db_dict.items():
-                    if key not in fields.keys():
-                        posts.update_one({"guild_id": message.guild.id},
-                                         {"$set": {key: value}})
-        else:
-            posts.insert_one(self.get_permissions_info(message.guild))
+        await self.check_if_update({"guild_id": message.guild.id}, self.get_permissions_info(message.guild), posts)
 
         # PLAYER LEVELING
 
-        posts1 = db.player_data
-        if posts1.find(
-                {"user_id": message.author.id,
-                 "guild_id": message.guild.id}).count() > 0:  # Adds a user to the database in case of any downtime
-            fields = {}
-            for x in posts1.find({"user_id": message.author.id,
-                                  "guild_id": message.guild.id}):
-                fields = x
-            db_dict = self.get_user_stats(message.author.id, message.guild.id)
-            db_dict["_id"] = 0
-            if db_dict.keys() != fields:
-                for key, value in db_dict.items():
-                    if key not in fields.keys():
-                        posts1.update_one({"user_id": message.author.id,
-                                           "guild_id": message.guild.id},
-                                          {"$set": {key: value}})
-        else:
-            posts1.insert_one(self.get_user_stats(message.author.id, message.guild.id))
+        posts = db.player_data
+        await self.check_if_update({"user_id": message.author.id, "guild_id": message.guild.id}, self.get_user_stats(message.author.id, message.guild.id), posts)
 
         # ECONOMY
 
@@ -292,16 +304,9 @@ class Events(commands.Cog):
                 guilds.append(message.guild.id)
                 posts1.update_one({"user_id": message.author.id},
                                   {"$set": {"guilds": guilds}})
-            fields = {}
-            for x in posts1.find({"user_id": message.author.id}):
-                fields = x
-            db_dict = self.get_economy_user(message.author.id, message.guild.id)
-            db_dict["_id"] = 0
-            if db_dict.keys() != fields:
-                for key, value in db_dict.items():
-                    if key not in fields.keys():
-                        posts1.update_one({"user_id": message.author.id},
-                                          {"$set": {key: value}})
+
+            await self.check_if_update({"guild_id": message.guild.id}, self.get_server_settings(message.guild.id),
+                                       posts)
 
         else:
             posts1.insert_one(self.get_economy_user(message.author.id, message.guild.id))
