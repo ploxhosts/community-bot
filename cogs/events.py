@@ -155,7 +155,7 @@ class Events(commands.Cog):
             if "latest_update" in fields:
                 last_time = fields["latest_update"]
                 time_diff = datetime.datetime.utcnow() - last_time
-                if time_diff.total_seconds() > 3600:
+                if time_diff.total_seconds() < 3600:
                     return
             db_dict = main_document
             db_dict["_id"] = 0
