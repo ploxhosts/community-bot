@@ -1,8 +1,13 @@
+import traceback
+
 from discord.ext import commands
 from discord.ext.commands.errors import *
 from tools import RevokedAddedPerms, MissingAddedPerms
 import discord
 import sys
+import logging
+logger = logging.getLogger(__name__)
+
 
 class Error_handling(commands.Cog):
     def __init__(self, bot):
@@ -56,30 +61,39 @@ class Error_handling(commands.Cog):
                               NoPrivateMessage, MissingRequiredArgument, ConversionError)):
 
             embed.add_field(name="Error Message:", value=f"\n{error}\nUsage: {prefix}{ctx.command.usage}", inline=False)
-
+            embed.set_footer(text="Ploxy")
+            await ctx.send(embed=embed)
         elif isinstance(error, BotMissingPermissions):
             embed.add_field(name="I am missing these permissions to do this command:",
                             value=f"\n{get_listed(error.missing_perms)}", inline=False)
-
+            embed.set_footer(text="Ploxy")
+            await ctx.send(embed=embed)
         elif isinstance(error, MissingPermissions):
             embed.add_field(name="You are missing these permissions to do this command:",
                             value=f"\n{get_listed(error.missing_perms)}", inline=False)
-
+            embed.set_footer(text="Ploxy")
+            await ctx.send(embed=embed)
         elif isinstance(error, (BotMissingAnyRole, BotMissingRole)):
             embed.add_field(name="I am missing these roles to do this command:",
                             value=f"\n{get_listed(error.missing_roles or [error.missing_role])}", inline=False)
-
+            embed.set_footer(text="Ploxy")
+            await ctx.send(embed=embed)
         elif isinstance(error, (MissingRole, MissingAnyRole, MissingAnyRole)):
             embed.add_field(name="You are missing these roles to do this command:",
                             value=f"\n{get_listed(error.missing_roles or [error.missing_role])}", inline=False)
+            embed.set_footer(text="Ploxy")
+            await ctx.send(embed=embed)
         elif isinstance(error, discord.Forbidden):
             embed.add_field(name="I am not allowed to do this!",
                             value=f"Make sure I am above that user in the roles list and having the correct perms to do so.",
                             inline=False)
+            embed.set_footer(text="Ploxy")
+            await ctx.send(embed=embed)
         elif isinstance(error, BadArgument):
-            print(error)
             embed.add_field(name="Error:",
                             value=f"\n{error}\nUsage: {prefix}{ctx.command.usage}", inline=False)
+            embed.set_footer(text="Ploxy")
+            await ctx.send(embed=embed)
 
         else:
             # noinspection PyBroadException
@@ -91,9 +105,10 @@ class Error_handling(commands.Cog):
             except:
                 await ctx.send(
                     f"Something happened, retry the command. If the issue persists contact the developers! Error:\n ```{error}```")
-            raise error
-        embed.set_footer(text="Ploxy")
-        await ctx.send(embed=embed)
+            try:
+                raise error
+            except Exception:
+                logger.error(traceback.format_exc())
 
 
 def setup(bot):

@@ -18,7 +18,7 @@ class Commands(commands.Cog):
 
     @commands.command(name="poll", aliases=["polls"], usage="poll <question>")
     async def poll(self, ctx, *, text: str):
-        await ctx.message.delete()
+        await ctx.maessage.delete()
         embed = discord.Embed(color=0xff0000)
         embed.add_field(name=f"Poll:", value=f"{text}", inline=True)
         msg = await ctx.send(embed=embed)
@@ -141,8 +141,6 @@ class Commands(commands.Cog):
             await ctx.send("You chose `scissors`\nBot chose: `scissors`\nResult:Draw!")
         elif word in scissors and choice == "Rock":
             await ctx.send("You chose `scissors`\nBot chose: `rock`\nResult:You lose!")
-        else:
-            print("error")
 
     @commands.command(name="googleit", aliases=["helpmegoogle"], usage="googleit how to make cake")
     async def googleit(self, ctx, *, question: str):

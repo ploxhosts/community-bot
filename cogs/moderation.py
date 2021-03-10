@@ -254,7 +254,6 @@ class Mod(commands.Cog):
                 else:
                     lista.append(f"{a}. Warned by **SYSTEM** for {reason}\n ID: {warn_id}\n")
         if lista:
-            print("here")
             message = "\n".join(lista)
 
         embed = discord.Embed(colour=0xac6f8f, description=f"{user}'s Warning's",

@@ -407,7 +407,10 @@ class Economy(commands.Cog):
     @commands.command(name="withdraw", aliases=["takemoney", "withdrawnmoney", "withdrawmoney", "with"],
                       usage="withdraw <amount>", no_pm=True)
     async def withdraw(self, ctx, amount):
-        if await self.get_bank(ctx.author.id) < amount:
+        amount = 0
+        if amount == "all":
+            amount = await self.get_bank(ctx.author.id)
+        if await self.get_bank(ctx.author.id) < int(amount):
             return await ctx.send("Not enough cash to deposit this amount!")
 
         db = self.database.bot

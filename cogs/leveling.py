@@ -93,7 +93,7 @@ class Levels(commands.Cog):
                 level = x["level"]
                 exp = x["exp"]
             embed = discord.Embed(color=0xffffff)
-            embed.add_field(name=f"{ctx.author}", value=f"You have {exp} xp and are on level {level}", inline=True)
+            embed.add_field(name=f"{ctx.author.name}", value=f"You have {exp} xp and are on level {level}", inline=True)
             return await ctx.send(embed=embed)
 
         for x in posts.find({"user_id": user.id, "guild_id": ctx.guild.id}):
