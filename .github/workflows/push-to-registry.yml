@@ -1,0 +1,24 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag communitybot
+    - name: Login to registry
+      run: docker login -u admin -p ${{ secrets.PASSWORD }} registry.plox.host
+    - name: Tag Images
+      run: docker tag communitybot registry.plox.host/ploxhost/communitybot:latest
+    - name: Push Images
+      run: docker push registry.plox.host/ploxhost/communitybot:latest
