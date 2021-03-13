@@ -50,7 +50,7 @@ class Nitro(commands.Cog):
                 elif minutes > 1:  # minutes
                     users.append(f"{user.name}#{user.discriminator} boosted for {minutes} minutes.")
 
-        embed = discord.Embed(color=0xffffff, title=f"{len(boosters)} members are boosting the server!", description="\n".join(users))
+        embed = discord.Embed(color=0x36a39f, title=f"{len(boosters)} members are boosting the server!", description="\n".join(users))
         await ctx.send(embed=embed)
 
 

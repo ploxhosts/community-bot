@@ -171,7 +171,7 @@ class Events(commands.Cog):
                                     new_value = value
                                     new_value[key2] = value2
                                     collection.update_one(find,
-                                                          {"$set": {key: new_value}})
+                                                                {"$set": {key: new_value}})
                             for key2, value2 in fields[key].items():
                                 if key2 not in sub_dict.keys():
                                     new_dict = {}
@@ -280,7 +280,8 @@ class Events(commands.Cog):
         # PLAYER LEVELING
 
         posts = db.player_data
-        await self.check_if_update({"user_id": message.author.id, "guild_id": message.guild.id}, self.get_user_stats(message.author.id, message.guild.id), posts)
+        await self.check_if_update({"user_id": message.author.id, "guild_id": message.guild.id},
+                                   self.get_user_stats(message.author.id, message.guild.id), posts)
 
         # ECONOMY
 

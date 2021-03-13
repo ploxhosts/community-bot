@@ -19,7 +19,7 @@ class Commands(commands.Cog):
     @commands.command(name="poll", aliases=["polls"], usage="poll <question>")
     async def poll(self, ctx, *, text: str):
         await ctx.maessage.delete()
-        embed = discord.Embed(color=0xff0000)
+        embed = discord.Embed(color=0x36a39f)
         embed.add_field(name=f"Poll:", value=f"{text}", inline=True)
         msg = await ctx.send(embed=embed)
         emoji = '\N{THUMBS UP SIGN}'
@@ -64,7 +64,7 @@ class Commands(commands.Cog):
         # await ctx.send(embed=discord.Embed.from_dict({'title':f'{ctx.guild.name} roles', 'fields':[{'name':r.name, 'value':str(len(r.members))} for r in ctx.guild.roles]}))
         await ctx.send(embed=discord.Embed.from_dict({'title': f'{ctx.guild.name} roles',
                                                       'fields': [{'name': r.name, 'value': str(len(r.members))} for r in
-                                                                 ctx.guild.roles], 'color': 0xeee657}))
+                                                                 ctx.guild.roles], 'color': 0x36a39f}))
         # for role in ctx.guild.roles:
         # await ctx.send(f"{role}: {len(role.members)}")
 

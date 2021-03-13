@@ -189,7 +189,7 @@ class Suggestions(commands.Cog):
         def check(msg):
             return msg.channel == ctx.message.channel and msg.author == ctx.author
 
-        embed = discord.Embed(color=0xFF0000, description="Where should suggestions be sent?")
+        embed = discord.Embed(color=0x36a39f, description="Where should suggestions be sent?")
         embed.set_footer(text=f"Ploxy | Suggestions Setup")
         first_message = await ctx.send(embed=embed)
         try:
@@ -203,7 +203,7 @@ class Suggestions(commands.Cog):
             intake_channel = intake.channel_mentions[0].id
         except:
             return await ctx.send("It must be a channel mention!")
-        embed = discord.Embed(color=0xFF0000,
+        embed = discord.Embed(color=0x36a39f,
                               description="Where should suggestions be accepted?\n This can left as 0 to use the same channel as before")
         embed.add_field(name="Suggestions channel", value=f"{intake_channel}")
         embed.set_footer(text=f"Ploxy | Suggestions Setup")
@@ -220,7 +220,7 @@ class Suggestions(commands.Cog):
         except:
             return await ctx.send("It must be a channel mention!")
 
-        embed = discord.Embed(color=0xFF0000,
+        embed = discord.Embed(color=0x36a39f,
                               description="Where should suggestions be denied?\n This can left as 0 to use the same channel as before")
         embed.add_field(name="Suggestions channel", value=f"{intake_channel}")
         embed.add_field(name="Accepted suggestions channel", value=f"{accepted_channel}")
@@ -238,7 +238,7 @@ class Suggestions(commands.Cog):
         except:
             return await ctx.send("It must be a channel mention!")
 
-        embed = discord.Embed(color=0xFF0000,
+        embed = discord.Embed(color=0x36a39f,
                               description="Suggestions setup!")
         embed.add_field(name="Suggestions channel", value=f"{intake_channel}")
         embed.add_field(name="Accepted suggestions channel", value=f"{accepted_channel}")

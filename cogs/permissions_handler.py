@@ -120,7 +120,7 @@ class Permissions(commands.Cog):
     @commands.group(invoke_without_command=True, name="permissions", aliases=["permission", "perm", "perms"],
                     usage="permissions <grant|revoke> <permission group | permission node>")
     async def permissions(self, ctx):
-        embed = discord.Embed(colour=0xac6f8f, title=f"Permissions Examples")
+        embed = discord.Embed(colour=0x36a39f, title=f"Permissions Examples")
         embed.add_field(name="Give perms to a role:", value="`?perms grant admin command: Ban, Levels` - give a permission to a rank", inline=False)
         embed.add_field(name="Take a given perm from role:", value="`?perms revoke admin command: Ban, Levels` - take a given permission from that rank to go back to default", inline=False)
         embed.add_field(name="Reject a  perm from role:", value="`?perms remove admin command: Ban` - stop that specific rank executing that command", inline=False)
@@ -234,7 +234,7 @@ class Permissions(commands.Cog):
             bad_perms = "\n".join(list(bad_perms[f"{rank.id}"]))
         else:
             bad_perms = "This role has no disabled permissions/commands!"
-        embed = discord.Embed(colour=0xac6f8f, title=f"{rank.name.capitalize()}'s permissions")
+        embed = discord.Embed(colour=0x36a39f, title=f"{rank.name.capitalize()}'s permissions")
         embed.add_field(name="Allowed:", value=good_perms, inline=False)
         embed.add_field(name="Strictly disabled:", value=bad_perms, inline=False)
         embed.set_footer(text="Ploxy | Permissions Management")

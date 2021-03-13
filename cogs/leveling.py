@@ -67,7 +67,7 @@ class Levels(commands.Cog):
 
             if xp_end <= xp_start:
                 level += 1
-                embed = discord.Embed(color=0xffffff)
+                embed = discord.Embed(color=0x36a39f)
                 embed.add_field(name=f"{message.author}", value=f"Has leveled up to level {level}", inline=True)
                 delete_me = await message.channel.send(embed=embed)
 
@@ -92,14 +92,14 @@ class Levels(commands.Cog):
             for x in posts.find({"user_id": ctx.author.id, "guild_id": ctx.guild.id}):
                 level = x["level"]
                 exp = x["exp"]
-            embed = discord.Embed(color=0xffffff)
+            embed = discord.Embed(color=0x36a39f)
             embed.add_field(name=f"{ctx.author.name}", value=f"You have {exp} xp and are on level {level}", inline=True)
             return await ctx.send(embed=embed)
 
         for x in posts.find({"user_id": user.id, "guild_id": ctx.guild.id}):
             level = x["level"]
             exp = x["exp"]
-        embed = discord.Embed(color=0xffffff)
+        embed = discord.Embed(color=0x36a39f)
         embed.add_field(name=f"{user.name}", value=f"Has {exp} xp and are on level {level}", inline=True)
         await ctx.send(embed=embed)
 
@@ -110,7 +110,7 @@ class Levels(commands.Cog):
         embed = discord.Embed(
             title="Leveling help",
             description="This helps you config the leveling system",
-            color=0xeee657)
+            color=0x36a39f)
         embed.add_field(
             name="Disable/Enable leveling",
             value="leveling <voice | text> <enable|disable>",

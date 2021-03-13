@@ -75,7 +75,6 @@ fileHandler = logging.FileHandler(f"logs/{fileName}.log")
 
 rootLogger = logging.getLogger()
 
-
 logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
 fileHandler.setFormatter(logFormatter)
 rootLogger.addHandler(fileHandler)
@@ -159,7 +158,7 @@ async def reload(ctx, cog_name):
 
 @bot.command()
 @commands.check(is_owner)
-async def getserverfile(ctx, file= None):
+async def getserverfile(ctx, file=None):
     if file is None:
         files = []
         for filename in os.listdir("logs"):
@@ -173,6 +172,8 @@ async def getserverfile(ctx, file= None):
             await ctx.send("An error occurred!")
             print(e)
             rootLogger.critical(e)
+
+
 # Used for the automatic change of status messages
 
 @tasks.loop(minutes=3.0, count=None, reconnect=True)

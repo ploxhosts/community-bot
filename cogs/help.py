@@ -26,7 +26,7 @@ class Help(commands.Cog):
         for x in posts.find({"guild_id": ctx.guild.id}):
             prefix = x['prefix']
 
-        embed = discord.Embed(colour=0xac6f8f, title="Help command")
+        embed = discord.Embed(colour=0x36a39f, title="Help command")
         if cog is None:
             commands_list = {}
             cog_names = {""}
@@ -65,7 +65,7 @@ class Help(commands.Cog):
                 if self.bot.get_cog(cog.capitalize()):  # Check if it exists
                     pass
 
-                embed = discord.Embed(colour=0xac6f8f, title=f"{cog.capitalize()} commands")
+                embed = discord.Embed(colour=0x36a39f, title=f"{cog.capitalize()} commands")
 
                 if cog.lower() in ["customcommands", "customcommand", "cc"]:  # Generates some errors
                     cog = "CustomCommands"

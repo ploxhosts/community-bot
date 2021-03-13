@@ -78,7 +78,7 @@ class Mod(commands.Cog):
         if channel == 0:
             return
 
-        embed = discord.Embed(colour=0xac6f8f, title=title)
+        embed = discord.Embed(colour=0x36a39f, title=title)
         embed.add_field(name="Message:", value=f"\n{message}", inline=False)
         embed.set_footer(text="Ploxy | Chat Moderation")
         log_channel = self.bot.get_channel(channel)
@@ -190,14 +190,14 @@ class Mod(commands.Cog):
 
         posts.update_one({"user_id": user.id, "guild_id": ctx.guild.id},
                          {"$set": {"mod_logs": logs}})
-        embed = discord.Embed(colour=discord.Colour(0xac6f8f), description=f"You have been warned!")
+        embed = discord.Embed(colour=discord.Colour(0x36a39f), description=f"You have been warned!")
         embed.add_field(name="Reason:", value=f"{reason}", inline=False)
         embed.add_field(name="ID:", value=f"{warn_id}", inline=False)
         embed.add_field(name="You now have:", value=f"{a} warnings", inline=True)
         embed.set_footer(text="Ploxy | Moderation")
         await user.send(embed=embed)
 
-        embed = discord.Embed(colour=discord.Colour(0xac6f8f), description=f"{user.mention} has been warned!")
+        embed = discord.Embed(colour=discord.Colour(0x36a39f), description=f"{user.mention} has been warned!")
         embed.add_field(name="user ID:", value=f"{user.id}", inline=False)
         embed.add_field(name="Reason:", value=f"{reason}", inline=False)
         embed.add_field(name="ID:", value=f"{warn_id}", inline=False)
@@ -222,7 +222,7 @@ class Mod(commands.Cog):
                 found = True
                 break
         if found:
-            embed = discord.Embed(colour=0xac6f8f, description=f"Warning with id {warn_id} has been removed!",
+            embed = discord.Embed(colour=0x36a39f, description=f"Warning with id {warn_id} has been removed!",
                                   icon_url=f"{user.avatar_url}")
             embed.add_field(name="Reason", value=f"{reason}", inline=False)
             embed.add_field(name="You now have:", value=f"{a} warnings", inline=True)
@@ -256,7 +256,7 @@ class Mod(commands.Cog):
         if lista:
             message = "\n".join(lista)
 
-        embed = discord.Embed(colour=0xac6f8f, description=f"{user}'s Warning's",
+        embed = discord.Embed(colour=0x36a39f, description=f"{user}'s Warning's",
                               icon_url=f"{user.avatar_url}")
         embed.add_field(name="Warnings", value=f"{message}", inline=False)
         embed.set_footer(text="Ploxy | Moderation")
@@ -279,7 +279,7 @@ class Mod(commands.Cog):
                           "issuer": ctx.author.id,
                           "time": time_warned.strftime('%c'),
                           "warn_id": warn_id})
-        embed = discord.Embed(colour=0xac6f8f, description=f"{member.display_name} has been kicked!")
+        embed = discord.Embed(colour=0x36a39f, description=f"{member.display_name} has been kicked!")
         embed.add_field(name="User ID:", value=f"{member.id}", inline=False)
         embed.add_field(name="Reason:", value=f"{reason}", inline=False)
         embed.set_footer(text="Ploxy | Moderation")
@@ -292,7 +292,7 @@ class Mod(commands.Cog):
         db = self.database.bot
         posts = db.warnings
         if ctx.guild.get_member(user.id) is not None:
-            embed = discord.Embed(colour=0xac6f8f, description=f"You have been banned")
+            embed = discord.Embed(colour=0x36a39f, description=f"You have been banned")
             embed.add_field(name="Reason", value=f"{reason}", inline=False)
             await user.send(embed=embed)
             await ctx.guild.ban(user=user, reason=reason)
@@ -308,7 +308,7 @@ class Mod(commands.Cog):
                           "issuer": ctx.author.id,
                           "time": time_warned.strftime('%c'),
                           "warn_id": warn_id})
-        embed = discord.Embed(colour=0xac6f8f, description=f"{user.display_name} has been banned!")
+        embed = discord.Embed(colour=0x36a39f, description=f"{user.display_name} has been banned!")
         embed.add_field(name="User ID:", value=f"{user.id}", inline=False)
         embed.add_field(name="Reason:", value=f"{reason}", inline=False)
         embed.set_footer(text="Ploxy | Moderation")
