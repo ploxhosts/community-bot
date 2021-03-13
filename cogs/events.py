@@ -60,6 +60,7 @@ class Events(commands.Cog):
             "guild_id": guild_id,
             "level": 0,
             "exp": 0,
+            "total_exp": 0,
             "multiplier": 1,  # For any boost they buy from the economy system
             "seconds_in_vc": 0,  # Total time spent in vc
             "time_since_join_vc": 0,  # Temporary value for saving vc time
@@ -148,7 +149,6 @@ class Events(commands.Cog):
         }
 
     async def check_if_update(self, find, main_document, collection):
-        print(find)
         if collection.count_documents(find) > 0:
             fields = {}
             for x in collection.find(find):
@@ -157,7 +157,6 @@ class Events(commands.Cog):
                 last_time = fields["latest_update"]
                 time_diff = datetime.datetime.utcnow() - last_time
                 if time_diff.total_seconds() < 3600:
-                    print("return")
                     return
             db_dict = main_document
             db_dict["_id"] = 0

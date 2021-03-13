@@ -1,4 +1,5 @@
 import discord
+import pymongo
 from discord.ext import commands
 import math
 import datetime
@@ -25,6 +26,7 @@ class Levels(commands.Cog):
         try:
             exp = 0
             level = 0
+            total_exp = 0
 
             # Check if it's allowed
             db = self.database.bot
@@ -45,6 +47,7 @@ class Levels(commands.Cog):
             message_time = datetime.datetime(2019, 8, 20, 11, 14, 22, 453209)
             for x in posts.find({"user_id": message.author.id, "guild_id": message.guild.id}):
                 level = x["level"]
+                total_exp = x["total_exp"]
                 exp = x["exp"]
                 message_time = x["message_time"]
 
@@ -54,9 +57,15 @@ class Levels(commands.Cog):
             if time_difference < 1:  # if it's a minute or less
                 return
 
+            if total_exp == 0:
+                for level_mini_start in range(int(level)):
+                    total_exp += math.floor(5 * (level_mini_start ^ 2) + 50 * level_mini_start + 100)
+
             exp = exp + up
+
+            total_exp += up
             posts.update_one({"user_id": message.author.id, "guild_id": message.guild.id},
-                             {"$set": {"exp": exp, "message_time": new_message_time}})
+                             {"$set": {"exp": exp, "total_exp": total_exp, "message_time": new_message_time}})
 
             # Do I increase the level?
 
@@ -105,13 +114,13 @@ class Levels(commands.Cog):
 
     @commands.command(name="leaderboard", description="Get the leaderboard of top people with levels",
                       aliases=["lb", "leveltop"], usage="level")
-    async def leaderboard(self, ctx):
+    async def leaderboard(self, ctx, page: int = 1):
         db = self.database.bot
         posts = db.player_data
 
         top = []
         count = 1
-        for x in posts.find({"guild_id": ctx.guild.id}):
+        for x in posts.find({"guild_id": ctx.guild.id}).sort('total_exp', pymongo.DESCENDING):
             user_id = x["user_id"]
             level = x["level"]
             exp = x["exp"]
@@ -119,8 +128,12 @@ class Levels(commands.Cog):
             if member is not None:
                 top.append(f"{count}. {member.name}#{member.discriminator} | Level {level} - {exp} XP")
                 count += 1
-
-        embed = discord.Embed(color=0x36a39f, description= "\n".join(top))
+            if count % 10 == 0:  # 10, 20, 30, 40, 50
+                if (page * 10) * count:
+                    break
+                else:
+                    top.clear()
+        embed = discord.Embed(color=0x36a39f, description="\n".join(top))
         return await ctx.send(embed=embed)
 
     @commands.group(invoke_without_command=True, case_sensitive=False,
