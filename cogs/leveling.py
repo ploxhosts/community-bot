@@ -103,6 +103,26 @@ class Levels(commands.Cog):
         embed.add_field(name=f"{user.name}", value=f"Has {exp} xp and are on level {level}", inline=True)
         await ctx.send(embed=embed)
 
+    @commands.command(name="leaderboard", description="Get the leaderboard of top people with levels",
+                      aliases=["lb", "leveltop"], usage="level")
+    async def leaderboard(self, ctx):
+        db = self.database.bot
+        posts = db.player_data
+
+        top = []
+        count = 1
+        for x in posts.find({"guild_id": ctx.guild.id}):
+            user_id = x["user_id"]
+            level = x["level"]
+            exp = x["exp"]
+            member = ctx.guild.get_member(user_id)
+            if member is not None:
+                top.append(f"{count}. {member.name}#{member.discriminator} | Level {level} - {exp} XP")
+                count += 1
+
+        embed = discord.Embed(color=0x36a39f, description= "\n".join(top))
+        return await ctx.send(embed=embed)
+
     @commands.group(invoke_without_command=True, case_sensitive=False,
                     description="Enable/Disable leveling on your server",
                     aliases=["levelling"], usage="leveling")

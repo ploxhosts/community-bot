@@ -148,6 +148,7 @@ class Events(commands.Cog):
         }
 
     async def check_if_update(self, find, main_document, collection):
+        print(find)
         if collection.count_documents(find) > 0:
             fields = {}
             for x in collection.find(find):
@@ -156,6 +157,7 @@ class Events(commands.Cog):
                 last_time = fields["latest_update"]
                 time_diff = datetime.datetime.utcnow() - last_time
                 if time_diff.total_seconds() < 3600:
+                    print("return")
                     return
             db_dict = main_document
             db_dict["_id"] = 0
@@ -184,8 +186,8 @@ class Events(commands.Cog):
                 for key2, value2 in fields.items():
                     if key2 not in db_dict:
                         collection.update_one(find, {"$unset": {key2: 1}})
-            else:
-                collection.insert_one(main_document)
+        else:
+            collection.insert_one(main_document)
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):  # Update here to remove documents on a guild leave
@@ -306,7 +308,7 @@ class Events(commands.Cog):
                 posts1.update_one({"user_id": message.author.id},
                                   {"$set": {"guilds": guilds}})
 
-            await self.check_if_update({"guild_id": message.guild.id}, self.get_server_settings(message.guild.id),
+            await self.check_if_update({"guild_id": message.guild.id}, self.get_economy_user(message.author.id, message.guild.id),
                                        posts)
 
         else:

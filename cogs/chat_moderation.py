@@ -98,7 +98,9 @@ class Chat(commands.Cog):
             auto_mute_time = x["auto_mod"]["auto_mute_time"]
 
         posts = db.player_data
-        logs = posts.find_one({"user_id": message.author.id, "guild_id": message.guild.id})["mod_logs"]
+        logs = posts.find_one({"user_id": message.author.id, "guild_id": message.guild.id})
+        if logs is not None:
+            logs = logs["mod_logs"]
         if not logs:
             logs = []
 
