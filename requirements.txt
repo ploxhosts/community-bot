@@ -1,3 +1,5 @@
-pymongo
-python-dotenv
-discord.py
+pymongo~=3.11.3
+python-dotenv~=0.15.0
+requests~=2.25.0
+aiohttp~=3.6.3
+beautifulsoup4~=4.9.3

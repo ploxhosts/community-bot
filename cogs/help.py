@@ -53,10 +53,13 @@ class Help(commands.Cog):
 
             for c in cog_names:
 
-                if c.lower() in ["", "help"]:  # Ignore these
+                if c.lower() in ["", "help", "example"]:  # Ignore these
                     pass
                 else:
-                    embed.add_field(name=c, value=self.bot.get_cog(c).description, inline=True)
+                    if ctx.guild.id not in [346715007469355009, 742055439088353341] and c.lower() == "support":
+                        pass
+                    else:
+                        embed.add_field(name=c, value=self.bot.get_cog(c).description, inline=True)
             embed.add_field(name="To get more detailed information",
                             value=f"{prefix}help <cog> for example: `{prefix}help Mod`", inline=False)
         else:

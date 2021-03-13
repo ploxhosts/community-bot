@@ -9,7 +9,7 @@ import tools
 
 # noinspection PyBroadException
 class Nitro(commands.Cog):
-    """Commands for suggesting new features"""
+    """Commands about nitro users"""
 
     def __init__(self, bot):
         self.bot = bot

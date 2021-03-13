@@ -429,7 +429,7 @@ class Economy(commands.Cog):
         embed.set_footer(text="Ploxy | Economy system")
         await ctx.send(embed=embed)
 
-    @commands.command(name="work", usage="work", no_pm=True)
+    @commands.command(name="work", usage="work")
     @commands.cooldown(1, 43200, commands.BucketType.user)
     async def work(self, ctx):
         chance = random.randint(2, 50)
@@ -442,7 +442,8 @@ class Economy(commands.Cog):
             embed.add_field(name="Total Balance", value=f"${end_total}", inline=True)
             await ctx.send(embed=embed)
         else:
-            choice = random.choice(["The dishes broke while you were washing them.", "Your boss caught you slacking!", "Stackoverflow brought the boss to your question, he wasn't happy."])
+            choice = random.choice(["The dishes broke while you were washing them.", "Your boss caught you slacking!",
+                                    "Stackoverflow brought the boss to your question, he wasn't happy."])
             await ctx.send(choice)
 
     @work.error
@@ -453,17 +454,19 @@ class Economy(commands.Cog):
             seconds = error.retry_after
             if (seconds / 60) / 60 > 2:
                 embed.add_field(name="You can't work that soon",
-                                value=f"You must wait {round((seconds / 60) / 60, 1)} hours for the police to eat their doughnuts again.",
+                                value=f"You must wait {round((seconds / 60) / 60, 1)} hours, you are still very tired.",
                                 inline=False)
             elif seconds / 60 > 2:
                 embed.add_field(name="You can't work that soon",
-                                value=f"You must wait {round(seconds / 60, 1)} minutes for the police to eat their doughnuts again.",
+                                value=f"You must wait {round(seconds / 60, 1)} minutes, the alarm still hasn't gone off yet.",
                                 inline=False)
             else:
                 embed.add_field(name="You can't work that soon",
-                                value=f"You must wait {round(seconds)} seconds for the police to eat their doughnuts again.",
+                                value=f"You must wait {round(seconds)} seconds for the light to turn green.",
                                 inline=False)
         embed.set_footer(text="Ploxy")
         await ctx.send(embed=embed)
+
+
 def setup(bot):
     bot.add_cog(Economy(bot))
