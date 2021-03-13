@@ -26,7 +26,7 @@ class Help(commands.Cog):
         for x in posts.find({"guild_id": ctx.guild.id}):
             prefix = x['prefix']
 
-        embed = discord.Embed(colour=0xac6f8f, title="Help command")
+        embed = discord.Embed(colour=0x36a39f, title="Help command")
         if cog is None:
             commands_list = {}
             cog_names = {""}
@@ -53,10 +53,13 @@ class Help(commands.Cog):
 
             for c in cog_names:
 
-                if c.lower() in ["", "help"]:  # Ignore these
+                if c.lower() in ["", "help", "example"]:  # Ignore these
                     pass
                 else:
-                    embed.add_field(name=c, value=self.bot.get_cog(c).description, inline=True)
+                    if ctx.guild.id not in [346715007469355009, 742055439088353341] and c.lower() == "support":
+                        pass
+                    else:
+                        embed.add_field(name=c, value=self.bot.get_cog(c).description, inline=True)
             embed.add_field(name="To get more detailed information",
                             value=f"{prefix}help <cog> for example: `{prefix}help Mod`", inline=False)
         else:
@@ -65,7 +68,7 @@ class Help(commands.Cog):
                 if self.bot.get_cog(cog.capitalize()):  # Check if it exists
                     pass
 
-                embed = discord.Embed(colour=0xac6f8f, title=f"{cog.capitalize()} commands")
+                embed = discord.Embed(colour=0x36a39f, title=f"{cog.capitalize()} commands")
 
                 if cog.lower() in ["customcommands", "customcommand", "cc"]:  # Generates some errors
                     cog = "CustomCommands"

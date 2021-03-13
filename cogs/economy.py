@@ -251,7 +251,7 @@ class Economy(commands.Cog):
         if (chance % mod_val) == 0:
             amount = random.randint(1, 50)
             end_total = await self.add_money(ctx.author.id, ctx.guild.id, amount)
-            embed = Embed(color=0xffffff, title="You got paid!")
+            embed = Embed(color=0x36a39f, title="You got paid!")
             embed.add_field(name="You earned", value=f"${amount}", inline=True)
             embed.add_field(name="Total Balance", value=f"${end_total}", inline=True)
             await ctx.send(embed=embed)
@@ -266,7 +266,7 @@ class Economy(commands.Cog):
     @beg.error
     async def on_beg_error(self, ctx, exception):
         error = getattr(exception, "original", exception)
-        embed = discord.Embed(colour=0xac6f8f, title="An error occurred")
+        embed = discord.Embed(colour=0xac6f8f)
         if isinstance(error, CommandOnCooldown):
             seconds = error.retry_after
             if (seconds / 60) / 60 > 2:
@@ -297,11 +297,11 @@ class Economy(commands.Cog):
             return await ctx.send("That is not a valid option!")
         if choice == chance:
             end_total = await self.add_money(ctx.author.id, ctx.guild.id, bet)
-            embed = Embed(color=0xffffff, title="🪙 You chose right!")
+            embed = Embed(color=0x36a39f, title="🪙 You chose right!")
             embed.add_field(name="You earned", value=f"${bet}", inline=True)
         else:
             end_total = await self.take_money(ctx.author.id, ctx.guild.id, bet)
-            embed = Embed(color=0xffffff, title="📉 You chose wrong!")
+            embed = Embed(color=0x36a39f, title="📉 You chose wrong!")
             embed.add_field(name="You lost", value=f"${bet}", inline=True)
 
         embed.add_field(name="Total Balance", value=f"${end_total}", inline=True)
@@ -309,7 +309,7 @@ class Economy(commands.Cog):
 
     @commands.group(invoke_without_command=True, case_sensitive=False, name="lottery", usage="lottery", no_pm=True)
     async def lotterycmd(self, ctx):
-        embed = Embed(color=0xffffff, title="Lottery system")
+        embed = Embed(color=0x36a39f, title="Lottery system")
         embed.add_field(name="Daily lottery",
                         value=f"\n$20 per ticket, chosen at midnight. Maximum 1 winner with 4 players.", inline=True)
         embed.add_field(name="Weekly lottery",
@@ -325,7 +325,7 @@ class Economy(commands.Cog):
     async def lotterybuy(self, ctx, option, amount: int):
         if await self.get_money(ctx.author.id, ctx.guild.id) < amount:
             return await ctx.send("Not enough money to buy this!")
-        embed = Embed(color=0xffffff, title="Lottery system")
+        embed = Embed(color=0x36a39f, title="Lottery system")
         total = 0
         if option.lower() == "daily":
             total = amount * 20
@@ -353,7 +353,7 @@ class Economy(commands.Cog):
         posts = db.economy
         data = posts.find_one({"user_id": user.id})
 
-        embed = Embed(color=0xffffff, title=f"Balance of {user.name}#{user.discriminator}")
+        embed = Embed(color=0x36a39f, title=f"Balance of {user.name}#{user.discriminator}")
         embed.add_field(name="💰Total Balance:", value=f"${data['balance']}", inline=True)
         embed.add_field(name="💸Total Cash:", value=f"${data['cash'][str(ctx.guild.id)]}", inline=True)
         embed.set_footer(text="Ploxy | Economy system")
@@ -370,7 +370,7 @@ class Economy(commands.Cog):
         posts = db.economy
         data = posts.find_one({"user_id": ctx.author.id})
 
-        embed = Embed(color=0xffffff, title=f"Sent {user.name}#{user.discriminator} money")
+        embed = Embed(color=0x36a39f, title=f"Sent {user.name}#{user.discriminator} money")
         embed.add_field(name="💰Total Balance:", value=f"${data['balance']}", inline=True)
         embed.add_field(name="💸Total Cash:", value=f"${data['cash'][str(ctx.guild.id)]}", inline=True)
         embed.set_footer(text="Ploxy | Economy system")
@@ -378,7 +378,7 @@ class Economy(commands.Cog):
 
         data = posts.find_one({"user_id": user.id})
 
-        embed = Embed(color=0xffffff, title=f"You got sent money in server: {ctx.guild.name}")
+        embed = Embed(color=0x36a39f, title=f"You got sent money in server: {ctx.guild.name}")
         embed.add_field(name="📧Money received:", value=f"${money}", inline=True)
         embed.add_field(name="💰Total Balance:", value=f"${data['balance']}", inline=True)
         embed.add_field(name="💸Total Cash:", value=f"${data['cash'][str(ctx.guild.id)]}", inline=True)
@@ -391,13 +391,13 @@ class Economy(commands.Cog):
         posts = db.economy
         if amount == "all":
             amount = posts.find_one({"user_id": ctx.author.id})['cash'][str(ctx.guild.id)]
-        if await self.get_money(ctx.author.id, ctx.guild.id) < amount:
+        if await self.get_money(ctx.author.id, ctx.guild.id) < int(amount):
             return await ctx.send("Not enough cash to deposit this amount!")
 
         await self.take_money(ctx.author.id, ctx.guild.id, int(amount))
         await self.add_balance(ctx.author.id, int(amount))
         data = posts.find_one({"user_id": ctx.author.id})
-        embed = Embed(color=0xffffff,
+        embed = Embed(color=0x36a39f,
                       title=f"Deposited ${amount} in bank account of {ctx.author.name}#{ctx.author.discriminator}")
         embed.add_field(name="💰Total Balance:", value=f"${data['balance']}", inline=True)
         embed.add_field(name="💸Total Cash:", value=f"${data['cash'][str(ctx.guild.id)]}", inline=True)
@@ -407,11 +407,11 @@ class Economy(commands.Cog):
     @commands.command(name="withdraw", aliases=["takemoney", "withdrawnmoney", "withdrawmoney", "with"],
                       usage="withdraw <amount>", no_pm=True)
     async def withdraw(self, ctx, amount):
-        amount = 0
         if amount == "all":
             amount = await self.get_bank(ctx.author.id)
+
         if await self.get_bank(ctx.author.id) < int(amount):
-            return await ctx.send("Not enough cash to deposit this amount!")
+            return await ctx.send("Not enough cash to withdraw this amount!")
 
         db = self.database.bot
         posts = db.economy
@@ -422,11 +422,49 @@ class Economy(commands.Cog):
         await self.take_balance(ctx.author.id, int(amount))
         await self.add_money(ctx.author.id, ctx.guild.id, int(amount))
         data = posts.find_one({"user_id": ctx.author.id})
-        embed = Embed(color=0xffffff,
+        embed = Embed(color=0x36a39f,
                       title=f"Withdrawn ${amount} from bank account of {ctx.author.name}#{ctx.author.discriminator}")
         embed.add_field(name="💰Total Balance:", value=f"${data['balance']}", inline=True)
         embed.add_field(name="💸Total Cash:", value=f"${data['cash'][str(ctx.guild.id)]}", inline=True)
         embed.set_footer(text="Ploxy | Economy system")
+        await ctx.send(embed=embed)
+
+    @commands.command(name="work", usage="work")
+    @commands.cooldown(1, 43200, commands.BucketType.user)
+    async def work(self, ctx):
+        chance = random.randint(2, 50)
+        mod_val = random.randint(1, 4)
+        if (chance % mod_val) == 0:
+            amount = random.randint(1, 100)
+            end_total = await self.add_money(ctx.author.id, ctx.guild.id, amount)
+            embed = Embed(color=0x36a39f, title="You got paid!")
+            embed.add_field(name="You earned", value=f"${amount}", inline=True)
+            embed.add_field(name="Total Balance", value=f"${end_total}", inline=True)
+            await ctx.send(embed=embed)
+        else:
+            choice = random.choice(["The dishes broke while you were washing them.", "Your boss caught you slacking!",
+                                    "Stackoverflow brought the boss to your question, he wasn't happy."])
+            await ctx.send(choice)
+
+    @work.error
+    async def on_work_error(self, ctx, exception):
+        error = getattr(exception, "original", exception)
+        embed = discord.Embed(colour=0xac6f8f)
+        if isinstance(error, CommandOnCooldown):
+            seconds = error.retry_after
+            if (seconds / 60) / 60 > 2:
+                embed.add_field(name="You can't work that soon",
+                                value=f"You must wait {round((seconds / 60) / 60, 1)} hours, you are still very tired.",
+                                inline=False)
+            elif seconds / 60 > 2:
+                embed.add_field(name="You can't work that soon",
+                                value=f"You must wait {round(seconds / 60, 1)} minutes, the alarm still hasn't gone off yet.",
+                                inline=False)
+            else:
+                embed.add_field(name="You can't work that soon",
+                                value=f"You must wait {round(seconds)} seconds for the light to turn green.",
+                                inline=False)
+        embed.set_footer(text="Ploxy")
         await ctx.send(embed=embed)
 
 
