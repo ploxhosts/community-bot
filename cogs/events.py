@@ -172,7 +172,7 @@ class Events(commands.Cog):
                                     new_value = value
                                     new_value[key2] = value2
                                     collection.update_one(find,
-                                                                {"$set": {key: new_value}})
+                                                          {"$set": {key: new_value}})
                             for key2, value2 in fields[key].items():
                                 if key2 not in sub_dict.keys():
                                     new_dict = {}
@@ -231,6 +231,7 @@ class Events(commands.Cog):
                 posts.insert_one(self.get_user_stats(member.id, member.guild.id))
         except IndexError:
             posts.insert_one(self.get_user_stats(member.id, member.guild.id))
+
         posts = db.economy
 
         if posts.find({"user_id": member.id}).count() > 0:  # Adds a user to the database in case of any downtime
@@ -286,32 +287,33 @@ class Events(commands.Cog):
 
         # ECONOMY
 
-        posts1 = db.economy
-        if posts1.find(
+        posts = db.economy
+        if posts.find(
                 {"user_id": message.author.id}).count() > 0:  # Adds a user to the database in case of any downtime
             cash = {}
             guilds = []
-            for user in posts1.find({"user_id": message.author.id}):
+            for user in posts.find({"user_id": message.author.id}):
                 cash = user["cash"]
                 guilds = user["guilds"]
             if cash:
                 if str(message.guild.id) not in cash.keys():
                     cash[message.guild.id] = 10
-                    posts1.update_one({"user_id": message.author.id},
+                    posts.update_one({"user_id": message.author.id},
                                       {"$set": {"cash": cash}})
             else:
-                posts1.update_one({"user_id": message.author.id},
+                posts.update_one({"user_id": message.author.id},
                                   {"$set": {"cash": {str(message.guild.id): 10}}})
             if message.guild.id not in guilds:
                 guilds.append(message.guild.id)
-                posts1.update_one({"user_id": message.author.id},
+                posts.update_one({"user_id": message.author.id},
                                   {"$set": {"guilds": guilds}})
 
-            await self.check_if_update({"guild_id": message.guild.id}, self.get_economy_user(message.author.id, message.guild.id),
+            await self.check_if_update({"guild_id": message.guild.id},
+                                       self.get_economy_user(message.author.id, message.guild.id),
                                        posts)
 
         else:
-            posts1.insert_one(self.get_economy_user(message.author.id, message.guild.id))
+            posts.insert_one(self.get_economy_user(message.author.id, message.guild.id))
 
 
 def setup(bot):

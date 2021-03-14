@@ -57,13 +57,14 @@ class Levels(commands.Cog):
             if time_difference < 1:  # if it's a minute or less
                 return
 
+            exp = exp + up
+
             if total_exp == 0:
                 for level_mini_start in range(int(level)):
                     total_exp += math.floor(5 * (level_mini_start ^ 2) + 50 * level_mini_start + 100)
 
-            exp = exp + up
+            total_exp += exp
 
-            total_exp += up
             posts.update_one({"user_id": message.author.id, "guild_id": message.guild.id},
                              {"$set": {"exp": exp, "total_exp": total_exp, "message_time": new_message_time}})
 
