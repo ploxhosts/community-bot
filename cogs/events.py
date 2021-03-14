@@ -60,6 +60,7 @@ class Events(commands.Cog):
             "guild_id": guild_id,
             "level": 0,
             "exp": 0,
+            "total_exp": 0,
             "multiplier": 1,  # For any boost they buy from the economy system
             "seconds_in_vc": 0,  # Total time spent in vc
             "time_since_join_vc": 0,  # Temporary value for saving vc time
@@ -171,7 +172,7 @@ class Events(commands.Cog):
                                     new_value = value
                                     new_value[key2] = value2
                                     collection.update_one(find,
-                                                                {"$set": {key: new_value}})
+                                                          {"$set": {key: new_value}})
                             for key2, value2 in fields[key].items():
                                 if key2 not in sub_dict.keys():
                                     new_dict = {}
@@ -184,8 +185,8 @@ class Events(commands.Cog):
                 for key2, value2 in fields.items():
                     if key2 not in db_dict:
                         collection.update_one(find, {"$unset": {key2: 1}})
-            else:
-                collection.insert_one(main_document)
+        else:
+            collection.insert_one(main_document)
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):  # Update here to remove documents on a guild leave
@@ -230,6 +231,7 @@ class Events(commands.Cog):
                 posts.insert_one(self.get_user_stats(member.id, member.guild.id))
         except IndexError:
             posts.insert_one(self.get_user_stats(member.id, member.guild.id))
+
         posts = db.economy
 
         if posts.find({"user_id": member.id}).count() > 0:  # Adds a user to the database in case of any downtime
@@ -285,32 +287,33 @@ class Events(commands.Cog):
 
         # ECONOMY
 
-        posts1 = db.economy
-        if posts1.find(
+        posts = db.economy
+        if posts.find(
                 {"user_id": message.author.id}).count() > 0:  # Adds a user to the database in case of any downtime
             cash = {}
             guilds = []
-            for user in posts1.find({"user_id": message.author.id}):
+            for user in posts.find({"user_id": message.author.id}):
                 cash = user["cash"]
                 guilds = user["guilds"]
             if cash:
                 if str(message.guild.id) not in cash.keys():
                     cash[message.guild.id] = 10
-                    posts1.update_one({"user_id": message.author.id},
+                    posts.update_one({"user_id": message.author.id},
                                       {"$set": {"cash": cash}})
             else:
-                posts1.update_one({"user_id": message.author.id},
+                posts.update_one({"user_id": message.author.id},
                                   {"$set": {"cash": {str(message.guild.id): 10}}})
             if message.guild.id not in guilds:
                 guilds.append(message.guild.id)
-                posts1.update_one({"user_id": message.author.id},
+                posts.update_one({"user_id": message.author.id},
                                   {"$set": {"guilds": guilds}})
 
-            await self.check_if_update({"guild_id": message.guild.id}, self.get_server_settings(message.guild.id),
+            await self.check_if_update({"guild_id": message.guild.id},
+                                       self.get_economy_user(message.author.id, message.guild.id),
                                        posts)
 
         else:
-            posts1.insert_one(self.get_economy_user(message.author.id, message.guild.id))
+            posts.insert_one(self.get_economy_user(message.author.id, message.guild.id))
 
 
 def setup(bot):
