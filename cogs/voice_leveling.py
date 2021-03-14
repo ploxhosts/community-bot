@@ -20,16 +20,11 @@ class VLevels(commands.Cog):
             data = self.users_in_vc[user_id]
             bad_seconds = data["bad_seconds"]
             guild = self.bot.get_guild(data["guild"])
-            print(guild)
             if guild is None:
-                print("No guild")
                 self.users_in_vc.pop(user_id)
             else:
                 member = guild.get_member(int(user_id))
-                print(member)
-                print(member.voice.channel)
                 if member is None or member.voice.channel is None:
-                    print("No user")
                     self.users_in_vc.pop(user_id)
                 else:
                     if member.voice.deaf or member.voice.mute or member.voice.self_deaf or member.afk:
