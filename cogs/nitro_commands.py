@@ -27,8 +27,11 @@ class Nitro(commands.Cog):
         user: discord.Member
         users = ["Unfortunately, you don't have any nitro boosters."]
         for user in boosters:
-            if users[0] == "Unfortunately, you don't have any nitro boosters.":
-                users.clear()
+            try:
+                if users[0] == "Unfortunately, you don't have any nitro boosters.":
+                    users.clear()
+            except:
+                pass
             seconds = (user.premium_since - datetime.datetime.utcnow()).total_seconds()
             if seconds:
                 minutes = round(seconds / 60)
