@@ -39,14 +39,16 @@ class Support(commands.Cog):
                 record_count = soup.text.replace("\n", "").strip().split("Found")[1].split("'.")[0].split("records")[
                     0].strip()
                 records = [f"Found {record_count} articles\n"]
+                count = 0
                 for ul_tag in soup.find_all("ul", class_="sp-article-list"):
                     for li_tag in ul_tag.find_all("li"):
                         for url in li_tag.find_all("a"):
                             if "article" in url['href'].split("/"):
                                 for heading in li_tag.find_all("h4"):
+                                    count += 1
                                     text_content = heading.text.replace("\n", "").replace("  ", "").strip()
                                     text_url = url["href"]
-                                    records.append(f"[`{text_content}`]({text_url})")
+                                    records.append(f"[`{count}. {text_content}`]({text_url})")
 
                 embed = discord.Embed(color=0x36a39f, description="\n".join(records))
                 await ctx.send(embed=embed)

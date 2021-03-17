@@ -134,7 +134,7 @@ class Levels(commands.Cog):
                     break
                 else:
                     top.clear()
-        embed = discord.Embed(color=0x36a39f, description="\n".join(top))
+        embed = discord.Embed(color=0x36a39f, title="Top 10 most active users", description="\n".join(top))
         return await ctx.send(embed=embed)
 
     @commands.group(invoke_without_command=True, case_sensitive=False,

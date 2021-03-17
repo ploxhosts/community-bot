@@ -217,7 +217,7 @@ class Mod(commands.Cog):
 
         found = False
         for i, o in enumerate(logs):
-            if o.attr == int(warn_id):
+            if o == int(warn_id):
                 del logs[i]
                 found = True
                 break
