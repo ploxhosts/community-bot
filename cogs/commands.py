@@ -3,13 +3,7 @@ from discord.ext import commands
 import random
 from datetime import datetime
 import json
-
-with open('jokes.json') as json_file:
-    joke_list = json.load(json_file)
-    jokes = []
-    for joke in joke_list:
-        jokes.append(joke_list[str(joke)])
-
+import requests
 
 class Commands(commands.Cog):
     """Fun and misc commands"""
@@ -48,9 +42,9 @@ class Commands(commands.Cog):
 
     @commands.command(name="joke", aliases=["givemejoke", "dadjoke"], usage="joke")
     async def joke(self, ctx):
-        global jokes
-        choice = random.choice(jokes)
-        await ctx.send(choice)
+        res = requests.get("https://icanhazdadjoke.com/", headers={'Accept': 'text/plain',
+                                                                   'User-Agent': 'Ploxy (https://github.com/PloxHost-LLC/community-bot)'})
+        await ctx.send(res.text)
 
     @commands.command(name="greet", aliases=["sayhi"], usage="greet")
     async def greet(self, ctx):

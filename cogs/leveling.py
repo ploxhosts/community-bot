@@ -5,7 +5,7 @@ import math
 import datetime
 import random
 import asyncio
-
+import tools
 
 class Levels(commands.Cog):
     """Level related commands"""
@@ -113,6 +113,29 @@ class Levels(commands.Cog):
         embed.add_field(name=f"{user.name}", value=f"Has {exp} xp and are on level {level}", inline=True)
         await ctx.send(embed=embed)
 
+    @commands.command(name="levelreload", description="Reload the leveling system for your server", usage="levelreload")
+    @commands.cooldown(1, 43200, commands.BucketType.guild)
+    @tools.has_perm(manage_guild=True)
+    async def levelreload(self, ctx):
+        db = self.database.bot
+        posts = db.player_data
+
+        for user in posts.find({"guild_id": ctx.guild.id}):
+            level = user["level"]
+            total_exp = user["total_exp"]
+            user_id = user["user_id"]
+            exp = user["exp"]
+
+            if total_exp == 0:
+                for level_mini_start in range(int(level)):
+                    total_exp += math.floor(5 * (level_mini_start ^ 2) + 50 * level_mini_start + 100)
+
+            total_exp += exp
+
+            posts.update_one({"user_id": user_id, "guild_id": ctx.guild.id},
+                             {"$set": {"total_exp": total_exp}})
+        await ctx.send("Successfully reloaded database!")
+
     @commands.command(name="leaderboard", description="Get the leaderboard of top people with levels",
                       aliases=["lb", "leveltop"], usage="level")
     async def leaderboard(self, ctx, page: int = 1):
@@ -134,7 +157,7 @@ class Levels(commands.Cog):
                     break
                 else:
                     top.clear()
-        embed = discord.Embed(color=0x36a39f, description="\n".join(top))
+        embed = discord.Embed(color=0x36a39f, title="Top 10 most active users", description="\n".join(top))
         return await ctx.send(embed=embed)
 
     @commands.group(invoke_without_command=True, case_sensitive=False,
