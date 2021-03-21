@@ -43,7 +43,7 @@ class Economy(commands.Cog):
         daily_winners = []
         weekly_winners = []
         monthly_winners = []
-        for user in posts.find({}):
+        async for user in posts.find({}):
             daily = user["d_lottery_tickets"]
             weekly = user["w_lottery_tickets"]
             monthly = user["m_lottery_tickets"]
@@ -67,6 +67,7 @@ class Economy(commands.Cog):
         end_monthly_winners = []
 
         daily_money = total_daily * 20
+        monthly_money = 0
         try:
             weekly_money = int((total_weekly * 40) / len(end_weekly_winners))
         except ZeroDivisionError:
@@ -102,7 +103,7 @@ class Economy(commands.Cog):
             end_monthly_winners.append(choice2)
             end_monthly_winners.append(choice3)
 
-        for user in posts.find({}):
+        async for user in posts.find({}):
             daily = user["d_lottery_tickets"]
             weekly = user["w_lottery_tickets"]
             monthly = user["m_lottery_tickets"]
@@ -137,8 +138,8 @@ class Economy(commands.Cog):
                             embed.set_footer(text="Ploxy | Lottery system")
                             await member.send(embed=embed)
 
-            posts.update_one({"user_id": user["user_id"]},
-                             {"$set": {"d_lottery_tickets": 0, "w_lottery_tickets": 0, "m_lottery_tickets": 0}})
+            await posts.update_one({"user_id": user["user_id"]},
+                                   {"$set": {"d_lottery_tickets": 0, "w_lottery_tickets": 0, "m_lottery_tickets": 0}})
 
     @lottery.before_loop
     async def before_lottery(self):
@@ -160,7 +161,7 @@ class Economy(commands.Cog):
             return
         if calendar.monthrange(time.year, time.month)[1] != time.day:  # If not the end of the month
             return
-        for user in posts.find({}):
+        async for user in posts.find({}):
             balance = user["balance"]
             interest_money = balance * 0.05
             await self.add_balance(user["user_id"], interest_money)
@@ -173,73 +174,73 @@ class Economy(commands.Cog):
     async def add_money(self, user_id, guild_id, money):
         db = self.database.bot
         posts = db.economy
-        user = posts.find_one({"user_id": user_id})
+        user = await posts.find_one({"user_id": user_id})
         total_cash = user["cash"]
         total_cash[str(guild_id)] = total_cash[str(guild_id)] + money
-        posts.update_one({"user_id": user_id},
-                         {"$set": {"cash": total_cash}})
+        await posts.update_one({"user_id": user_id},
+                               {"$set": {"cash": total_cash}})
         return total_cash[str(guild_id)]
 
     async def add_balance(self, user_id, money):
         db = self.database.bot
         posts = db.economy
-        user = posts.find_one({"user_id": user_id})
+        user = await posts.find_one({"user_id": user_id})
         money_total = money + user["balance"]
-        posts.update_one({"user_id": user_id},
-                         {"$set": {"balance": money_total}})
+        await posts.update_one({"user_id": user_id},
+                               {"$set": {"balance": money_total}})
         return money_total
 
     async def get_money(self, user_id, guild_id):
         db = self.database.bot
         posts = db.economy
-        user = posts.find_one({"user_id": user_id})
+        user = await posts.find_one({"user_id": user_id})
         return user["cash"][str(guild_id)]
 
     async def get_bank(self, user_id):
         db = self.database.bot
         posts = db.economy
-        user = posts.find_one({"user_id": user_id})
+        user = await posts.find_one({"user_id": user_id})
         return user["balance"]
 
     async def take_money(self, user_id, guild_id, money):
         db = self.database.bot
         posts = db.economy
-        user = posts.find_one({"user_id": user_id})
+        user = await posts.find_one({"user_id": user_id})
         total_cash = user["cash"]
         total_cash[str(guild_id)] = total_cash[str(guild_id)] - money
-        posts.update_one({"user_id": user_id},
-                         {"$set": {f"cash": total_cash}})
+        await posts.update_one({"user_id": user_id},
+                               {"$set": {f"cash": total_cash}})
         return total_cash[str(guild_id)]
 
     async def take_balance(self, user_id, money):
         db = self.database.bot
         posts = db.economy
-        user = posts.find_one({"user_id": user_id})
+        user = await posts.find_one({"user_id": user_id})
         money_total = user["balance"] - money
-        posts.update_one({"user_id": user_id},
-                         {"$set": {"balance": money_total}})
+        await posts.update_one({"user_id": user_id},
+                               {"$set": {"balance": money_total}})
         return money_total
 
     async def send_money(self, id1, id2, money):
         db = self.database.bot
         posts = db.economy
 
-        user = posts.find_one({"user_id": id1})
+        user = await posts.find_one({"user_id": id1})
 
         money_total1 = user["balance"] - money
 
-        posts.update_one({"user_id": id1},
-                         {"$set": {"balance": money_total1}})
+        await posts.update_one({"user_id": id1},
+                               {"$set": {"balance": money_total1}})
 
         # receiver
-        user = posts.find_one({"user_id": id2})
+        user = await posts.find_one({"user_id": id2})
 
         money_total2 = user["balance"] + money
 
-        posts.update_one({"user_id": id2},
-                         {"$set": {"balance": money_total2}})
+        await posts.update_one({"user_id": id2},
+                               {"$set": {"balance": money_total2}})
 
-    @commands.command(name="economy", aliases=["eco"], usage="economy", no_pm=True)
+    @commands.group(name="economy", aliases=["eco"], usage="economy", no_pm=True)
     async def economy(self, ctx):
         pass
 
@@ -351,7 +352,7 @@ class Economy(commands.Cog):
 
         db = self.database.bot
         posts = db.economy
-        data = posts.find_one({"user_id": user.id})
+        data = await posts.find_one({"user_id": user.id})
 
         embed = Embed(color=0x36a39f, title=f"Balance of {user.name}#{user.discriminator}")
         embed.add_field(name="💰Total Balance:", value=f"${data['balance']}", inline=True)
@@ -368,7 +369,7 @@ class Economy(commands.Cog):
 
         db = self.database.bot
         posts = db.economy
-        data = posts.find_one({"user_id": ctx.author.id})
+        data = await posts.find_one({"user_id": ctx.author.id})
 
         embed = Embed(color=0x36a39f, title=f"Sent {user.name}#{user.discriminator} money")
         embed.add_field(name="💰Total Balance:", value=f"${data['balance']}", inline=True)
@@ -376,7 +377,7 @@ class Economy(commands.Cog):
         embed.set_footer(text="Ploxy | Economy system")
         await ctx.send(embed=embed)
 
-        data = posts.find_one({"user_id": user.id})
+        data = await posts.find_one({"user_id": user.id})
 
         embed = Embed(color=0x36a39f, title=f"You got sent money in server: {ctx.guild.name}")
         embed.add_field(name="📧Money received:", value=f"${money}", inline=True)
@@ -390,13 +391,13 @@ class Economy(commands.Cog):
         db = self.database.bot
         posts = db.economy
         if amount == "all":
-            amount = posts.find_one({"user_id": ctx.author.id})['cash'][str(ctx.guild.id)]
+            amount = await posts.find_one({"user_id": ctx.author.id})['cash'][str(ctx.guild.id)]
         if await self.get_money(ctx.author.id, ctx.guild.id) < int(amount):
             return await ctx.send("Not enough cash to deposit this amount!")
 
         await self.take_money(ctx.author.id, ctx.guild.id, int(amount))
         await self.add_balance(ctx.author.id, int(amount))
-        data = posts.find_one({"user_id": ctx.author.id})
+        data = await posts.find_one({"user_id": ctx.author.id})
         embed = Embed(color=0x36a39f,
                       title=f"Deposited ${amount} in bank account of {ctx.author.name}#{ctx.author.discriminator}")
         embed.add_field(name="💰Total Balance:", value=f"${data['balance']}", inline=True)
@@ -417,11 +418,11 @@ class Economy(commands.Cog):
         posts = db.economy
 
         if amount == "all":
-            amount = posts.find_one({"user_id": ctx.author.id})['balance']
+            amount = await posts.find_one({"user_id": ctx.author.id})['balance']
 
         await self.take_balance(ctx.author.id, int(amount))
         await self.add_money(ctx.author.id, ctx.guild.id, int(amount))
-        data = posts.find_one({"user_id": ctx.author.id})
+        data = await posts.find_one({"user_id": ctx.author.id})
         embed = Embed(color=0x36a39f,
                       title=f"Withdrawn ${amount} from bank account of {ctx.author.name}#{ctx.author.discriminator}")
         embed.add_field(name="💰Total Balance:", value=f"${data['balance']}", inline=True)

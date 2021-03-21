@@ -3,6 +3,7 @@ from discord.ext import commands
 import datetime
 import time
 import json
+import os
 
 
 class EventsMod(commands.Cog):
@@ -38,9 +39,9 @@ class EventsMod(commands.Cog):
         if channel == 0:
             return
         try:
-            embed = discord.Embed(colour=0xac6f8f, title=f"Message by {user} deleted")
+            embed = discord.Embed(colour=0x36a39f, title=f"Message by {user} deleted")
         except:
-            embed = discord.Embed(colour=0xac6f8f, title=f"Message deleted")
+            embed = discord.Embed(colour=0x36a39f, title=f"Message deleted")
         embed.add_field(name="Message id:", value=f"\n{mid}", inline=False)
         embed.add_field(name="Author id:", value=f"\n{author_id}", inline=False)
         embed.add_field(name="Message:", value=f"\n{content}", inline=False)
@@ -52,9 +53,17 @@ class EventsMod(commands.Cog):
     async def send_edit_embed(self, channel, message, edits):
         if channel == 0:
             return
-        history = '\n'.join(edits)
-        embed = discord.Embed(colour=0xac6f8f,
-                              title=f"Message sent by {message.data['author']['username']}#{message.data['author']['discriminator']}  edited")
+
+        history = []
+        count = 1
+        for edit in edits:
+            history.append(f"{count}. " + edit)
+            count += 1
+
+        history = '\n'.join(history)
+
+        embed = discord.Embed(colour=0x36a39f,
+                              title=f"Message sent by {message.data['author']['username']}#{message.data['author']['discriminator']} was edited")
         embed.add_field(name="Message id:", value=f"\n{message.message_id}", inline=False)
         embed.add_field(name="Author id:", value=f"\n{message.data['author']['id']}", inline=False)
         embed.add_field(name="Message:", value=f"\n{message.data['content']}", inline=False)
@@ -88,7 +97,7 @@ class EventsMod(commands.Cog):
             "guild_id": message.guild.id,  # Used to delete an entire server/guild from database when removed
             "deleted": False,  # Used for checking if a message has been deleted after it's been reported
             "reported": False,  # Be able to report specific messages
-            "time_sent": int(round(time.time() * 1000))  # Get a date of time sent
+            "time_sent": datetime.datetime.utcnow()  # Get a date of time sent was: int(round(time.time() * 1000))
         })
 
     @commands.Cog.listener()
@@ -96,14 +105,14 @@ class EventsMod(commands.Cog):
         db = self.database.bot
         posts = db.serversettings
         log_channel = 0
-        for x in posts.find({"guild_id": message.guild_id}):
+        async for x in posts.find({"guild_id": message.guild_id}):
             log_channel = x['log_channel']
         posts = db.message_logs
         reported = False
         JSON = False
         message_content = ""
         author_id = 0
-        for x in posts.find({"message_id": message.message_id}):
+        async for x in posts.find({"message_id": message.message_id}):
             reported = x["reported"]
             JSON = x["json"]
             message_content = x["message"]
@@ -112,19 +121,25 @@ class EventsMod(commands.Cog):
         if message_content != "":
             if reported is False and JSON is None:  # Not if reported or a self bot
                 try:
-                    posts.delete_one({"message_id", message.message_id})
+                    await posts.delete_one({"message_id", message.message_id})
                 except:
                     pass
             else:
-                posts.update_one({"message_id": message.message_id},
+                await posts.update_one({"message_id": message.message_id},
                                  {"$set": {"deleted": True}})
             user = await self.bot.fetch_user(author_id)
-            await self.send_delete_embed(log_channel, user.name, author_id, message_content, message.message_id)
+            if message.message_id not in self.bot.delete_message_cache:
+                await self.send_delete_embed(log_channel, user.name, author_id, message_content, message.message_id)
+            else:
+                self.bot.delete_message_cache.remove(message.message_id)
 
     @commands.Cog.listener()
     async def on_raw_message_edit(self, message):
         try:
-            if message.data["author"]["bot"]:
+            if "author" in message.data:
+                if "bot" in message.data["author"]:
+                    return
+            else:
                 return
         except KeyError:
             return
@@ -139,7 +154,7 @@ class EventsMod(commands.Cog):
 
             posts = db.message_logs
             edits = []
-            for data in posts.find({"message_id": message.message_id}):
+            async for data in posts.find({"message_id": message.message_id}):
                 org_msg = data["message"]
                 edits = data["edits"]
                 if len(edits) == 0:
@@ -148,8 +163,9 @@ class EventsMod(commands.Cog):
 
             if edits.count(message.data["content"]) == 1:
                 await self.check_contents_once(message)
-                posts.update_one({"message_id": message.message_id},
-                                 {"$set": {"edits": edits}})
+                await posts.update_one({"message_id": message.message_id},
+                                       {"$set": {"edits": edits}})
+
                 await self.send_edit_embed(log_channel, message, edits)
         else:
             pass  # Message was pinned/Received embed/Removed embed
@@ -161,41 +177,55 @@ class EventsMod(commands.Cog):
 
         log_channel = 0
 
-        for x in posts.find({"guild_id": message.guild_id}):
+        async for x in posts.find({"guild_id": message.guild_id}):
             log_channel = x['log_channel']
 
         posts = db.message_logs
+        file_name = str(message.guild_id) + "-" + str(message.channel_id)
+        channel_ex = self.bot.get_channel(message.channel_id)
+        channel_ex: discord.TextChannel
+
+        use_file = False
+        file = open(file_name, "w")
+        file.write(f"{len(message.message_ids)} messages deleted in #{channel_ex.name}\n")
         for ids in message.message_ids:
             message_content = ""
             reported = False
             JSON = None
             author_id = 0
-            for x in posts.find({"message_id": ids}):
+            async for x in posts.find({"message_id": ids}):
                 reported = x["reported"]
                 JSON = x["json"]
                 message_content = x["message"]
                 author_id = x["author_id"]
             if reported is False and JSON is None:  # Not if reported or a self bot
                 try:
-                    posts.delete_one({"message_id", ids})
+                    await posts.delete_one({"message_id", ids})
                 except:
                     pass
             else:
                 if message_content != "":
-                    posts.update_one({"message_id": ids},
-                                     {"$set": {"deleted": True}})
+                    await posts.update_one({"message_id": ids},
+                                           {"$set": {"deleted": True}})
             if message_content != "":
                 user = await self.bot.fetch_user(author_id)
+                user: discord.User
+                file.write(
+                    f"{user.name}#{user.discriminator} ({user.id}) said {message_content} ({ids})\n\n")
+                use_file = True
                 # Do something with deleted message
                 # await self.send_delete_embed(log_channel, user.name, author_id, message_content, ids)
-        channel_ex = self.bot.get_channel(message.channel_id)
-        embed = discord.Embed(colour=0xac6f8f, title=f"Bulk Message delete")
+        file.close()
+        embed = discord.Embed(colour=0x36a39f, title=f"Bulk Message delete")
         embed.add_field(name="Messages purged:", value=f"\n{len(message.message_ids)}", inline=False)
         embed.add_field(name="Channel:", value=f"\n{channel_ex.mention}", inline=False)
         embed.set_footer(text="Ploxy | Logging and monitoring")
         log_channel = self.bot.get_channel(log_channel)
-
-        await log_channel.send(embed=embed)
+        if use_file:
+            await log_channel.send(embed=embed, file=discord.File(file_name, filename="log.txt"))
+        else:
+            await log_channel.send(embed=embed)
+        os.remove(file_name)
 
 
 def setup(bot):

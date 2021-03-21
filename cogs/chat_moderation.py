@@ -24,7 +24,7 @@ class Chat(commands.Cog):
     async def create_muted_role(self, guild):
         db = self.database.bot
         posts = db.serversettings
-        role = posts.find_one({"guild_id": guild.id})['muted_role_id']
+        role = await posts.find_one({"guild_id": guild.id})['muted_role_id']
         if not role:
             role = await guild.create_role(name="Muted", reason="Muted role is needed")
             for category in guild.categories:
@@ -36,8 +36,8 @@ class Chat(commands.Cog):
                     perms = channel.overwrites_for(role)
                     perms.send_messages = False
                     await channel.set_permissions(role, overwrite=perms, reason="Muted!")
-            posts.update_one({"guild_id": guild.id},
-                             {"$set": {"muted_role_id": role.id}})
+            await posts.update_one({"guild_id": guild.id},
+                                   {"$set": {"muted_role_id": role.id}})
         else:
             role = guild.get_role(role)
         return role
@@ -47,7 +47,7 @@ class Chat(commands.Cog):
             await member.add_roles(role, reason="Muted")
             db = self.database.bot
             posts = db.serversettings
-            channel = posts.find_one({"guild_id": guild.id})['log_channel']
+            channel = await posts.find_one({"guild_id": guild.id})['log_channel']
             await self.send_log_embed(channel, f"Muted {member.name}#{member.discriminator} for {duration}",
                                       f"Muted {member.display_name} with id of: {user_id}")
             return True
@@ -66,7 +66,7 @@ class Chat(commands.Cog):
         if channel == 0:
             return
 
-        embed = discord.Embed(colour=0xac6f8f, title=title)
+        embed = discord.Embed(colour=0x36a39f, title=title)
         embed.add_field(name="Message:", value=f"\n{message}", inline=False)
         embed.set_footer(text="Ploxy | Chat Moderation")
         log_channel = self.bot.get_channel(channel)
@@ -88,7 +88,7 @@ class Chat(commands.Cog):
         auto_mute_time = 30
         db = self.database.bot
         posts = db.serversettings
-        for x in posts.find({"guild_id": message.guild.id}):
+        async for x in posts.find({"guild_id": message.guild.id}):
             log_channel = x["log_channel"]
             prefix = x["prefix"]
             BANNED_WORDS = x["auto_mod"]["banned_words"]
@@ -98,7 +98,7 @@ class Chat(commands.Cog):
             auto_mute_time = x["auto_mod"]["auto_mute_time"]
 
         posts = db.player_data
-        logs = posts.find_one({"user_id": message.author.id, "guild_id": message.guild.id})
+        logs = await posts.find_one({"user_id": message.author.id, "guild_id": message.guild.id})
         if logs is not None:
             logs = logs["mod_logs"]
         if not logs:
@@ -144,7 +144,7 @@ class Chat(commands.Cog):
                                     if role_it.name != "@everyone":
                                         await message.author.remove_roles(role_it, reason="Muted")
                                         role_list.append(role_it.id)
-                                posts.insert_one(
+                                await posts.insert_one(
                                     {"guild_id": message.guild.id, "user_id": message.author.id,
                                      "time": auto_mute_time * 60,
                                      "issued": time_warned, "roles": role_list})
@@ -155,8 +155,8 @@ class Chat(commands.Cog):
                                      "issuer": "SYSTEM",
                                      "time": time_warned.strftime('%c')})
 
-                                posts.update_one({"user_id": message.author.id, "guild_id": message.guild.id},
-                                                 {"$set": {"mod_logs": logs}})
+                                await posts.update_one({"user_id": message.author.id, "guild_id": message.guild.id},
+                                                       {"$set": {"mod_logs": logs}})
 
                                 await self.give_muted_role(message.guild, message.author, message.author.id,
                                                            await self.create_muted_role(message.guild),
@@ -186,6 +186,7 @@ class Chat(commands.Cog):
         for bad_word in BANNED_WORDS:
             if bad_word in message.content.lower():
                 if await self.delete_message(message) == "Deleted":
+                    self.bot.delete_message_cache.append(message.id)
                     guild = self.bot.get_guild(message.guild.id)
                     channel = guild.get_channel(message.channel.id)
                     messages = await channel.history(limit=5).flatten()
@@ -195,17 +196,39 @@ class Chat(commands.Cog):
                             done = True
                     if not done:
                         await channel.send("A message was deleted as it contained a banned word.")
+                    embed = discord.Embed(colour=0x36a39f, title="Blacklisted word has been deleted in a message!")
+                    embed.add_field(name="Message", value=f"{message.content}", inline=True)
+                    embed.add_field(name="Word", value=f"`{bad_word}`", inline=False)
+                    embed.add_field(name="Author",
+                                    value=f"{message.author.name}#{message.author.discriminator} ({message.author.id})",
+                                    inline=True)
+                    embed.add_field(name="Channel", value=f"{message.channel.mention}", inline=True)
+                    embed.set_footer(text="Ploxy | Chat Moderation")
+                    log_channel_obj = self.bot.get_channel(log_channel)
+
+                    await log_channel_obj.send(embed=embed)
 
         if len(message.mentions) > MAX_MENTIONS != 0:
             guild = self.bot.get_guild(message.guild.id)
             channel = guild.get_channel(message.channel.id)
             if await self.delete_message(message) == "Deleted":
+                self.bot.delete_message_cache.append(message.id)
                 await channel.send("A message was deleted as it contained too many mentions.")
-                await self.send_log_embed(log_channel, "Mass mention attempt",
-                                          f"{message.author.name} with the id of {message.author.id}\nTried to mention {len(message.mentions)} people!")
+
+                embed = discord.Embed(colour=0x36a39f, title="Message exceeded mention limit!")
+                embed.add_field(name="Message", value=f"{message.content}", inline=True)
+                embed.add_field(name="Mentions", value=f"`{len(message.mentions)}`", inline=False)
+                embed.add_field(name="Author",
+                                value=f"{message.author.name}#{message.author.discriminator} ({message.author.id})",
+                                inline=True)
+                embed.add_field(name="Channel", value=f"{message.channel.mention}", inline=True)
+                embed.set_footer(text="Ploxy | Chat Moderation")
+                log_channel_obj = self.bot.get_channel(log_channel)
+
+                await log_channel_obj.send(embed=embed)
             if ban_on_mass_mention == 1:  # Mute
                 posts = db.pending_mutes
-                if posts.find_one({"guild_id": message.guild.id, "user_id": message.author.id}):
+                if await posts.find_one({"guild_id": message.guild.id, "user_id": message.author.id}):
                     pass
                 else:
                     role_list = []
@@ -213,7 +236,7 @@ class Chat(commands.Cog):
                         if role_it.name != "@everyone":
                             await message.author.remove_roles(role_it, reason="Muted")
                             role_list.append(role_it.id)
-                    posts.insert_one(
+                    await posts.insert_one(
                         {"guild_id": message.guild.id, "user_id": message.author.id, "time": auto_mute_time,
                          "issued": time_warned, "roles": role_list})
                     posts = db.player_data
@@ -223,8 +246,8 @@ class Chat(commands.Cog):
                          "issuer": "SYSTEM",
                          "time": time_warned.strftime('%c')})
 
-                    posts.update_one({"user_id": message.author.id, "guild_id": message.guild.id},
-                                     {"$set": {"mod_logs": logs}})
+                    await posts.update_one({"user_id": message.author.id, "guild_id": message.guild.id},
+                                           {"$set": {"mod_logs": logs}})
 
                     await self.give_muted_role(message.guild, message.author, message.author.id,
                                                await self.create_muted_role(message.guild), auto_mute_time)
@@ -235,14 +258,14 @@ class Chat(commands.Cog):
                     {"type": "KICKED", "warn_id": tools.generate_flake(), "reason": "Mass mention", "issuer": "SYSTEM",
                      "time": time_warned.strftime('%c')})
 
-                posts.update_one({"user_id": message.author.id, "guild_id": message.guild.id},
-                                 {"$set": {"mod_logs": logs}})
+                await posts.update_one({"user_id": message.author.id, "guild_id": message.guild.id},
+                                       {"$set": {"mod_logs": logs}})
                 await guild.kick(user=message.author.id, reason="Mass mention - auto moderation")
                 await channel.send(
                     f"{message.author.id} | {message.author.name} has been kicked for mentioning too many people!")
             elif ban_on_mass_mention == 3:  # Temp ban
                 posts = db.pending_bans
-                posts.insert_one(
+                await posts.insert_one(
                     {"guild_id": message.guild.id, "user_id": message.author.id, "time": auto_temp_ban_time,
                      "issued": time_warned})
                 posts = db.player_data
@@ -253,8 +276,8 @@ class Chat(commands.Cog):
                      "issuer": "SYSTEM",
                      "time": time_warned.strftime('%c')})
 
-                posts.update_one({"user_id": message.author.id, "guild_id": message.guild.id},
-                                 {"$set": {"mod_logs": logs}})
+                await posts.update_one({"user_id": message.author.id, "guild_id": message.guild.id},
+                                       {"$set": {"mod_logs": logs}})
                 await guild.ban(user=message.author,
                                 reason=f"Mass mention - auto moderation(TEMP BAN) with warn id id of {warn_id}",
                                 delete_message_days=0)
@@ -266,8 +289,8 @@ class Chat(commands.Cog):
                      "issuer": "SYSTEM",
                      "time": time_warned.strftime('%c')})
 
-                posts.update_one({"user_id": message.author.id, "guild_id": message.guild.id},
-                                 {"$set": {"mod_logs": logs}})
+                await posts.update_one({"user_id": message.author.id, "guild_id": message.guild.id},
+                                       {"$set": {"mod_logs": logs}})
                 await guild.ban(user=message.author.id, reason="Mass mention - auto moderation", delete_message_days=0)
                 await channel.send(
                     f"{message.author.id} | {message.author.name} has been banned from the server for mentioning too many people!")
@@ -286,7 +309,7 @@ class Chat(commands.Cog):
                 if role_it.name != "@everyone":
                     await message.author.remove_roles(role_it, reason="Muted")
                     role_list.append(role_it.id)
-            posts.insert_one(
+            await posts.insert_one(
                 {"guild_id": message.guild.id, "user_id": message.author.id, "time": auto_mute_time,
                  "issued": time_warned, "roles": role_list})
             posts = db.player_data
@@ -296,8 +319,8 @@ class Chat(commands.Cog):
                  "issuer": "SYSTEM",
                  "time": time_warned.strftime('%c')})
 
-            posts.update_one({"user_id": message.author.id, "guild_id": message.guild.id},
-                             {"$set": {"mod_logs": logs}})
+            await posts.update_one({"user_id": message.author.id, "guild_id": message.guild.id},
+                                   {"$set": {"mod_logs": logs}})
 
             await self.give_muted_role(message.guild, message.author, message.author.id,
                                        await self.create_muted_role(message.guild), auto_mute_time)
@@ -344,7 +367,7 @@ class Chat(commands.Cog):
         log_channel = 0
         ignore_roles = []
         ignore_channels_mod = []
-        for x in posts.find({"guild_id": message.guild.id}):
+        async for x in posts.find({"guild_id": message.guild.id}):
             chat_moderation = x["auto_mod"]["chat_moderation"]
             blacklisted_domains = x["auto_mod"]["blacklisted_domains"]
             anti_invite = x["auto_mod"]["anti_invite"]
@@ -383,7 +406,7 @@ class Chat(commands.Cog):
                     await self.delete_message(message)
                     if log_channel == 0:
                         return
-                    embed = discord.Embed(colour=0xac6f8f, title="Chat moderation")
+                    embed = discord.Embed(colour=0x36a39f, title="Chat moderation")
                     embed.add_field(name="Author:", value=f"\n{message.author}", inline=False)
                     embed.add_field(name="Author ID:", value=f"\n{message.author.id}", inline=False)
                     embed.add_field(name="Message:", value=f"\n{message.content}", inline=False)
@@ -411,7 +434,7 @@ class Chat(commands.Cog):
         db = self.database.bot
         posts = db.serversettings
         prefix = "?"
-        for x in posts.find({"guild_id": ctx.guild.id}):
+        async for x in posts.find({"guild_id": ctx.guild.id}):
             prefix = x['prefix']
         embed = discord.Embed(
             title="Chat moderation help",
@@ -457,7 +480,7 @@ class Chat(commands.Cog):
         db = self.database.bot
         posts = db.serversettings
         BANNED_WORDS = []
-        for x in posts.find({"guild_id": ctx.guild.id}):
+        async for x in posts.find({"guild_id": ctx.guild.id}):
             BANNED_WORDS = x["auto_mod"]["banned_words"]
 
         def has_text():
@@ -472,8 +495,8 @@ class Chat(commands.Cog):
 
             BANNED_WORDS.append(text.lower())
 
-            posts.update_one({"guild_id": ctx.guild.id},
-                             {"$set": {"auto_mod.banned_words": BANNED_WORDS}})
+            await posts.update_one({"guild_id": ctx.guild.id},
+                                   {"$set": {"auto_mod.banned_words": BANNED_WORDS}})
             await ctx.send(f"Added {text} to filter!")
         elif option.lower() in ["remove", "delete", "del", "take"]:
             if has_text():
@@ -485,8 +508,8 @@ class Chat(commands.Cog):
             if text.lower() in BANNED_WORDS:
                 BANNED_WORDS.remove(text.lower())
 
-                posts.update_one({"guild_id": ctx.guild.id},
-                                 {"$set": {"auto_mod.banned_words": BANNED_WORDS}})
+                await posts.update_one({"guild_id": ctx.guild.id},
+                                       {"$set": {"auto_mod.banned_words": BANNED_WORDS}})
 
                 await ctx.send(f"Removed {text} from filter!")
             else:
@@ -510,7 +533,7 @@ class Chat(commands.Cog):
         posts = db.serversettings
         BANNED_LINKS = []
         log_channel = 0
-        for x in posts.find({"guild_id": ctx.guild.id}):
+        async for x in posts.find({"guild_id": ctx.guild.id}):
             BANNED_LINKS = x["auto_mod"]["blacklisted_domains"]
             log_channel = x["log_channel"]
 
@@ -520,8 +543,8 @@ class Chat(commands.Cog):
 
             BANNED_LINKS.append(text.lower())
 
-            posts.update_one({"guild_id": ctx.guild.id},
-                             {"$set": {"auto_mod.blacklisted_domains": BANNED_LINKS}})
+            await posts.update_one({"guild_id": ctx.guild.id},
+                                   {"$set": {"auto_mod.blacklisted_domains": BANNED_LINKS}})
             await self.send_log_embed(log_channel, f"{ctx.author.name} Added a link to blacklist",
                                       f"{text} was added to the blacklist for chat moderation. Any text containing this phrase will be deleted.")
             await ctx.send(f"Added {text} to filter!")
@@ -532,8 +555,8 @@ class Chat(commands.Cog):
             if text.lower() in BANNED_LINKS:
                 BANNED_LINKS.remove(text.lower())
 
-                posts.update_one({"guild_id": ctx.guild.id},
-                                 {"$set": {"auto_mod.blacklisted_domains": BANNED_LINKS}})
+                await posts.update_one({"guild_id": ctx.guild.id},
+                                       {"$set": {"auto_mod.blacklisted_domains": BANNED_LINKS}})
                 await self.send_log_embed(log_channel, f"{ctx.author.name} Removed a link from blacklist",
                                           f"{text} was removed from the blacklist for chat moderation. Any text containing this phrase will not be deleted.")
                 await ctx.send(f"Removed {text} from filter!")
@@ -561,7 +584,7 @@ class Chat(commands.Cog):
         def has_role():
             return role is None
 
-        for x in posts.find({"guild_id": ctx.guild.id}):
+        async for x in posts.find({"guild_id": ctx.guild.id}):
             log_channel = x["log_channel"]
             ignore_roles = x["auto_mod"]["ignore_roles"]
 
@@ -569,8 +592,8 @@ class Chat(commands.Cog):
             if has_role():
                 return await ctx.send("You must specify a role!")
             ignore_roles.append(role.id)
-            posts.update_one({"guild_id": ctx.guild.id},
-                             {"$set": {"auto_mod.ignore_roles": ignore_roles}})
+            await posts.update_one({"guild_id": ctx.guild.id},
+                                   {"$set": {"auto_mod.ignore_roles": ignore_roles}})
             await self.send_log_embed(log_channel, f"{ctx.author.name} Added role to whitelist",
                                       f"{role.mention} was added to the whitelist for chat moderation. They are now able to bypass the auto chat mod.")
             return await ctx.send(f"Added role with id {role.id} to allowed roles!")
@@ -580,8 +603,8 @@ class Chat(commands.Cog):
                 return await ctx.send("You must specify a role!")
             if role.id in ignore_roles:
                 ignore_roles.remove(role.id)
-                posts.update_one({"guild_id": ctx.guild.id},
-                                 {"$set": {"auto_mod.ignore_roles": ignore_roles}})
+                await posts.update_one({"guild_id": ctx.guild.id},
+                                       {"$set": {"auto_mod.ignore_roles": ignore_roles}})
                 await self.send_log_embed(log_channel, f"{ctx.author.name} Removed role from whitelist",
                                           f"{role.mention} was removed from the whitelist for chat moderation. Add them back to be able to bypass auto chat mod.")
                 return await ctx.send(f"Removed role with id {role.id} from allowed roles!")
@@ -610,7 +633,7 @@ class Chat(commands.Cog):
         def has_invite():
             return setting is None
 
-        for x in posts.find({"guild_id": ctx.guild.id}):
+        async for x in posts.find({"guild_id": ctx.guild.id}):
             log_channel = x["log_channel"]
             allowed_invites = x["auto_mod"]["allowed_invites"]
 
@@ -620,8 +643,8 @@ class Chat(commands.Cog):
 
             allowed_invites.append(setting.lower())
 
-            posts.update_one({"guild_id": ctx.guild.id},
-                             {"$set": {"auto_mod.allowed_invites": allowed_invites}})
+            await posts.update_one({"guild_id": ctx.guild.id},
+                                   {"$set": {"auto_mod.allowed_invites": allowed_invites}})
 
             await self.send_log_embed(log_channel, f"{ctx.author.name} Added invite to whitelist",
                                       f"{setting} was added to the whitelist for chat moderation. Messages containing this invite will not be deleted!")
@@ -635,8 +658,8 @@ class Chat(commands.Cog):
 
                 allowed_invites.remove(setting.lower())
 
-                posts.update_one({"guild_id": ctx.guild.id},
-                                 {"$set": {"auto_mod.allowed_invites": allowed_invites}})
+                await posts.update_one({"guild_id": ctx.guild.id},
+                                       {"$set": {"auto_mod.allowed_invites": allowed_invites}})
 
                 await self.send_log_embed(log_channel, f"{ctx.author.name} Removed invite from whitelist",
                                           f"{setting.lower()} was removed from the whitelist for chat moderation. Messages containing this invite will be deleted!")
@@ -656,16 +679,16 @@ class Chat(commands.Cog):
 
             await ctx.send(embed=em)
         elif option.lower() in ["enable", "on"]:
-            posts.update_one({"guild_id": ctx.guild.id},
-                             {"$set": {"auto_mod.anti_invite": 1}})
+            await posts.update_one({"guild_id": ctx.guild.id},
+                                   {"$set": {"auto_mod.anti_invite": 1}})
 
             await self.send_log_embed(log_channel, f"{ctx.author.name} Enabled invite detection and removal",
                                       f"Messages containing invites will be deleted!")
 
             return await ctx.send(f"Allowed invite detection and removal!")
         elif option.lower() in ["disable", "off"]:
-            posts.update_one({"guild_id": ctx.guild.id},
-                             {"$set": {"auto_mod.anti_invite": 0}})
+            await posts.update_one({"guild_id": ctx.guild.id},
+                                   {"$set": {"auto_mod.anti_invite": 0}})
 
             await self.send_log_embed(log_channel, f"{ctx.author.name} Disabled invite detection and removal",
                                       f"Messages containing invites will  not be deleted!")
@@ -680,20 +703,20 @@ class Chat(commands.Cog):
         log_channel = 0
         chat_moderation = 0
 
-        for x in posts.find({"guild_id": ctx.guild.id}):
+        async for x in posts.find({"guild_id": ctx.guild.id}):
             log_channel = x["log_channel"]
             chat_moderation = x["auto_mod"]["chat_moderation"]
         if option.lower() in ["on", "enable", "allow", "engage"]:
-            posts.update_one({"guild_id": ctx.guild.id},
-                             {"$set": {"auto_mod.chat_moderation": 1}})
+            await posts.update_one({"guild_id": ctx.guild.id},
+                                   {"$set": {"auto_mod.chat_moderation": 1}})
 
             await self.send_log_embed(log_channel, f"{ctx.author.name} Enabled chat moderation and anti raid",
                                       f"Messages containing banned words, links, excessive emojis and spam will be deleted!")
 
             await ctx.send(f"Allowed chat moderation and anti raid!")
         elif option.lower() in ["off", "disable", "disengage"]:
-            posts.update_one({"guild_id": ctx.guild.id},
-                             {"$set": {"auto_mod.chat_moderation": 0}})
+            await posts.update_one({"guild_id": ctx.guild.id},
+                                   {"$set": {"auto_mod.chat_moderation": 0}})
 
             await self.send_log_embed(log_channel, f"{ctx.author.name} Disabled chat moderation and anti raid",
                                       f"Messages containing banned words, links, excessive emojis and spam will not be deleted!")
@@ -713,7 +736,7 @@ class Chat(commands.Cog):
         log_channel = 0
         max_mentions = 0
 
-        for x in posts.find({"guild_id": ctx.guild.id}):
+        async for x in posts.find({"guild_id": ctx.guild.id}):
             log_channel = x["log_channel"]
             max_mentions = x["auto_mod"]["max_mentions"]
 
@@ -729,16 +752,17 @@ class Chat(commands.Cog):
 
             except ValueError:
                 return await ctx.send("Please choose a valid number!")
-            posts.update_one({"guild_id": ctx.guild.id},
-                             {"$set": {"auto_mod.max_mentions": value, "auto_mod.on_mass_mention": on_mass_mention}})
+            await posts.update_one({"guild_id": ctx.guild.id},
+                                   {"$set": {"auto_mod.max_mentions": value,
+                                             "auto_mod.on_mass_mention": on_mass_mention}})
 
             await self.send_log_embed(log_channel, f"{ctx.author.name} Set max mentions to {max_mentions}",
                                       f"Messages containing spam pings will be moderated!")
 
             await ctx.send(f"Allowed chat moderation and anti raid!")
         elif option.lower() in ["reset", "disable", "stop"]:
-            posts.update_one({"guild_id": ctx.guild.id},
-                             {"$set": {"auto_mod.max_mentions": 0}})
+            await posts.update_one({"guild_id": ctx.guild.id},
+                                   {"$set": {"auto_mod.max_mentions": 0}})
 
             await self.send_log_embed(log_channel, f"{ctx.author.name} Disabled max mentions",
                                       f"Messages containing spam pings will not be moderated!")
@@ -753,14 +777,14 @@ class Chat(commands.Cog):
         log_channel = 0
         auto_temp_ban_time = 0
 
-        for x in posts.find({"guild_id": ctx.guild.id}):
+        async for x in posts.find({"guild_id": ctx.guild.id}):
             log_channel = x["log_channel"]
             auto_temp_ban_time = x["auto_mod"]["auto_temp_ban_time"]
 
         if option.lower() in ["set", "add", "limit"]:
 
-            posts.update_one({"guild_id": ctx.guild.id},
-                             {"$set": {"auto_mod.auto_temp_ban_time": value}})
+            await posts.update_one({"guild_id": ctx.guild.id},
+                                   {"$set": {"auto_mod.auto_temp_ban_time": value}})
 
             await self.send_log_embed(log_channel,
                                       f"{ctx.author.name} Set Auto temp ban time set to {value} from {auto_temp_ban_time}",
@@ -768,8 +792,8 @@ class Chat(commands.Cog):
 
             await ctx.send(f"Set the temp ban time to {value} minutes!")
         elif option.lower() in ["reset", "disable", "stop"]:
-            posts.update_one({"guild_id": ctx.guild.id},
-                             {"$set": {"auto_mod.auto_temp_ban_time": 0}})
+            await posts.update_one({"guild_id": ctx.guild.id},
+                                   {"$set": {"auto_mod.auto_temp_ban_time": 0}})
 
             await self.send_log_embed(log_channel, f"{ctx.author.name} Disabled temp bans",
                                       f"No one will be banned if they are deemed to be raiding your server!")
@@ -784,14 +808,14 @@ class Chat(commands.Cog):
         log_channel = 0
         auto_mute_time = 0
 
-        for x in posts.find({"guild_id": ctx.guild.id}):
+        async for x in posts.find({"guild_id": ctx.guild.id}):
             log_channel = x["log_channel"]
             auto_mute_time = x["auto_mod"]["auto_mute_time"]
 
         if option.lower() in ["set", "add", "limit"]:
 
-            posts.update_one({"guild_id": ctx.guild.id},
-                             {"$set": {"auto_mod.auto_mute_time": value}})
+            await posts.update_one({"guild_id": ctx.guild.id},
+                                   {"$set": {"auto_mod.auto_mute_time": value}})
 
             await self.send_log_embed(log_channel,
                                       f"{ctx.author.name} Set Auto mute time set to {auto_mute_time}",
@@ -799,8 +823,8 @@ class Chat(commands.Cog):
 
             await ctx.send(f"Allowed auto chat muting!")
         elif option.lower() in ["reset", "disable", "stop"]:
-            posts.update_one({"guild_id": ctx.guild.id},
-                             {"$set": {"auto_mod.auto_mute_time": 0}})
+            await posts.update_one({"guild_id": ctx.guild.id},
+                                   {"$set": {"auto_mod.auto_mute_time": 0}})
 
             await self.send_log_embed(log_channel, f"{ctx.author.name} Disabled auto mutes",
                                       f"Members will not be muted!")
@@ -815,14 +839,14 @@ class Chat(commands.Cog):
         log_channel = 0
         mod_ignore_channels = []
 
-        for x in posts.find({"guild_id": ctx.guild.id}):
+        async for x in posts.find({"guild_id": ctx.guild.id}):
             log_channel = x["log_channel"]
             mod_ignore_channels = x["auto_mod"]["mod_ignore_channels"]
 
         if option.lower() in ["set", "add", "ignore"]:
             mod_ignore_channels.append(value.id)
-            posts.update_one({"guild_id": ctx.guild.id},
-                             {"$set": {"auto_mod.mod_ignore_channels": mod_ignore_channels}})
+            await posts.update_one({"guild_id": ctx.guild.id},
+                                   {"$set": {"auto_mod.mod_ignore_channels": mod_ignore_channels}})
 
             await self.send_log_embed(log_channel,
                                       f"{ctx.author.name} Set Auto to spam ignore {value.mention}",
@@ -831,15 +855,25 @@ class Chat(commands.Cog):
             await ctx.send(f"Disallowed moderation in {value.mention}!")
         elif option.lower() in ["remove", "disable", "stop"]:
             mod_ignore_channels.remove(value.id)
-            posts.update_one({"guild_id": ctx.guild.id},
-                             {"$set": {"auto_mod.mod_ignore_channels": mod_ignore_channels}})
+            await posts.update_one({"guild_id": ctx.guild.id},
+                                   {"$set": {"auto_mod.mod_ignore_channels": mod_ignore_channels}})
 
             await self.send_log_embed(log_channel, f"{ctx.author.name} Allowed auto moderation in {value.mention}",
                                       f"Any rule violations will be stopped in this channel!")
 
             await ctx.send(f"Allowed moderation in {value.mention}!")
         else:
-            await ctx.send(mod_ignore_channels)
+            description_string = "You have no ignored channels."
+            if mod_ignore_channels:
+                description_string = ""
+            for channel in mod_ignore_channels:
+                f_channel = ctx.guild.get_channel(channel)
+                if f_channel:
+                    description_string = description_string + f"\n{f_channel.mention}"
+
+            em = discord.Embed(title="Ignored channel list", description=description_string, color=855330)
+            em.set_footer(text="Ploxy | Chat filter")
+            await ctx.send(embed=em)
 
 
 def setup(bot):

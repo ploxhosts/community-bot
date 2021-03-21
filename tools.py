@@ -2,7 +2,7 @@ import random
 import time
 from discord.ext import commands
 from discord.ext.commands import MissingPermissions
-
+from typing import Iterator
 from prepare import database
 import discord
 
@@ -38,7 +38,8 @@ class MissingAddedPerms(commands.CommandError):
         self.perm_node = perm_node
         self.cog_perm_node = cog_perm_node
         self.role_name = role_name
-        super().__init__(f'You require permissions for command: **{perm_node}** or cog: **{cog_perm_node}**. Try enabling it with the `perms grant` command.')
+        super().__init__(
+            f'You require permissions for command: **{perm_node}** or cog: **{cog_perm_node}**. Try enabling it with the `perms grant` command.')
 
 
 class RevokedAddedPerms(commands.CommandError):
@@ -46,7 +47,8 @@ class RevokedAddedPerms(commands.CommandError):
         self.perm_node = perm_node
         self.cog_perm_node = cog_perm_node
         self.role_name = role_name
-        super().__init__(f'Role `{role_name}` cannot run the command: **{perm_node}** or the cog: **{cog_perm_node}**. Try enabling it with the `perms grant` command.')
+        super().__init__(
+            f'Role `{role_name}` cannot run the command: **{perm_node}** or the cog: **{cog_perm_node}**. Try enabling it with the `perms grant` command.')
 
 
 def has_perm(**perms):
@@ -57,7 +59,7 @@ def has_perm(**perms):
     db = database.bot
     collection = db.permissions
 
-    def predicate(ctx):
+    async def predicate(ctx):
         def has_default_perms():
             ch = ctx.channel
             permissions = ch.permissions_for(ctx.author)
@@ -69,7 +71,7 @@ def has_perm(**perms):
 
             raise MissingPermissions(missing)
 
-        db_obj = collection.find_one({"guild_id": ctx.guild.id})
+        db_obj = await collection.find_one({"guild_id": ctx.guild.id})
 
         perm_nodes = db_obj["perm_nodes"]
         bad_perm_nodes = db_obj["bad_perm_nodes"]
@@ -105,3 +107,35 @@ def has_perm(**perms):
         raise MissingAddedPerms(ctx.command.name.lower(), cog.qualified_name)
 
     return commands.check(predicate)
+
+
+async def get_all_commands(bot) -> Iterator[commands.Command]:
+    """Yield all commands for all cogs in all extensions."""
+    for module in bot.walk_modules():
+        for cog in bot.walk_cogs(module):
+            for cmd in bot.walk_commands(cog):
+                yield cmd
+
+
+async def check_new_commands(bot):
+    categories = []
+    for cmd in bot.walk_commands():
+        if cmd.cog:
+            if isinstance(cmd, commands.Group):
+                a = {
+                    "name": cmd.name,
+                    "subcommands": cmd.commands,
+                    "aliases": cmd.aliases,
+                    "cog": cmd.cog.qualified_name,
+                    "usage": cmd.usage,
+                    "desc": cmd.description,
+                }
+            else:
+                a = {
+                    "name": cmd.name,
+                    "aliases": cmd.aliases,
+                    "cog": cmd.cog.qualified_name,
+                    "usage": cmd.usage,
+                    "desc": cmd.description,
+                }
+            categories.append(cmd.cog.qualified_name)

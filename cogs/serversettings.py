@@ -15,13 +15,13 @@ class Settings(commands.Cog):
         posts = db.serversettings
         prefix_org = ""
 
-        for x in posts.find({"guild_id": ctx.guild.id}):
+        async for x in posts.find({"guild_id": ctx.guild.id}):
             prefix_org = x["prefix"]
 
         if new_prefix is None:  # If command didn't specify a new prefix
             return await ctx.send(f"The prefix is `{prefix_org}`")
 
-        posts.update_one({"guild_id": ctx.guild.id}, {"$set": {"prefix": new_prefix}})
+        await posts.update_one({"guild_id": ctx.guild.id}, {"$set": {"prefix": new_prefix}})
         await ctx.send(f"New prefix is `{new_prefix}` from `{prefix_org}`")
 
     @commands.command(name='logchannel', aliases=["setlogchannel", "logschannel"], usage="logchannel #channel")
@@ -34,10 +34,10 @@ class Settings(commands.Cog):
         posts = db.serversettings
         channel_org = 0
 
-        for x in posts.find({"guild_id": ctx.guild.id}):
+        async for x in posts.find({"guild_id": ctx.guild.id}):
             channel_org = x["log_channel"]
 
-        posts.update_one({"guild_id": ctx.guild.id}, {"$set": {"log_channel": channel.id}})
+        await posts.update_one({"guild_id": ctx.guild.id}, {"$set": {"log_channel": channel.id}})
         if channel_org != 0:
             await ctx.send(f"New log channel is <#{channel.id}> from <#{channel_org}>")
         else:

@@ -3,6 +3,7 @@ import math
 import json
 from discord.ext import commands, tasks
 
+
 class VLevels(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -48,14 +49,14 @@ class VLevels(commands.Cog):
         db = self.database.bot
         posts = db.serversettings
 
-        for x in posts.find({"guild_id": member.guild.id}):
+        async for x in posts.find({"guild_id": member.guild.id}):
             status = x["levels"]['voice_enabled']
             if status == 0 or status is None:
                 return
 
         posts = db.player_data
 
-        for x in posts.find({"user_id": member.id, "guild_id": member.guild.id}):
+        async for x in posts.find({"user_id": member.id, "guild_id": member.guild.id}):
             level = x["level"]
             exp = x["exp"]
             total_exp = x["total_exp"]
@@ -67,13 +68,15 @@ class VLevels(commands.Cog):
             return
 
         if before.channel is None:  # When a user is joining a vc
-            posts.update_one({"user_id": member.id, "guild_id": member.guild.id},
-                             {"$set": {
-                                 "exp": exp,
-                                 "latest_vc_channel": after.channel.id,
-                                 "time_since_join_vc": datetime.datetime.now()
-                             }})
-            self.users_in_vc[str(member.id)] = {"guild": member.guild.id, "latest_vc_channel": after.channel.id, "time_since_join_vc": datetime.datetime.now().timestamp(), "bad_seconds": 0}
+            await posts.update_one({"user_id": member.id, "guild_id": member.guild.id},
+                                   {"$set": {
+                                       "exp": exp,
+                                       "latest_vc_channel": after.channel.id,
+                                       "time_since_join_vc": datetime.datetime.now()
+                                   }})
+            self.users_in_vc[str(member.id)] = {"guild": member.guild.id, "latest_vc_channel": after.channel.id,
+                                                "time_since_join_vc": datetime.datetime.now().timestamp(),
+                                                "bad_seconds": 0}
 
         elif after.channel is None:  # When a user is leaving a vc
             user_obj = self.users_in_vc.get(str(member.id))
@@ -81,7 +84,8 @@ class VLevels(commands.Cog):
             # Calculate the time difference between now and then
             new_seconds_in_vc = datetime.datetime.now().timestamp() - time_since_join_vc.timestamp()
             if new_seconds_in_vc - user_obj["bad_seconds"] > 0:
-                exp += int(((new_seconds_in_vc - user_obj["bad_seconds"]) / 60 * 10) * multiplier)  # Multiplier may be a float
+                exp += int(
+                    ((new_seconds_in_vc - user_obj["bad_seconds"]) / 60 * 10) * multiplier)  # Multiplier may be a float
 
             total_exp += exp
             seconds_in_vc += new_seconds_in_vc - user_obj["bad_seconds"]
@@ -96,21 +100,21 @@ class VLevels(commands.Cog):
                 else:
                     break
 
-            posts.update_one({"user_id": member.id, "guild_id": member.guild.id},
-                             {"$set": {
-                                 "exp": xp_conv,
-                                 "level": level,
-                                 "total_exp": total_exp,
-                                 "latest_vc_channel": before.channel.id,
-                                 "time_since_join_vc": 0,
-                                 "seconds_in_vc": seconds_in_vc
-                             }})
+            await posts.update_one({"user_id": member.id, "guild_id": member.guild.id},
+                                   {"$set": {
+                                       "exp": xp_conv,
+                                       "level": level,
+                                       "total_exp": total_exp,
+                                       "latest_vc_channel": before.channel.id,
+                                       "time_since_join_vc": 0,
+                                       "seconds_in_vc": seconds_in_vc
+                                   }})
 
         else:
-            posts.update_one({"user_id": member.id, "guild_id": member.guild.id},
-                             {"$set": {
-                                 "latest_vc_channel": after.channel.id
-                             }})
+            await posts.update_one({"user_id": member.id, "guild_id": member.guild.id},
+                                   {"$set": {
+                                       "latest_vc_channel": after.channel.id
+                                   }})
 
 
 def setup(bot):
