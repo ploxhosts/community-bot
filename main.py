@@ -53,6 +53,8 @@ bot.remove_command('help')  # Get rid of the default help command as there is no
 
 bot.database = database  # for use else where
 
+bot.delete_message_cache = []
+
 os.makedirs("logs", exist_ok=True)
 
 fileName = time.strftime("%Y-%m-%d-%H%M")

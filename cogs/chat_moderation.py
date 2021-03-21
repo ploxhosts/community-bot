@@ -66,7 +66,7 @@ class Chat(commands.Cog):
         if channel == 0:
             return
 
-        embed = discord.Embed(colour=0xac6f8f, title=title)
+        embed = discord.Embed(colour=0x36a39f, title=title)
         embed.add_field(name="Message:", value=f"\n{message}", inline=False)
         embed.set_footer(text="Ploxy | Chat Moderation")
         log_channel = self.bot.get_channel(channel)
@@ -186,6 +186,7 @@ class Chat(commands.Cog):
         for bad_word in BANNED_WORDS:
             if bad_word in message.content.lower():
                 if await self.delete_message(message) == "Deleted":
+                    self.bot.delete_message_cache.append(message.id)
                     guild = self.bot.get_guild(message.guild.id)
                     channel = guild.get_channel(message.channel.id)
                     messages = await channel.history(limit=5).flatten()
@@ -195,14 +196,34 @@ class Chat(commands.Cog):
                             done = True
                     if not done:
                         await channel.send("A message was deleted as it contained a banned word.")
+                    embed = discord.Embed(colour=0x36a39f, title="Blacklisted word has been deleted in a message!")
+                    embed.add_field(name="Message", value=f"{message.content}", inline=True)
+                    embed.add_field(name="Word", value=f"`{bad_word}`", inline=False)
+                    embed.add_field(name="Author", value=f"{message.author.name}#{message.author.discriminator} ({message.author.id})", inline=True)
+                    embed.add_field(name="Channel", value=f"{message.channel.mention}", inline=True)
+                    embed.set_footer(text="Ploxy | Chat Moderation")
+                    log_channel_obj = self.bot.get_channel(log_channel)
+
+                    await log_channel_obj.send(embed=embed)
 
         if len(message.mentions) > MAX_MENTIONS != 0:
             guild = self.bot.get_guild(message.guild.id)
             channel = guild.get_channel(message.channel.id)
             if await self.delete_message(message) == "Deleted":
+                self.bot.delete_message_cache.append(message.id)
                 await channel.send("A message was deleted as it contained too many mentions.")
-                await self.send_log_embed(log_channel, "Mass mention attempt",
-                                          f"{message.author.name} with the id of {message.author.id}\nTried to mention {len(message.mentions)} people!")
+
+                embed = discord.Embed(colour=0x36a39f, title="Message exceeded mention limit!")
+                embed.add_field(name="Message", value=f"{message.content}", inline=True)
+                embed.add_field(name="Mentions", value=f"`{len(message.mentions)}`", inline=False)
+                embed.add_field(name="Author",
+                                value=f"{message.author.name}#{message.author.discriminator} ({message.author.id})",
+                                inline=True)
+                embed.add_field(name="Channel", value=f"{message.channel.mention}", inline=True)
+                embed.set_footer(text="Ploxy | Chat Moderation")
+                log_channel_obj = self.bot.get_channel(log_channel)
+
+                await log_channel_obj.send(embed=embed)
             if ban_on_mass_mention == 1:  # Mute
                 posts = db.pending_mutes
                 if posts.find_one({"guild_id": message.guild.id, "user_id": message.author.id}):
@@ -383,7 +404,7 @@ class Chat(commands.Cog):
                     await self.delete_message(message)
                     if log_channel == 0:
                         return
-                    embed = discord.Embed(colour=0xac6f8f, title="Chat moderation")
+                    embed = discord.Embed(colour=0x36a39f, title="Chat moderation")
                     embed.add_field(name="Author:", value=f"\n{message.author}", inline=False)
                     embed.add_field(name="Author ID:", value=f"\n{message.author.id}", inline=False)
                     embed.add_field(name="Message:", value=f"\n{message.content}", inline=False)
