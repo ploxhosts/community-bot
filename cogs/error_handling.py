@@ -19,7 +19,7 @@ class Error_handling(commands.Cog):
         db = self.database.bot
         posts = db.serversettings
         prefix = "?"
-        for x in posts.find({"guild_id": ctx.guild.id}):
+        async for x in posts.find({"guild_id": ctx.guild.id}):
             prefix = x['prefix']
 
         def get_listed(start_list: list):

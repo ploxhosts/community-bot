@@ -5,6 +5,7 @@ import time
 import json
 import os
 
+
 class EventsMod(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -104,14 +105,14 @@ class EventsMod(commands.Cog):
         db = self.database.bot
         posts = db.serversettings
         log_channel = 0
-        for x in posts.find({"guild_id": message.guild_id}):
+        async for x in posts.find({"guild_id": message.guild_id}):
             log_channel = x['log_channel']
         posts = db.message_logs
         reported = False
         JSON = False
         message_content = ""
         author_id = 0
-        for x in posts.find({"message_id": message.message_id}):
+        async for x in posts.find({"message_id": message.message_id}):
             reported = x["reported"]
             JSON = x["json"]
             message_content = x["message"]
@@ -120,15 +121,16 @@ class EventsMod(commands.Cog):
         if message_content != "":
             if reported is False and JSON is None:  # Not if reported or a self bot
                 try:
-                    posts.delete_one({"message_id", message.message_id})
+                    await posts.delete_one({"message_id", message.message_id})
                 except:
                     pass
             else:
-                posts.update_one({"message_id": message.message_id},
+                await posts.update_one({"message_id": message.message_id},
                                  {"$set": {"deleted": True}})
             user = await self.bot.fetch_user(author_id)
             if message.message_id not in self.bot.delete_message_cache:
                 await self.send_delete_embed(log_channel, user.name, author_id, message_content, message.message_id)
+            else:
                 self.bot.delete_message_cache.remove(message.message_id)
 
     @commands.Cog.listener()
@@ -136,7 +138,6 @@ class EventsMod(commands.Cog):
         try:
             if "author" in message.data:
                 if "bot" in message.data["author"]:
-                    print("bot")
                     return
             else:
                 return
@@ -153,7 +154,7 @@ class EventsMod(commands.Cog):
 
             posts = db.message_logs
             edits = []
-            for data in posts.find({"message_id": message.message_id}):
+            async for data in posts.find({"message_id": message.message_id}):
                 org_msg = data["message"]
                 edits = data["edits"]
                 if len(edits) == 0:
@@ -162,8 +163,8 @@ class EventsMod(commands.Cog):
 
             if edits.count(message.data["content"]) == 1:
                 await self.check_contents_once(message)
-                posts.update_one({"message_id": message.message_id},
-                                 {"$set": {"edits": edits}})
+                await posts.update_one({"message_id": message.message_id},
+                                       {"$set": {"edits": edits}})
 
                 await self.send_edit_embed(log_channel, message, edits)
         else:
@@ -176,7 +177,7 @@ class EventsMod(commands.Cog):
 
         log_channel = 0
 
-        for x in posts.find({"guild_id": message.guild_id}):
+        async for x in posts.find({"guild_id": message.guild_id}):
             log_channel = x['log_channel']
 
         posts = db.message_logs
@@ -192,20 +193,20 @@ class EventsMod(commands.Cog):
             reported = False
             JSON = None
             author_id = 0
-            for x in posts.find({"message_id": ids}):
+            async for x in posts.find({"message_id": ids}):
                 reported = x["reported"]
                 JSON = x["json"]
                 message_content = x["message"]
                 author_id = x["author_id"]
             if reported is False and JSON is None:  # Not if reported or a self bot
                 try:
-                    posts.delete_one({"message_id", ids})
+                    await posts.delete_one({"message_id", ids})
                 except:
                     pass
             else:
                 if message_content != "":
-                    posts.update_one({"message_id": ids},
-                                     {"$set": {"deleted": True}})
+                    await posts.update_one({"message_id": ids},
+                                           {"$set": {"deleted": True}})
             if message_content != "":
                 user = await self.bot.fetch_user(author_id)
                 user: discord.User

@@ -8,11 +8,13 @@ import time
 import discord
 from discord.ext import commands, tasks
 import os
-
+from tools import check_new_commands
+import motor
 # Runs database connections and env
 from prepare import database
 
 token = os.getenv('bot_token')
+
 
 # logger = logging.getLogger('discord')
 # logger.setLevel(logging.DEBUG)
@@ -29,7 +31,7 @@ with open('jokes.json') as json_file:
 
 
 # noinspection PyShadowingNames
-def get_prefix(bot, message):
+async def get_prefix(bot, message):
     prefix = os.getenv("prefix") or "?"  # Default prefix specified in the env file or ? as default
 
     if not message.guild:
@@ -37,7 +39,7 @@ def get_prefix(bot, message):
     db = database.bot
     collection = db.serversettings
 
-    result = collection.find_one({"guild_id": message.guild.id})
+    result = await collection.find_one({"guild_id": message.guild.id})
     if result is None:
         pass
     else:
@@ -102,6 +104,8 @@ async def on_ready():
     print(f"Logged in as {bot.user.id} \nin {len(bot.guilds)} servers with {members} members")
     print('-----------------')
     change_status.start()
+
+    await check_new_commands(bot)
 
 
 @bot.event

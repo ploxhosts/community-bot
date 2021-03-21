@@ -149,9 +149,9 @@ class Events(commands.Cog):
         }
 
     async def check_if_update(self, find, main_document, collection):
-        if collection.count_documents(find) > 0:
+        if await collection.count_documents(find) > 0:
             fields = {}
-            for x in collection.find(find):
+            async for x in collection.find(find):
                 fields = x
             if "latest_update" in fields:
                 last_time = fields["latest_update"]
@@ -163,7 +163,7 @@ class Events(commands.Cog):
             if db_dict.keys() != fields:
                 for key, value in db_dict.items():
                     if key not in fields.keys():
-                        collection.update_one(find, {"$set": {key: value}})
+                        await collection.update_one(find, {"$set": {key: value}})
                     else:
                         try:
                             sub_dict = dict(value)
@@ -171,22 +171,22 @@ class Events(commands.Cog):
                                 if key2 not in fields[key].keys():
                                     new_value = value
                                     new_value[key2] = value2
-                                    collection.update_one(find,
-                                                          {"$set": {key: new_value}})
+                                    await collection.update_one(find,
+                                                                {"$set": {key: new_value}})
                             for key2, value2 in fields[key].items():
                                 if key2 not in sub_dict.keys():
                                     new_dict = {}
                                     for item in sub_dict:
                                         if item != key2:
                                             new_dict[item] = sub_dict.get(item)
-                                    collection.update_one(find, {"$set": {key: new_dict}})
+                                    await collection.update_one(find, {"$set": {key: new_dict}})
                         except:
                             pass
                 for key2, value2 in fields.items():
                     if key2 not in db_dict:
-                        collection.update_one(find, {"$unset": {key2: 1}})
+                        await collection.update_one(find, {"$unset": {key2: 1}})
         else:
-            collection.insert_one(main_document)
+            await collection.insert_one(main_document)
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):  # Update here to remove documents on a guild leave
@@ -197,59 +197,60 @@ class Events(commands.Cog):
 
         # get server settings that include prefix and toggles
         posts = db.serversettings
-        posts.delete_one(query)
+        await posts.delete_one(query)
 
         posts = db.warnings
-        posts.delete_many({"guild_id": guild.id})
+        await posts.delete_many({"guild_id": guild.id})
 
         posts = db.message_logs
-        posts.delete_many({"guild_id": guild.id})
+        await posts.delete_many({"guild_id": guild.id})
 
         posts = db.customcommand
-        posts.delete_many({"guild_id": guild.id})
+        await posts.delete_many({"guild_id": guild.id})
 
         posts = db.player_data
-        posts.delete_many({"guild_id": guild.id})
+        await posts.delete_many({"guild_id": guild.id})
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):  # What happens when a member leaves
         db = self.database.bot
         posts = db.economy
         guilds = []
-        for user in posts.find({"user_id": member.id}):
+        async for user in posts.find({"user_id": member.id}):
             guilds = user["guilds"]
         guilds.remove(member.guild.id)
-        posts.update_one({"user_id": member.id},
-                         {"$set": {"guilds": guilds}})
+        await posts.update_one({"user_id": member.id},
+                               {"$set": {"guilds": guilds}})
 
     @commands.Cog.listener()
     async def on_member_join(self, member):  # What happens when a member joins
         db = self.database.bot
         posts = db.player_data
         try:
-            if posts.find({"user_id": member.id}).count() == 0:
-                posts.insert_one(self.get_user_stats(member.id, member.guild.id))
+            if await posts.count_documents({"user_id": member.id}) == 0:
+                await posts.insert_one(self.get_user_stats(member.id, member.guild.id))
         except IndexError:
-            posts.insert_one(self.get_user_stats(member.id, member.guild.id))
+            await posts.insert_one(self.get_user_stats(member.id, member.guild.id))
 
         posts = db.economy
 
-        if posts.find({"user_id": member.id}).count() > 0:  # Adds a user to the database in case of any downtime
+        if await posts.count_documents(
+                {"user_id": member.id}) > 0:  # Adds a user to the database in case of any downtime
             cash = {}
             guilds = []
-            for user in posts.find({"user_id": member.id}):
+            async for user in posts.find({"user_id": member.id}):
                 cash = user["cash"]
                 guilds = user["guilds"]
             cash[str(member.guild.id)] = 10
             guilds.append(member.guild.id)
-            posts.update_one({"user_id": member.id},
-                             {"$set": {"cash": cash, "guilds": guilds}})
+            await posts.update_one({"user_id": member.id},
+                                   {"$set": {"cash": cash, "guilds": guilds}})
             await self.check_if_update({"user_id": member.id}, self.get_economy_user(member.id, member.guild.id), posts)
         else:
-            posts.insert_one(self.get_economy_user(member.id, member.guild.id))
+            await posts.insert_one(self.get_economy_user(member.id, member.guild.id))
 
         posts = db.pending_mutes
-        if posts.find_one({"guild_id": member.guild.id, "user_id": member.id}):
+        if await posts.find_one({"guild_id": member.guild.id, "user_id": member.id}):
             role = await member.guild.get_role(db.serversettings.find({'guild_id': member.guild.id})["muted_role_id"])
             await member.add_roles(role, reason="Mute evaded")
 
@@ -288,32 +289,32 @@ class Events(commands.Cog):
         # ECONOMY
 
         posts = db.economy
-        if posts.find(
-                {"user_id": message.author.id}).count() > 0:  # Adds a user to the database in case of any downtime
+        if await posts.count_documents(
+                {"user_id": message.author.id}) > 0:  # Adds a user to the database in case of any downtime
             cash = {}
             guilds = []
-            for user in posts.find({"user_id": message.author.id}):
+            async for user in posts.find({"user_id": message.author.id}):
                 cash = user["cash"]
                 guilds = user["guilds"]
             if cash:
                 if str(message.guild.id) not in cash.keys():
                     cash[message.guild.id] = 10
-                    posts.update_one({"user_id": message.author.id},
-                                      {"$set": {"cash": cash}})
+                    await posts.update_one({"user_id": message.author.id},
+                                           {"$set": {"cash": cash}})
             else:
-                posts.update_one({"user_id": message.author.id},
-                                  {"$set": {"cash": {str(message.guild.id): 10}}})
+                await posts.update_one({"user_id": message.author.id},
+                                       {"$set": {"cash": {str(message.guild.id): 10}}})
             if message.guild.id not in guilds:
                 guilds.append(message.guild.id)
-                posts.update_one({"user_id": message.author.id},
-                                  {"$set": {"guilds": guilds}})
+                await posts.update_one({"user_id": message.author.id},
+                                       {"$set": {"guilds": guilds}})
 
             await self.check_if_update({"guild_id": message.guild.id},
                                        self.get_economy_user(message.author.id, message.guild.id),
                                        posts)
 
         else:
-            posts.insert_one(self.get_economy_user(message.author.id, message.guild.id))
+            await posts.insert_one(self.get_economy_user(message.author.id, message.guild.id))
 
 
 def setup(bot):

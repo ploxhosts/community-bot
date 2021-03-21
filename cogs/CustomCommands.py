@@ -4,8 +4,10 @@ import datetime
 import asyncio
 import tools
 
+
 class CustomCommands(commands.Cog):
     """Here you can make commands yourself"""
+
     def __init__(self, bot):
         self.bot = bot
         self.database = bot.database
@@ -24,7 +26,7 @@ class CustomCommands(commands.Cog):
         splitted_content = message.content.split()
         response = ""
         try:
-            for x in posts.find({"guild_id": message.guild.id, "command": splitted_content[0]}):
+            async for x in posts.find({"guild_id": message.guild.id, "command": splitted_content[0]}):
                 response = x["content"]
             if response != "":
                 await message.delete()
@@ -37,7 +39,7 @@ class CustomCommands(commands.Cog):
         db = self.database.bot
         posts = db.serversettings
         prefix = "?"
-        for x in posts.find({"guild_id": ctx.guild.id}):
+        async for x in posts.find({"guild_id": ctx.guild.id}):
             prefix = x['prefix']
         embed = discord.Embed(
             title="Custom command help",
@@ -73,7 +75,8 @@ class CustomCommands(commands.Cog):
         await confirm_msg.add_reaction("❌")
 
         def check(reaction, user):
-            return user == ctx.author and reaction.message == confirm_msg and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
+            return user == ctx.author and reaction.message == confirm_msg and (
+                        str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
 
         try:
             reaction2, user2 = await self.bot.wait_for('reaction_add', timeout=60.0, check=check)
@@ -83,7 +86,8 @@ class CustomCommands(commands.Cog):
             await confirm_msg.delete()
             return await ctx.send('Cancelled custom command, you took too long!')
 
-        posts.insert_one({"guild_id": ctx.guild.id, "made_by": ctx.author.id, "command": command, "content": content})
+        await posts.insert_one(
+            {"guild_id": ctx.guild.id, "made_by": ctx.author.id, "command": command, "content": content})
 
         await ctx.send('Added command!')
         await confirm_msg.delete()
@@ -94,7 +98,7 @@ class CustomCommands(commands.Cog):
         db = self.database.bot
         posts = db.customcommand
 
-        posts.delete_one({"guild_id": ctx.guild.id, "command": command})
+        await posts.delete_one({"guild_id": ctx.guild.id, "command": command})
         await ctx.send('Deleted command!')
 
     @customcommand.command(name="list", usage="cc list")
@@ -105,7 +109,7 @@ class CustomCommands(commands.Cog):
         c_commands = ["You have no custom commands. Please create one!"]
 
         inter = 0
-        for x in posts.find({"guild_id": ctx.guild.id}):
+        async for x in posts.find({"guild_id": ctx.guild.id}):
             if inter == 0:
                 c_commands.clear()
             inter += 1

@@ -6,6 +6,7 @@ import time
 import random
 import tools
 
+
 # noinspection PyBroadException
 class Suggestions(commands.Cog):
     """Commands for suggesting new features"""
@@ -22,7 +23,7 @@ class Suggestions(commands.Cog):
         suggestions_config = 0
         flake = (int((time.time() - 946702800) * 1000) << 23) + random.SystemRandom().getrandbits(23)
 
-        for x in posts.find({"guild_id": ctx.guild.id}):
+        async for x in posts.find({"guild_id": ctx.guild.id}):
             suggestions_config = x["suggestions"]
 
         suggestions_channel = suggestions_config['intake_channel']
@@ -33,6 +34,10 @@ class Suggestions(commands.Cog):
         embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar_url)
 
         channel = ctx.guild.get_channel(suggestions_channel)
+        if channel is None:
+            embed = discord.Embed(colour=0x36a39f, description=f"{ctx.guild} does not have suggestions setup.\n This can be done with the `{ctx.prefix}suggestions setup` command")
+            embed.set_footer(text="Ploxy | Suggestions")
+            return await ctx.send(embed=embed)
         message = await channel.send(embed=embed)
         await message.add_reaction("✅")
         await message.add_reaction("🟧")
@@ -61,7 +66,7 @@ class Suggestions(commands.Cog):
         denied_channel = 0
 
         sent_messages = []
-        for x in posts.find({"guild_id": ctx.guild.id}):
+        async for x in posts.find({"guild_id": ctx.guild.id}):
             denied_channel = x["suggestions"]['denied_channel']
             approve_channel = x["suggestions"]['approved_channel']
             suggestions_channel = x["suggestions"]['intake_channel']
@@ -70,7 +75,7 @@ class Suggestions(commands.Cog):
         user_id = 0
         message_id = 0
 
-        for x in posts.find({"guild_id": ctx.guild.id, "id": flake}):
+        async for x in posts.find({"guild_id": ctx.guild.id, "id": flake}):
             suggestion = x["suggestion"]
             user_id = x["user_id"]
             message_id = x["message_id"]
@@ -112,8 +117,9 @@ class Suggestions(commands.Cog):
                     await message_sent_obj.delete()  # We want to overwrite the previous message
 
             sent_messages = [newmsg.id]
-        posts.update_one({"guild_id": ctx.guild.id, "message_id": message_id},
-                         {"$set": {"status": "approved", "sent_messages": sent_messages}})
+        await posts.update_one({"guild_id": ctx.guild.id, "message_id": message_id},
+                               {"$set": {"status": "approved", "sent_messages": sent_messages}})
+        await ctx.send("Accepted the suggestion")
 
     @suggestions.command(name='deny', aliases=["denysuggestion", "reject"], usage="suggestions deny <id> <reason>")
     @tools.has_perm(manage_guild=True)
@@ -124,7 +130,7 @@ class Suggestions(commands.Cog):
         denied_channel = 0
         suggestions_channel = 0
         approved_channel = 0
-        for x in posts.find({"guild_id": ctx.guild.id}):
+        async for x in posts.find({"guild_id": ctx.guild.id}):
             denied_channel = x["suggestions"]['denied_channel']
             suggestions_channel = x["suggestions"]['intake_channel']
             approved_channel = x["suggestions"]["approved_channel"]
@@ -134,7 +140,7 @@ class Suggestions(commands.Cog):
         message_id = 0
         sent_messages = []
 
-        for x in posts.find({"guild_id": ctx.guild.id, "id": flake}):
+        async for x in posts.find({"guild_id": ctx.guild.id, "id": flake}):
             suggestion = x["suggestion"]
             user_id = x["user_id"]
             message_id = x["message_id"]
@@ -176,8 +182,9 @@ class Suggestions(commands.Cog):
                     await message_sent_obj.delete()  # We want to overwrite the previous message
 
             sent_messages = [newmsg.id]
-        posts.update_one({"guild_id": ctx.guild.id, "message_id": message_id},
-                         {"$set": {"status": "denied", "sent_messages": sent_messages}})
+        await posts.update_one({"guild_id": ctx.guild.id, "message_id": message_id},
+                               {"$set": {"status": "denied", "sent_messages": sent_messages}})
+        await ctx.send("Denied the suggestion")
 
     # noinspection PyBroadException
     @suggestions.command(name="setup", alias=["channels"], usage="suggestions setup")
@@ -246,7 +253,7 @@ class Suggestions(commands.Cog):
         embed.set_footer(text=f"Ploxy | Suggestions Setup")
         await first_message.edit(embed=embed)
 
-        posts.update_one({"guild_id": ctx.guild.id}, {"$set": {
+        await posts.update_one({"guild_id": ctx.guild.id}, {"$set": {
             "suggestions": {"intake_channel": intake_channel, "approved_channel": accepted_channel,
                             "denied_channel": denied_channel}}})
 

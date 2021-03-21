@@ -19,28 +19,28 @@ class Example(commands.Cog):
     # Need to use a database to store information?
     # Store it in a separate collection
 
-    def save_db(self):
+    async def save_db(self):
         db = self.database.bot  # Must be set to this as only database is being used is bot
         collection = db.exampleCollection  # Set the collection
-        collection.insert_one({"id": random.randint(1, 1000000), "text": "Hello world!"})  # How to insert a new data
+        await collection.insert_one({"id": random.randint(1, 1000000), "text": "Hello world!"})  # How to insert a new data
 
-    def update_db(self, postid):
+    async def update_db(self, postid):
         db = self.database.bot  # Must be set to this as only database is being used is bot
         collection = db.exampleCollection  # Set the collection
-        collection.update_one({"id": postid},
+        await collection.update_one({"id": postid},
                               {"$set": {
                                   "text": "Goodbye world..."}})  # Search by the field of id by the variable postid and set teh text to Goodbye world
 
-    def get_db(self, postid):
+    async def get_db(self, postid):
         db = self.database.bot  # Must be set to this as only database is being used is bot
         collection = db.exampleCollection  # Set the collection
-        data = collection.find_one({"id": postid})  # Search by the field of id by the variable postid
+        data = await collection.find_one({"id": postid})  # Search by the field of id by the variable postid
         print(data)  # Get the document returned
 
-    def delete_db(self, postid):
+    async def delete_db(self, postid):
         db = self.database.bot  # Must be set to this as only database is being used is bot
         collection = db.exampleCollection  # Set the collection
-        collection.delete_one({"id": postid})  # Search by the field of id by the variable postid and delete it
+        await collection.delete_one({"id": postid})  # Search by the field of id by the variable postid and delete it
 
 
 def setup(bot):

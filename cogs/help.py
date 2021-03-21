@@ -1,5 +1,3 @@
-from typing import Iterator
-
 import discord
 from discord.ext import commands
 
@@ -9,12 +7,11 @@ class Help(commands.Cog):
         self.bot = bot
         self.database = bot.database
 
-    def get_all_commands(self) -> Iterator[commands.Command]:
-        """Yield all commands for all cogs in all extensions."""
-        for module in self.bot.walk_modules():
-            for cog in self.bot.walk_cogs(module):
-                for cmd in self.bot.walk_commands(cog):
-                    yield cmd
+    @commands.command(name="credit", description="Get the names of the people who developed the bot", usage="credit")
+    async def credit(self, ctx):
+        embed = discord.Embed(colour=0x36a39f, title="The list of contributors", description="FluxedScript")
+        embed.set_footer(text="Ploxy")
+        await ctx.send(embed=embed)
 
     @commands.command(name="help", description="Returns all commands available",
                       aliases=["command", "commands", "commandslist", "listcommands", "lscmds", "cmds", "lscommands"],
@@ -23,7 +20,7 @@ class Help(commands.Cog):
         db = self.database.bot
         posts = db.serversettings
         prefix = "?"
-        for x in posts.find({"guild_id": ctx.guild.id}):
+        async for x in posts.find({"guild_id": ctx.guild.id}):
             prefix = x['prefix']
 
         embed = discord.Embed(colour=0x36a39f, title="Help command")

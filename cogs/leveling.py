@@ -6,6 +6,7 @@ import datetime
 import random
 import asyncio
 import tools
+from discord.ext.commands import MemberConverter
 
 class Levels(commands.Cog):
     """Level related commands"""
@@ -31,7 +32,7 @@ class Levels(commands.Cog):
             # Check if it's allowed
             db = self.database.bot
             posts = db.serversettings
-            for x in posts.find({"guild_id": message.guild.id}):
+            async for x in posts.find({"guild_id": message.guild.id}):
                 status = x['levels']["enabled"]
                 if status == 0 or status is None:
                     return
@@ -45,7 +46,7 @@ class Levels(commands.Cog):
                 up = random.randint(6, 10)
 
             message_time = datetime.datetime(2019, 8, 20, 11, 14, 22, 453209)
-            for x in posts.find({"user_id": message.author.id, "guild_id": message.guild.id}):
+            async for x in posts.find({"user_id": message.author.id, "guild_id": message.guild.id}):
                 level = x["level"]
                 total_exp = x["total_exp"]
                 exp = x["exp"]
@@ -65,7 +66,7 @@ class Levels(commands.Cog):
 
             total_exp += exp
 
-            posts.update_one({"user_id": message.author.id, "guild_id": message.guild.id},
+            await posts.update_one({"user_id": message.author.id, "guild_id": message.guild.id},
                              {"$set": {"exp": exp, "total_exp": total_exp, "message_time": new_message_time}})
 
             # Do I increase the level?
@@ -82,7 +83,7 @@ class Levels(commands.Cog):
                 delete_me = await message.channel.send(embed=embed)
 
                 exp = 0
-                posts.update_one({"user_id": message.author.id, "guild_id": message.guild.id},
+                await posts.update_one({"user_id": message.author.id, "guild_id": message.guild.id},
                                  {"$set": {"exp": exp, "level": level}})
                 await asyncio.sleep(5)
                 await delete_me.delete()
@@ -91,22 +92,39 @@ class Levels(commands.Cog):
 
     @commands.command(name="level", description="Get the level of yourself or someone else",
                       aliases=["levels"], usage="level")
-    async def level(self, ctx, user: discord.User = None):
+    async def level(self, ctx, user = None, page: int = 1):
+        db = self.database.bot
+        posts = db.player_data
+        if str(user).lower() in ["leaderboard", "top", "lb", "list"]:
+            top = []
+            count = 1
+            async for x in posts.find({"guild_id": ctx.guild.id}).sort('total_exp', pymongo.DESCENDING):
+                user_id = x["user_id"]
+                level = x["level"]
+                exp = x["exp"]
+                member = ctx.guild.get_member(user_id)
+                if member is not None:
+                    top.append(f"{count}. {member.name}#{member.discriminator} | Level {level} - {exp} XP")
+                    count += 1
+                if count % 10 == 0:  # 10, 20, 30, 40, 50
+                    if (page * 10) * count:
+                        break
+                    else:
+                        top.clear()
+            embed = discord.Embed(color=0x36a39f, title="Top 10 most active users", description="\n".join(top))
+            return await ctx.send(embed=embed)
         exp = 0
         level = 0
 
-        db = self.database.bot
-        posts = db.player_data
-
         if user is None:
-            for x in posts.find({"user_id": ctx.author.id, "guild_id": ctx.guild.id}):
+            async for x in posts.find({"user_id": ctx.author.id, "guild_id": ctx.guild.id}):
                 level = x["level"]
                 exp = x["exp"]
             embed = discord.Embed(color=0x36a39f)
             embed.add_field(name=f"{ctx.author.name}", value=f"You have {exp} xp and are on level {level}", inline=True)
             return await ctx.send(embed=embed)
-
-        for x in posts.find({"user_id": user.id, "guild_id": ctx.guild.id}):
+        user = await MemberConverter().convert(ctx, user)
+        async for x in posts.find({"user_id": user.id, "guild_id": ctx.guild.id}):
             level = x["level"]
             exp = x["exp"]
         embed = discord.Embed(color=0x36a39f)
@@ -120,45 +138,21 @@ class Levels(commands.Cog):
         db = self.database.bot
         posts = db.player_data
 
-        for user in posts.find({"guild_id": ctx.guild.id}):
+        async for user in posts.find({"guild_id": ctx.guild.id}):
             level = user["level"]
             total_exp = user["total_exp"]
             user_id = user["user_id"]
             exp = user["exp"]
 
-            if total_exp == 0:
-                for level_mini_start in range(int(level)):
-                    total_exp += math.floor(5 * (level_mini_start ^ 2) + 50 * level_mini_start + 100)
+            total_exp = 0
+            for level_mini_start in range(int(level)):
+                total_exp += math.floor(5 * (level_mini_start ^ 2) + 50 * level_mini_start + 100)
 
             total_exp += exp
 
-            posts.update_one({"user_id": user_id, "guild_id": ctx.guild.id},
+            await posts.update_one({"user_id": user_id, "guild_id": ctx.guild.id},
                              {"$set": {"total_exp": total_exp}})
         await ctx.send("Successfully reloaded database!")
-
-    @commands.command(name="leaderboard", description="Get the leaderboard of top people with levels",
-                      aliases=["lb", "leveltop"], usage="level")
-    async def leaderboard(self, ctx, page: int = 1):
-        db = self.database.bot
-        posts = db.player_data
-
-        top = []
-        count = 1
-        for x in posts.find({"guild_id": ctx.guild.id}).sort('total_exp', pymongo.DESCENDING):
-            user_id = x["user_id"]
-            level = x["level"]
-            exp = x["exp"]
-            member = ctx.guild.get_member(user_id)
-            if member is not None:
-                top.append(f"{count}. {member.name}#{member.discriminator} | Level {level} - {exp} XP")
-                count += 1
-            if count % 10 == 0:  # 10, 20, 30, 40, 50
-                if (page * 10) * count:
-                    break
-                else:
-                    top.clear()
-        embed = discord.Embed(color=0x36a39f, title="Top 10 most active users", description="\n".join(top))
-        return await ctx.send(embed=embed)
 
     @commands.group(invoke_without_command=True, case_sensitive=False,
                     description="Enable/Disable leveling on your server",
@@ -179,10 +173,10 @@ class Levels(commands.Cog):
         db = self.database.bot
         posts = db.serversettings
         if choice == "enable":
-            posts.update_one({"guild_id": ctx.guild.id}, {"$set": {"levels.enabled": 1}})
+            await posts.update_one({"guild_id": ctx.guild.id}, {"$set": {"levels.enabled": 1}})
             await ctx.send(f"Leveling has been enabled")
         elif choice == "disable":
-            posts.update_one({"guild_id": ctx.guild.id}, {"$set": {"levels.enabled": 0}})
+            await posts.update_one({"guild_id": ctx.guild.id}, {"$set": {"levels.enabled": 0}})
             await ctx.send(f"Leveling has been disabled")
 
     @leveling.command(name="voice", description="Disable/Enable voice chat leveling",
@@ -191,10 +185,10 @@ class Levels(commands.Cog):
         db = self.database.bot
         posts = db.serversettings
         if choice == "enable":
-            posts.update_one({"guild_id": ctx.guild.id}, {"$set": {"levels.voice_enabled": 1}})
+            await posts.update_one({"guild_id": ctx.guild.id}, {"$set": {"levels.voice_enabled": 1}})
             await ctx.send(f"Voice leveling has been enabled")
         elif choice == "disable":
-            posts.update_one({"guild_id": ctx.guild.id}, {"$set": {"levels.voice_enabled": 0}})
+            await posts.update_one({"guild_id": ctx.guild.id}, {"$set": {"levels.voice_enabled": 0}})
             await ctx.send(f"Voice leveling has been disabled")
 
 
