@@ -2,7 +2,7 @@ import datetime
 
 import discord
 from discord.ext import commands
-
+from tools import check_if_update
 
 class Events(commands.Cog):
     def __init__(self, bot):
@@ -148,45 +148,7 @@ class Events(commands.Cog):
             "linked_guilds": {},  # guild_id with a parent or child or mutual where bans get transferred
         }
 
-    async def check_if_update(self, find, main_document, collection):
-        if await collection.count_documents(find) > 0:
-            fields = {}
-            async for x in collection.find(find):
-                fields = x
-            if "latest_update" in fields:
-                last_time = fields["latest_update"]
-                time_diff = datetime.datetime.utcnow() - last_time
-                if time_diff.total_seconds() < 3600:
-                    return
-            db_dict = main_document
-            db_dict["_id"] = 0
-            if db_dict.keys() != fields:
-                for key, value in db_dict.items():
-                    if key not in fields.keys():
-                        await collection.update_one(find, {"$set": {key: value}})
-                    else:
-                        try:
-                            sub_dict = dict(value)
-                            for key2, value2 in sub_dict.items():
-                                if key2 not in fields[key].keys():
-                                    new_value = value
-                                    new_value[key2] = value2
-                                    await collection.update_one(find,
-                                                                {"$set": {key: new_value}})
-                            for key2, value2 in fields[key].items():
-                                if key2 not in sub_dict.keys():
-                                    new_dict = {}
-                                    for item in sub_dict:
-                                        if item != key2:
-                                            new_dict[item] = sub_dict.get(item)
-                                    await collection.update_one(find, {"$set": {key: new_dict}})
-                        except:
-                            pass
-                for key2, value2 in fields.items():
-                    if key2 not in db_dict:
-                        await collection.update_one(find, {"$unset": {key2: 1}})
-        else:
-            await collection.insert_one(main_document)
+
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):  # Update here to remove documents on a guild leave
@@ -245,7 +207,7 @@ class Events(commands.Cog):
             guilds.append(member.guild.id)
             await posts.update_one({"user_id": member.id},
                                    {"$set": {"cash": cash, "guilds": guilds}})
-            await self.check_if_update({"user_id": member.id}, self.get_economy_user(member.id, member.guild.id), posts)
+            await check_if_update({"user_id": member.id}, self.get_economy_user(member.id, member.guild.id), posts)
         else:
             await posts.insert_one(self.get_economy_user(member.id, member.guild.id))
 
@@ -269,21 +231,21 @@ class Events(commands.Cog):
 
         posts = db.serversettings
 
-        await self.check_if_update({"guild_id": message.guild.id}, self.get_server_settings(message.guild.id), posts)
+        await check_if_update({"guild_id": message.guild.id}, self.get_server_settings(message.guild.id), posts)
 
         posts = db.servereconomy
-        await self.check_if_update({"guild_id": message.guild.id}, self.get_server_economy(message.guild), posts)
+        await check_if_update({"guild_id": message.guild.id}, self.get_server_economy(message.guild), posts)
 
         posts = db.globalusers
-        await self.check_if_update({"user_id": message.author.id}, self.global_user_profile(message.author.id), posts)
+        await check_if_update({"user_id": message.author.id}, self.global_user_profile(message.author.id), posts)
 
         posts = db.permissions
-        await self.check_if_update({"guild_id": message.guild.id}, self.get_permissions_info(message.guild), posts)
+        await check_if_update({"guild_id": message.guild.id}, self.get_permissions_info(message.guild), posts)
 
         # PLAYER LEVELING
 
         posts = db.player_data
-        await self.check_if_update({"user_id": message.author.id, "guild_id": message.guild.id},
+        await check_if_update({"user_id": message.author.id, "guild_id": message.guild.id},
                                    self.get_user_stats(message.author.id, message.guild.id), posts)
 
         # ECONOMY
@@ -309,7 +271,7 @@ class Events(commands.Cog):
                 await posts.update_one({"user_id": message.author.id},
                                        {"$set": {"guilds": guilds}})
 
-            await self.check_if_update({"guild_id": message.guild.id},
+            await check_if_update({"guild_id": message.guild.id},
                                        self.get_economy_user(message.author.id, message.guild.id),
                                        posts)
 
