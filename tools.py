@@ -5,11 +5,53 @@ from discord.ext.commands import MissingPermissions
 from typing import Iterator
 from prepare import database
 import discord
+import datetime
 
 
 def generate_flake():
     flake = (int((time.time() - 946702800) * 1000) << 23) + random.SystemRandom().getrandbits(23)
     return flake
+
+
+async def check_if_update(find, main_document, collection):
+    if await collection.count_documents(find) > 0:
+        fields = {}
+        async for x in collection.find(find):
+            fields = x
+        if "latest_update" in fields:
+            last_time = fields["latest_update"]
+            time_diff = datetime.datetime.utcnow() - last_time
+            if time_diff.total_seconds() < 3600:
+                return
+        db_dict = main_document
+        db_dict["_id"] = 0
+        if db_dict.keys() != fields:
+            for key, value in db_dict.items():
+                if key not in fields.keys():
+                    await collection.update_one(find, {"$set": {key: value}})
+                else:
+                    try:
+                        sub_dict = dict(value)
+                        for key2, value2 in sub_dict.items():
+                            if key2 not in fields[key].keys():
+                                new_value = value
+                                new_value[key2] = value2
+                                await collection.update_one(find,
+                                                            {"$set": {key: new_value}})
+                        for key2, value2 in fields[key].items():
+                            if key2 not in sub_dict.keys():
+                                new_dict = {}
+                                for item in sub_dict:
+                                    if item != key2:
+                                        new_dict[item] = sub_dict.get(item)
+                                await collection.update_one(find, {"$set": {key: new_dict}})
+                    except:
+                        pass
+            for key2, value2 in fields.items():
+                if key2 not in db_dict:
+                    await collection.update_one(find, {"$unset": {key2: 1}})
+    else:
+        await collection.insert_one(main_document)
 
 
 def get_time(word):
@@ -72,7 +114,7 @@ def has_perm(**perms):
             raise MissingPermissions(missing)
 
         db_obj = await collection.find_one({"guild_id": ctx.guild.id})
-
+        await check_command(ctx.command, perms)
         perm_nodes = db_obj["perm_nodes"]
         bad_perm_nodes = db_obj["bad_perm_nodes"]
         for role in ctx.author.roles:
@@ -109,33 +151,26 @@ def has_perm(**perms):
     return commands.check(predicate)
 
 
+def get_command_model(command: discord.ext.commands.Command, perms):
+    return {
+        "name": command.name.lower(),
+        "cog": command.cog.qualified_name.lower(),
+        "perms": perms,
+        "hidden": False,
+        "admin": False
+    }
+
+
+async def check_command(command, perms):
+    db = database.bot
+    collection = db.commands
+    await check_if_update({"name": command.name.lower(), "cog": command.cog.qualified_name.lower()},
+                          get_command_model(command, perms), collection)
+
+
 async def get_all_commands(bot) -> Iterator[commands.Command]:
     """Yield all commands for all cogs in all extensions."""
     for module in bot.walk_modules():
         for cog in bot.walk_cogs(module):
             for cmd in bot.walk_commands(cog):
                 yield cmd
-
-
-async def check_new_commands(bot):
-    categories = []
-    for cmd in bot.walk_commands():
-        if cmd.cog:
-            if isinstance(cmd, commands.Group):
-                a = {
-                    "name": cmd.name,
-                    "subcommands": cmd.commands,
-                    "aliases": cmd.aliases,
-                    "cog": cmd.cog.qualified_name,
-                    "usage": cmd.usage,
-                    "desc": cmd.description,
-                }
-            else:
-                a = {
-                    "name": cmd.name,
-                    "aliases": cmd.aliases,
-                    "cog": cmd.cog.qualified_name,
-                    "usage": cmd.usage,
-                    "desc": cmd.description,
-                }
-            categories.append(cmd.cog.qualified_name)

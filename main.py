@@ -8,7 +8,6 @@ import time
 import discord
 from discord.ext import commands, tasks
 import os
-from tools import check_new_commands
 import motor
 # Runs database connections and env
 from prepare import database
@@ -105,7 +104,6 @@ async def on_ready():
     print('-----------------')
     change_status.start()
 
-    await check_new_commands(bot)
 
 
 @bot.event
