@@ -154,9 +154,13 @@ def has_perm(**perms):
 def get_command_model(command: discord.ext.commands.Command, perms):
     return {
         "name": command.name.lower(),
+        "usage": command.usage,
+        "description": command.description,
+        "aliases": command.aliases,
+        "brief": command.brief,
         "cog": command.cog.qualified_name.lower(),
         "perms": perms,
-        "hidden": False,
+        "hidden": command.hidden,
         "admin": False
     }
 
