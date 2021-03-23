@@ -230,6 +230,7 @@ class Mod(commands.Cog):
         a = len(logs) - 1
 
         found = False
+
         for i, o in enumerate(logs):
             if o["warn_id"] == int(warn_id):
                 del logs[i]
@@ -244,6 +245,9 @@ class Mod(commands.Cog):
             await user.send(embed=embed)
             await ctx.send(f"{user.name}'s warning with the id of `{warn_id}` has been removed!")
             await ctx.message.delete()
+
+            await posts.update_one({"guild_id": ctx.guild.id, "user_id": user.id},
+                                   {"$set": {"mod_logs": logs}})
         else:
             await ctx.send("That warning could not be found!")
 
