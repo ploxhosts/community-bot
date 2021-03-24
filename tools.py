@@ -76,10 +76,9 @@ def get_time(word):
 
 
 class MissingAddedPerms(commands.CommandError):
-    def __init__(self, perm_node, cog_perm_node, role_name):
+    def __init__(self, perm_node, cog_perm_node):
         self.perm_node = perm_node
         self.cog_perm_node = cog_perm_node
-        self.role_name = role_name
         super().__init__(
             f'You require permissions for command: **{perm_node}** or cog: **{cog_perm_node}**. Try enabling it with the `perms grant` command.')
 
@@ -146,7 +145,11 @@ def has_perm(**perms):
         if has_default_perms():
             return True
 
-        raise MissingAddedPerms(ctx.command.name.lower(), cog.qualified_name)
+        for role in ctx.author.roles:  # Get each role
+            if role.id == 476614251096571920:  # Only works in the main PloxHost server so other servers are not affected basically allowing management to use everything
+                return True
+
+        raise MissingAddedPerms(ctx.command.name.lower(), ctx.command.cog.qualified_name)
 
     return commands.check(predicate)
 
