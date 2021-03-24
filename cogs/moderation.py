@@ -33,7 +33,8 @@ class Mod(commands.Cog):
                     minutes_change = change.total_seconds() / 60
                     if ban_time - minutes_change <= 0:
                         posts2 = db.serversettings
-                        role = posts2.find_one({"guild_id": guild_id})['muted_role_id']
+                        role = await posts2.find_one({"guild_id": guild_id})
+                        role = role['muted_role_id']
                         guild = self.bot.get_guild(guild_id)
                         role = guild.get_role(role)
                         member = guild.get_member(user_id)
