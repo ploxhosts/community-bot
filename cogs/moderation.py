@@ -33,7 +33,8 @@ class Mod(commands.Cog):
                     minutes_change = change.total_seconds() / 60
                     if ban_time - minutes_change <= 0:
                         posts2 = db.serversettings
-                        role = posts2.find_one({"guild_id": guild_id})['muted_role_id']
+                        role = await posts2.find_one({"guild_id": guild_id})
+                        role = role['muted_role_id']
                         guild = self.bot.get_guild(guild_id)
                         role = guild.get_role(role)
                         member = guild.get_member(user_id)
@@ -73,6 +74,18 @@ class Mod(commands.Cog):
     @un_mute.before_loop
     async def before_un_mute(self):
         await self.bot.wait_until_ready()
+
+    @commands.Cog.listener()
+    async def on_raw_reaction_add(self, payload):
+        guild = self.bot.get_guild(payload.guild_id)
+        if not guild:
+            return
+        channel = guild.get_channel(payload.channel_id)
+        message = await channel.fetch_message(payload.message_id)
+        member = payload.member
+        emoji = payload.emoji
+        message: discord.Message
+        await message.remove_reaction(emoji, member)
 
     async def send_log_embed(self, channel, title, message):
         if channel == 0:
@@ -120,7 +133,7 @@ class Mod(commands.Cog):
         else:
             return False
 
-    @commands.command(name="mute", description="Mute someone", usage="mute @user <time> <reason>")
+    @commands.command(name="mute", description="Mute someone", usage="mute @user <(time)[s|m|h|d|w]> <reason>")
     @tools.has_perm(manage_messages=True)
     async def mute(self, ctx, member: discord.Member, duration="perm"):
         role = await self.create_muted_role(ctx.guild)
@@ -129,6 +142,8 @@ class Mod(commands.Cog):
         res = await self.give_muted_role(ctx.guild, member, member.id, role, duration)
         if res:
             duration_formatted = tools.get_time(duration)
+            if not duration_formatted:
+                return await ctx.send("Invalid time")
             db = self.database.bot
             posts = db.pending_mutes
             role_list2 = []
