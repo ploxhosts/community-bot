@@ -2,11 +2,12 @@ import discord
 from discord.ext import commands
 import random
 from datetime import datetime
-import json
 import requests
+
 
 class Commands(commands.Cog):
     """Fun and misc commands"""
+
     def __init__(self, bot):
         self.bot = bot
 
@@ -66,9 +67,9 @@ class Commands(commands.Cog):
     async def ping(self, ctx):
         times = random.randint(1, 10)
         if times in (1, 5, 10):
-            await ctx.send(f"Ding Dong!`{round(self.bot.latency*1000)} ms`")
+            await ctx.send(f"Ding Dong!`{round(self.bot.latency * 1000)} ms`")
         else:
-            await ctx.send(f"Pong!`{round(self.bot.latency*1000)} ms`")
+            await ctx.send(f"Pong!`{round(self.bot.latency * 1000)} ms`")
 
     @commands.command(name="users", aliases=["userlist"], usage="users")
     async def users(self, ctx):
@@ -102,7 +103,8 @@ class Commands(commands.Cog):
         chance = random.randint(0, 100)
         man = man
         girl = girl
-        await ctx.send(f"{man} and {girl} have a {chance}%  chance of dating! Your priest {ctx.author.name} wanted to see the love in play.")
+        await ctx.send(
+            f"{man} and {girl} have a {chance}%  chance of dating! Your priest {ctx.author.name} wanted to see the love in play.")
 
     @commands.command(name="rps", aliases=["rockpaperscissors"], usage="rps <R|P|S>")
     async def rps(self, ctx, *, message):
@@ -112,7 +114,8 @@ class Commands(commands.Cog):
         papers = ["paper", "papers", "papper", "papar", "p"]
         scissors = ["scissors", "scisors", "ssisors", "csissors", "s", "sissors", "siscors"]
 
-        choices = ["rock", "roc", "rok", "r", "paper", "papers", "papper", "papar", "p", "scissors", "scisors", "ssisors", "csissors", "s", "sissors", "siscors"]
+        choices = ["rock", "roc", "rok", "r", "paper", "papers", "papper", "papar", "p", "scissors", "scisors",
+                   "ssisors", "csissors", "s", "sissors", "siscors"]
         choice = random.choice(rps)
         if word not in choices:
             return await ctx.send("You must use Rock(r), Paper(p) or scissors(s)! Please use ?`rps rock`")

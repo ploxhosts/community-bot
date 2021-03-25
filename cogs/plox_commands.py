@@ -1,9 +1,7 @@
 from discord.ext import commands
 import discord
 import tools
-import requests
 from bs4 import BeautifulSoup
-import asyncio
 import aiohttp
 
 

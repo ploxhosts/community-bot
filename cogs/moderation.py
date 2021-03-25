@@ -148,11 +148,12 @@ class Mod(commands.Cog):
             posts = db.pending_mutes
             role_list2 = []
             for role_it in role_list:
+                # noinspection PyBroadException
                 try:
                     if role_it.name != "@everyone":
                         await member.remove_roles(role_it, reason="Muted")
                         role_list2.append(role_it.id)
-                except:
+                except Exception:
                     posts = db.pending_mutes
                     await posts.delete_one({"user_id": member.id, "guild_id": ctx.guild.id})
                     await member.remove_roles(role, reason="Muted failed")

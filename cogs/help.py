@@ -7,49 +7,23 @@ class Help(commands.Cog):
         self.bot = bot
         self.database = bot.database
 
-    @commands.command(name="credit", description="Get the names of the people who developed the bot", usage="credit")
-    async def credit(self, ctx):
-        embed = discord.Embed(colour=0x36a39f, title="The list of contributors", description="FluxedScript")
-        embed.set_footer(text="Ploxy")
-        await ctx.send(embed=embed)
-
     @commands.command(name="help", description="Returns all commands available",
                       aliases=["command", "commands", "commandslist", "listcommands", "lscmds", "cmds", "lscommands"],
                       usage="help")
     async def help(self, ctx, cog=None):
-        db = self.database.bot
-        posts = db.serversettings
+        posts = self.database.bot.serversettings
         prefix = "?"
         async for x in posts.find({"guild_id": ctx.guild.id}):
             prefix = x['prefix']
 
         embed = discord.Embed(colour=0x36a39f, title="Help command")
         if cog is None:
-            commands_list = {}
             cog_names = {""}
             for cmd in self.bot.walk_commands():
-                if cmd.cog:
-                    if isinstance(cmd, commands.Group):
-                        commands_list[cmd.name] = {
-                            "name": cmd.name,
-                            "subcommands": cmd.commands,
-                            "aliases": cmd.aliases,
-                            "cog": cmd.cog.qualified_name,
-                            "usage": cmd.usage,
-                            "desc": cmd.description,
-                        }
-                    else:
-                        commands_list[cmd.name] = {
-                            "name": cmd.name,
-                            "aliases": cmd.aliases,
-                            "cog": cmd.cog.qualified_name,
-                            "usage": cmd.usage,
-                            "desc": cmd.description,
-                        }
+                if cmd.cog:  # Any commands in the main.py are not logged
                     cog_names.add(cmd.cog.qualified_name)
 
             for c in cog_names:
-
                 if c.lower() in ["", "help", "example"]:  # Ignore these
                     pass
                 else:
@@ -74,12 +48,12 @@ class Help(commands.Cog):
                 for x in self.bot.get_cog(cog).get_commands():
                     if isinstance(x, commands.Group):
                         # Is a command
-                        for subcmd in x.commands:
+                        for sub_cmd in x.commands:
                             description = x.description
                             if not description:
                                 description = "No description provided"
-                            embed.add_field(name=f"{x.name.capitalize()} {subcmd.name.capitalize()}",
-                                            value=f"Description: {description}\n\nUsage: {prefix}{subcmd.usage}\n\n\u200b",
+                            embed.add_field(name=f"{x.name.capitalize()} {sub_cmd.name.capitalize()}",
+                                            value=f"Description: {description}\n\nUsage: {prefix}{sub_cmd.usage}\n\n\u200b",
                                             inline=True)
                     else:
                         description = x.description

@@ -4,8 +4,8 @@ from discord.ext import commands
 from discord.ext.commands.errors import *
 from tools import RevokedAddedPerms, MissingAddedPerms
 import discord
-import sys
 import logging
+
 logger = logging.getLogger(__name__)
 
 

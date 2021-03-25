@@ -11,7 +11,7 @@ class Example(commands.Cog):
         self.database = bot.database
 
     @commands.command(name="example", aliases=["examples"],
-                      usage="example <text>")  # You can run it as ?example or ?examples and make sure to have the full usage of how the command gets executed. Do not include the prefix!
+                      usage="example <text>", hidden=True)  # You can run it as ?example or ?examples and make sure to have the full usage of how the command gets executed. Do not include the prefix!
     @tools.has_perm(manage_messages=True)
     async def example_cmd(self, ctx, *, text):
         await ctx.send(f"`{text}` - Sent by {ctx.author.name}")  # Send the text back

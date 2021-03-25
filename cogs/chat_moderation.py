@@ -4,10 +4,8 @@ import random
 import re
 from collections import Counter
 from urllib.parse import urlparse
-import tools
 import discord
 from discord.ext import commands
-
 import tools
 
 

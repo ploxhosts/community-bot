@@ -1,5 +1,4 @@
 from discord.ext import commands
-import random
 import discord
 import tools
 
