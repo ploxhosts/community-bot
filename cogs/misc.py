@@ -1,10 +1,5 @@
 from discord.ext import commands
 import discord
-import asyncio
-import datetime
-import time
-import random
-import tools
 
 
 class Misc(commands.Cog):
@@ -20,6 +15,11 @@ class Misc(commands.Cog):
         await ctx.send(
             "You can invite me here: https://discord.com/oauth2/authorize?client_id=809122042573357106&scope=bot&permissions=808840439")
 
+    @commands.command(name="credit", description="Get the names of the people who developed the bot", usage="credit")
+    async def credit(self, ctx):
+        embed = discord.Embed(colour=0x36a39f, title="The list of contributors", description="FluxedScript")
+        embed.set_footer(text="Ploxy")
+        await ctx.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(Misc(bot))

@@ -1,19 +1,17 @@
 import datetime
 import json
+import logging
 import os
 import random
-import logging
-import sys
 import time
+
 import discord
 from discord.ext import commands, tasks
-import os
-import motor
+
 # Runs database connections and env
 from prepare import database
 
 token = os.getenv('bot_token')
-
 
 # logger = logging.getLogger('discord')
 # logger.setLevel(logging.DEBUG)
@@ -105,7 +103,6 @@ async def on_ready():
     change_status.start()
 
 
-
 @bot.event
 async def on_message(message):
     # Maybe some logic here
@@ -147,10 +144,12 @@ async def shutdown(ctx):
         rootLogger.error(error)
         ctx.bot.clear()
 
+
 @bot.command()
 @commands.check(is_owner)
 async def testcmd(ctx):
     await ctx.send("Tested!")
+
 
 @bot.command()
 @commands.check(is_owner)
@@ -169,9 +168,9 @@ async def reload(ctx, cog_name):
 async def getserverfile(ctx, file=None):
     if file is None:
         files = []
-        for filename in os.listdir("logs"):
-            if filename.endswith(".log"):
-                files.append(filename)
+        for file_name in os.listdir("logs"):
+            if file_name.endswith(".log"):
+                files.append(file_name)
         await ctx.author.send("\n".join(files))
     else:
         try:
