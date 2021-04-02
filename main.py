@@ -4,9 +4,12 @@ import logging
 import os
 import random
 import time
-
 import discord
 from discord.ext import commands, tasks
+import urllib.request
+import urllib.error
+import shutil
+from pathlib import Path
 
 # Runs database connections and env
 from prepare import database
@@ -109,25 +112,6 @@ async def on_message(message):
     await bot.process_commands(message)
 
 
-# Runs when bot joins a guild
-
-@bot.event
-async def on_guild_join(g):
-    success = False
-    i = 0
-    while not success:
-        try:
-            await g.channels[i].send(
-                f"Hello! Thanks for inviting me to your server.\n To set a custom prefix, use `?prefix <prefix>`.\n For more help, use `?help`")
-        except (discord.Forbidden, AttributeError):
-            i += 1
-        except IndexError:
-            # if the server has no channels, doesn't let the bot talk, or all vc/categories.
-            pass
-        else:
-            success = True
-
-
 # Allow /cog/ restart command for the bot owner
 
 async def is_owner(ctx):
@@ -147,12 +131,6 @@ async def shutdown(ctx):
 
 @bot.command()
 @commands.check(is_owner)
-async def testcmd(ctx):
-    await ctx.send("Tested!")
-
-
-@bot.command()
-@commands.check(is_owner)
 async def reload(ctx, cog_name):
     try:
         bot.unload_extension(f"cogs.{cog_name}")
@@ -161,6 +139,59 @@ async def reload(ctx, cog_name):
     except Exception as exception:
         rootLogger.critical(f"{cog_name} can not be loaded: {exception}")
         raise exception
+
+
+def overwrite_files():
+    # Normal files
+    for new_code_file in os.listdir("new_code/community-bot-main"):
+        if new_code_file not in ["main.py", "prepare.py", ".env"]:
+            file = f"new_code/community-bot-main/{new_code_file}"
+            item = os.path.join(file)
+            if os.path.isfile(item):
+                try:
+                    Path(file).rename(new_code_file)
+                except FileExistsError:
+                    Path(file).replace(new_code_file)
+
+    # Cogs
+    for new_code_file in os.listdir("new_code/community-bot-main/cogs"):
+        existing_file = Path("cogs/" + new_code_file)
+        file = f"new_code/community-bot-main/cogs/{new_code_file}"
+        item = os.path.join(file)
+        if os.path.isfile(item):
+            try:
+                Path(file).rename(existing_file)
+            except FileExistsError:
+                Path(file).replace(existing_file)
+
+
+def get_new_files():
+    urllib.request.urlretrieve("https://github.com/PloxHost-LLC/community-bot/archive/refs/heads/main.zip", "code.zip")
+
+    zip_file = Path('code.zip')
+    os.makedirs("new_code", exist_ok=True)
+    new_code = Path('new_code')
+
+    shutil.unpack_archive(zip_file, new_code)
+
+    overwrite_files()
+
+
+@bot.command()
+@commands.check(is_owner)
+async def update(ctx):
+    get_new_files()
+    for cog in os.listdir("cogs"):
+        if cog.endswith(".py"):
+            try:
+                cog = f"cogs.{cog.replace('.py', '')}"
+                bot.unload_extension(cog)
+                bot.load_extension(cog)
+            except Exception as e:
+                rootLogger.critical(f"{cog} can not be loaded:")
+                await ctx.send(f"{cog} can not be loaded:")
+                raise e
+    await ctx.send("Updated!")
 
 
 @bot.command()
@@ -203,14 +234,29 @@ async def change_status():
 
 # Adding sub commands from folder /cogs/ to clean up main.py
 # All commands should be added to the cogs and not touch main.py unless needed to
-for cog in os.listdir("cogs"):
-    if cog.endswith(".py"):
+for cog_new in os.listdir("cogs"):
+    if cog_new.endswith(".py"):
         try:
-            cog = f"cogs.{cog.replace('.py', '')}"
+            cog = f"cogs.{cog_new.replace('.py', '')}"
             bot.load_extension(cog)
         except Exception as e:
-            rootLogger.critical(f"{cog} can not be loaded:")
-            raise e
+            rootLogger.critical(f"{cog_new} can not be loaded: {e}")
+
+try:
+    get_new_files()
+except urllib.error.HTTPError as e:
+    rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
+    rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
+    rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
+    rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
+    rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
+    rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
+    rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
+    rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
+    print("--------------------------------------------------------------------------------")
+    print(f"CANNOT UPDATE CODE: {e}")
+    print("--------------------------------------------------------------------------------")
+
 
 # Start up the bot
 
