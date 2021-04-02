@@ -180,7 +180,10 @@ def get_new_files():
 @bot.command()
 @commands.check(is_owner)
 async def update(ctx):
-    get_new_files()
+    try:
+        get_new_files()
+    except urllib.error.HTTPError as e:
+        return await ctx.send("Cannot load files!")
     for cog in os.listdir("cogs"):
         if cog.endswith(".py"):
             try:
