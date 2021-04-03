@@ -19,8 +19,8 @@ services:
         restart: unless-stopped
         volumes:
             - mongodb_combot:/data/db
-        ports:
-            - "27017:27017"
+        expose:
+            - "27017"
         environment:
             MONGO_INITDB_ROOT_USERNAME: root
             MONGO_INITDB_ROOT_PASSWORD: root
