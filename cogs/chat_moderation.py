@@ -332,12 +332,10 @@ class Chat(commands.Cog):
         if message1.attachments is not None and message2.attachments is not None:  # Could be multiple image
             if len(message1.attachments) == len(message2.attachments) and len(
                     message1.attachments):  # Same amount it is about 2 images
-                await self.delete_message(message2)
-
                 # Attachments/images/files
                 for attachment1, attachment2 in zip(message1.attachments,
                                                     message2.attachments):  # Loop through each attachment
-                    if attachment1.size == attachment2.size or attachment1.filename == attachment2.filename:  # The bytes are the same so the image is 99% the same
+                    if attachment1.size == attachment2.size:  # The bytes are the same so the image is 99% the same
                         try:
                             if await self.delete_message(message2) == "Deleted":
                                 messages = await message2.channel.history(limit=5).flatten()
