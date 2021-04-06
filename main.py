@@ -226,7 +226,6 @@ async def change_status():
                 f"Managing {len(set(bot.get_all_members()))} members!",
                 "Plox.Host", "Management to be looking sus",
                 "Should you be cheating on your test?",
-                "Management to node 15, Management to node 15, meme incoming, thank you. ",
                 "Do I have friends?",
                 f"{unique_joke}",
                 "Some random joke failed to be rendered",
@@ -248,12 +247,6 @@ for cog_new in os.listdir("cogs"):
 try:
     get_new_files()
 except urllib.error.HTTPError as e:
-    rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
-    rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
-    rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
-    rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
-    rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
-    rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
     rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
     rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
     print("--------------------------------------------------------------------------------")
