@@ -24,7 +24,7 @@ class Help(commands.Cog):
                     cog_names.add(cmd.cog.qualified_name)
 
             for c in cog_names:
-                if c.lower() in ["", "help", "example"]:  # Ignore these
+                if c.lower() in ["", "help", "example", "slashcommands"]:  # Ignore these
                     pass
                 else:
                     if ctx.guild.id not in [346715007469355009, 742055439088353341] and c.lower() == "support":

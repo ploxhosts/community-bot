@@ -10,6 +10,7 @@ import urllib.request
 import urllib.error
 import shutil
 from pathlib import Path
+from discord_slash import SlashCommand
 
 # Runs database connections and env
 from prepare import database
@@ -50,6 +51,7 @@ async def get_prefix(bot, message):
 intents = discord.Intents.all()  # Allow the use of custom intents
 
 bot = commands.Bot(command_prefix=get_prefix, case_insensitive=True, intents=intents)
+slash = SlashCommand(bot, sync_commands=True, override_type=True)
 
 bot.remove_command('help')  # Get rid of the default help command as there is no use for it
 
@@ -252,7 +254,6 @@ except urllib.error.HTTPError as e:
     print("--------------------------------------------------------------------------------")
     print(f"CANNOT UPDATE CODE: {e}")
     print("--------------------------------------------------------------------------------")
-
 
 # Start up the bot
 
