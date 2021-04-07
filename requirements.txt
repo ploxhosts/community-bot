@@ -6,3 +6,4 @@ beautifulsoup4~=4.9.3
 discord.py
 lxml
 motor
+discord-py-slash-command

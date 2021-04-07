@@ -13,7 +13,7 @@ class Misc(commands.Cog):
                       usage="invite", description="Invite the bot to your own server")
     async def invite(self, ctx):
         await ctx.send(
-            "You can invite me here: https://discord.com/oauth2/authorize?client_id=809122042573357106&scope=bot&permissions=808840439")
+            "You can invite me here: https://discord.com/oauth2/authorize?client_id=809122042573357106&permissions=808840439&scope=bot%20applications.commands")
 
     @commands.command(name="credit", description="Get the names of the people who developed the bot", usage="credit")
     async def credit(self, ctx):

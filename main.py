@@ -10,6 +10,7 @@ import urllib.request
 import urllib.error
 import shutil
 from pathlib import Path
+from discord_slash import SlashCommand
 
 # Runs database connections and env
 from prepare import database
@@ -50,6 +51,7 @@ async def get_prefix(bot, message):
 intents = discord.Intents.all()  # Allow the use of custom intents
 
 bot = commands.Bot(command_prefix=get_prefix, case_insensitive=True, intents=intents)
+slash = SlashCommand(bot, sync_commands=True, override_type=True)
 
 bot.remove_command('help')  # Get rid of the default help command as there is no use for it
 
@@ -226,7 +228,6 @@ async def change_status():
                 f"Managing {len(set(bot.get_all_members()))} members!",
                 "Plox.Host", "Management to be looking sus",
                 "Should you be cheating on your test?",
-                "Management to node 15, Management to node 15, meme incoming, thank you. ",
                 "Do I have friends?",
                 f"{unique_joke}",
                 "Some random joke failed to be rendered",
@@ -250,16 +251,9 @@ try:
 except urllib.error.HTTPError as e:
     rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
     rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
-    rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
-    rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
-    rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
-    rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
-    rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
-    rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
     print("--------------------------------------------------------------------------------")
     print(f"CANNOT UPDATE CODE: {e}")
     print("--------------------------------------------------------------------------------")
-
 
 # Start up the bot
 
