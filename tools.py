@@ -93,7 +93,9 @@ class RevokedAddedPerms(commands.CommandError):
 
 
 def has_perm(**perms):
-    invalid = set(perms) - set(discord.Permissions.VALID_FLAGS)
+    default_perms = discord.Permissions.VALID_FLAGS
+    default_perms["required"] = 9999999
+    invalid = set(perms) - set(default_perms)
     if invalid:
         raise TypeError('Invalid permission(s): %s' % (', '.join(invalid)))
 
@@ -105,7 +107,12 @@ def has_perm(**perms):
             ch = ctx.channel
             permissions = ch.permissions_for(ctx.author)
 
-            missing = [perm for perm, value in perms.items() if getattr(permissions, perm) != value]
+            missing = []
+            for perm, value in perms.items():
+                if perm == "required":
+                    raise MissingAddedPerms(ctx.command.name.lower(), ctx.command.cog.qualified_name)
+                if getattr(permissions, perm) != value:
+                    missing.append(perm)
 
             if not missing:
                 return True
@@ -114,10 +121,17 @@ def has_perm(**perms):
 
         db_obj = await collection.find_one({"guild_id": ctx.guild.id})
         await check_command(ctx.command, perms)
+        print("pizza!")
+        if not perms or len(perms) == 0:
+            return True
+        if "required" in perms:
+            if not perms["required"]:
+                return True
         perm_nodes = db_obj["perm_nodes"]
         bad_perm_nodes = db_obj["bad_perm_nodes"]
         for role in ctx.author.roles:
             role: discord.Role
+
             # Negate perms, used if you want to stop a rank from executing a command but allow others too
             if str(role.id) in bad_perm_nodes:
                 for bad_perm in bad_perm_nodes[f"{role.id}"]:
@@ -132,6 +146,7 @@ def has_perm(**perms):
                     else:
                         if ctx.cog.qualified_name.lower() == bad_perm.lower():
                             raise RevokedAddedPerms(ctx.command.name, cog.qualified_name, role.name)
+            # If the perm is allowed to that role
             if str(role.id) in perm_nodes:
                 for good_perm in perm_nodes[f"{role.id}"]:
                     if good_perm == "*":
@@ -168,11 +183,23 @@ def get_command_model(command: discord.ext.commands.Command, perms):
     }
 
 
+def get_cog_model(command: discord.ext.commands.Command):
+    return {
+        "name": command.cog.qualified_name.lower(),
+        "description": command.cog.description,
+    }
+
+
 async def check_command(command, perms):
     db = database.bot
     collection = db.commands
     await check_if_update({"name": command.name.lower(), "cog": command.cog.qualified_name.lower()},
                           get_command_model(command, perms), collection)
+
+    collection = db.cogs
+
+    await check_if_update({"name": command.cog.qualified_name.lower()},
+                          get_cog_model(command), collection)
 
 
 async def get_all_commands(bot) -> Iterator[commands.Command]:

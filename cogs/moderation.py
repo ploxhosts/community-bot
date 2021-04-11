@@ -85,7 +85,12 @@ class Mod(commands.Cog):
         member = payload.member
         emoji = payload.emoji
         message: discord.Message
-        await message.remove_reaction(emoji, member)
+
+        db = self.database.bot
+        posts = db.pending_mutes
+        user = await posts.find_one({"guild_id": member.guild.id, "user_id": member.id})
+        if user:
+            await message.remove_reaction(emoji, member)
 
     async def send_log_embed(self, channel, title, message):
         if channel == 0:

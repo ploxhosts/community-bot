@@ -68,6 +68,11 @@ class Error_handling(commands.Cog):
                             value=f"\n{get_listed(error.missing_perms)}", inline=False)
             embed.set_footer(text="Ploxy")
             await ctx.send(embed=embed)
+        elif isinstance(error, MissingAddedPerms):
+            embed.add_field(name="You are missing these permissions to do this command:",
+                            value=f"\n{error}", inline=False)
+            embed.set_footer(text="Ploxy")
+            await ctx.send(embed=embed)
         elif isinstance(error, MissingPermissions):
             embed.add_field(name="You are missing these permissions to do this command:",
                             value=f"\n{get_listed(error.missing_perms)}", inline=False)

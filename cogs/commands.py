@@ -4,6 +4,8 @@ import random
 from datetime import datetime
 import requests
 
+import tools
+
 
 class Commands(commands.Cog):
     """Fun and misc commands"""
@@ -12,8 +14,9 @@ class Commands(commands.Cog):
         self.bot = bot
 
     @commands.command(name="poll", aliases=["polls"], usage="poll <question>")
+    @tools.has_perm()
     async def poll(self, ctx, *, text: str):
-        await ctx.maessage.delete()
+        await ctx.message.delete()
         embed = discord.Embed(color=0x36a39f)
         embed.add_field(name=f"Poll:", value=f"{text}", inline=True)
         msg = await ctx.send(embed=embed)
@@ -23,31 +26,37 @@ class Commands(commands.Cog):
         await msg.add_reaction(emoji2)
 
     @commands.command(name="add", aliases=["addition"], usage="addition <num1> <num2>")
+    @tools.has_perm()
     async def add(self, ctx, a: int, b: int):
         await ctx.send(a + b)
 
     @commands.command(name="multiply", aliases=["times"], usage="multiply <num1> <num2>")
+    @tools.has_perm()
     async def multiply(self, ctx, a: int, b: int):
         await ctx.send(a * b)
 
     @commands.command(name="flip", usage="flip")
+    @tools.has_perm()
     async def flip(self, ctx):
         choice = ["tails", "heads"]
         roll = random.choice(choice)
         await ctx.send(f"Your coin flip got a `{roll}` !")
 
     @commands.command(name="roll", usage="roll")
+    @tools.has_perm()
     async def roll(self, ctx):
         roll = random.randint(1, 6)
         await ctx.send(f"Your rolled a `{roll}` !")
 
     @commands.command(name="joke", aliases=["givemejoke", "dadjoke"], usage="joke")
+    @tools.has_perm()
     async def joke(self, ctx):
         res = requests.get("https://icanhazdadjoke.com/", headers={'Accept': 'text/plain',
                                                                    'User-Agent': 'Ploxy (https://github.com/PloxHost-LLC/community-bot)'})
         await ctx.send(res.text)
 
     @commands.command(name="greet", aliases=["sayhi"], usage="greet")
+    @tools.has_perm()
     async def greet(self, ctx):
         author = ctx.message.author
         greetings = [":smiley: :wave: Hello, there!", "Hello!", f"Hello {author.mention}!"]
@@ -55,6 +64,7 @@ class Commands(commands.Cog):
         await ctx.send(choice)
 
     @commands.command(name="roles", usage="roles")
+    @tools.has_perm()
     async def roles(self, ctx):
         # await ctx.send(embed=discord.Embed.from_dict({'title':f'{ctx.guild.name} roles', 'fields':[{'name':r.name, 'value':str(len(r.members))} for r in ctx.guild.roles]}))
         await ctx.send(embed=discord.Embed.from_dict({'title': f'{ctx.guild.name} roles',
@@ -64,6 +74,7 @@ class Commands(commands.Cog):
         # await ctx.send(f"{role}: {len(role.members)}")
 
     @commands.command(name="ping", aliases=["rolelist"], usage="ping")
+    @tools.has_perm()
     async def ping(self, ctx):
         times = random.randint(1, 10)
         if times in (1, 5, 10):
@@ -72,6 +83,7 @@ class Commands(commands.Cog):
             await ctx.send(f"Pong!`{round(self.bot.latency * 1000)} ms`")
 
     @commands.command(name="users", aliases=["userlist"], usage="users")
+    @tools.has_perm()
     async def users(self, ctx):
         online_members = 0
         bots = 0
@@ -92,6 +104,7 @@ class Commands(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command(name="iq", aliases=["getiq"], usage="iq @user")
+    @tools.has_perm()
     async def iq(self, ctx, user: discord.Member = ""):
         if user == "" or user == " ":
             user = ctx.message.author
@@ -99,6 +112,7 @@ class Commands(commands.Cog):
         await ctx.send(f"{user.mention} has got {IQ} IQ")
 
     @commands.command(name="love", aliases=["marrychance"], usage="love @user1 @user2")
+    @tools.has_perm()
     async def love(self, ctx, man: discord.Member, girl: discord.Member):
         chance = random.randint(0, 100)
         man = man
@@ -107,6 +121,7 @@ class Commands(commands.Cog):
             f"{man} and {girl} have a {chance}%  chance of dating! Your priest {ctx.author.name} wanted to see the love in play.")
 
     @commands.command(name="rps", aliases=["rockpaperscissors"], usage="rps <R|P|S>")
+    @tools.has_perm()
     async def rps(self, ctx, *, message):
         rps = ["Rock", "Paper", "Scissors"]
         word = message.lower()
@@ -140,11 +155,13 @@ class Commands(commands.Cog):
             await ctx.send("You chose `scissors`\nBot chose: `rock`\nResult:You lose!")
 
     @commands.command(name="googleit", aliases=["helpmegoogle"], usage="googleit how to make cake")
+    @tools.has_perm()
     async def googleit(self, ctx, *, question: str):
         query = "+".join(question.split())
         await ctx.send(f"Open this:\nhttps://lmgtfy.com/?q={query}&iie=1")
 
     @commands.command(name="8ball", aliases=["eightball"], usage="8ball am I smart?")
+    @tools.has_perm()
     async def eightball(self, ctx, *, question):
         await ctx.message.add_reaction("☑️")
         # Random at the moment might make some complicated ai for it

@@ -1,6 +1,8 @@
 import discord
 from discord.ext import commands
 
+import tools
+
 
 class Help(commands.Cog):
     def __init__(self, bot):
@@ -10,6 +12,7 @@ class Help(commands.Cog):
     @commands.command(name="help", description="Returns all commands available",
                       aliases=["command", "commands", "commandslist", "listcommands", "lscmds", "cmds", "lscommands"],
                       usage="help")
+    @tools.has_perm()
     async def help(self, ctx, cog=None):
         posts = self.database.bot.serversettings
         prefix = "?"

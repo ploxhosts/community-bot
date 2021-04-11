@@ -28,7 +28,7 @@ class VLevels(commands.Cog):
                 if member is None or member.voice.channel is None:
                     self.users_in_vc.pop(user_id)
                 else:
-                    if member.voice.deaf or member.voice.mute or member.voice.self_deaf or member.afk:
+                    if member.voice.deaf or member.voice.mute or member.voice.self_deaf or member.afk:  # If member is server muted, deafened or deafened by their own choice or in the afk channel
                         self.users_in_vc[user_id]["bad_seconds"] = bad_seconds + 60
         with open('voice_levels.txt', 'w') as outfile:
             json.dump(self.users_in_vc, outfile, indent=4)
@@ -87,6 +87,8 @@ class VLevels(commands.Cog):
                 exp += int(
                     ((new_seconds_in_vc - user_obj["bad_seconds"]) / 60 * 10) * multiplier)  # Multiplier may be a float
 
+            for level_mini_start in range(int(level)):
+                total_exp += math.floor(5 * (level_mini_start ^ 2) + 50 * level_mini_start + 100)
             total_exp += exp
             seconds_in_vc += new_seconds_in_vc - user_obj["bad_seconds"]
             # formula for level up
