@@ -35,6 +35,7 @@ class CustomCommands(commands.Cog):
             pass
 
     @commands.group(invoke_without_command=True, case_sensitive=False, name="customcommand", aliases=["cc"], usage="cc")
+    @tools.has_perm()
     async def customcommand(self, ctx):
         db = self.database.bot
         posts = db.serversettings
@@ -102,6 +103,7 @@ class CustomCommands(commands.Cog):
         await ctx.send('Deleted command!')
 
     @customcommand.command(name="list", usage="cc list")
+    @tools.has_perm()
     async def list(self, ctx):
         db = self.database.bot
         posts = db.customcommand

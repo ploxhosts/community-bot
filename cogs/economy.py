@@ -7,6 +7,8 @@ from discord import Embed
 from discord.ext import commands, tasks
 from discord.ext.commands import CommandOnCooldown
 
+import tools
+
 
 class Economy(commands.Cog):
     """Economy related commands"""
@@ -246,6 +248,7 @@ class Economy(commands.Cog):
 
     @commands.command(name="beg", usage="beg", no_pm=True)
     @commands.cooldown(1, 43200, commands.BucketType.user)
+    @tools.has_perm()
     async def beg(self, ctx):
         chance = random.randint(1, 100)
         mod_val = random.randint(2, 3)
@@ -286,6 +289,7 @@ class Economy(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command(name="coinflip", usage="coinflip <head|tails> <bet>", no_pm=True)
+    @tools.has_perm()
     async def coinflip(self, ctx, choice, bet: int):
         if await self.get_money(ctx.author.id, ctx.guild.id) < bet:
             return await ctx.send("Not enough money to buy this!")
@@ -309,6 +313,7 @@ class Economy(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.group(invoke_without_command=True, case_sensitive=False, name="lottery", usage="lottery", no_pm=True)
+    @tools.has_perm()
     async def lotterycmd(self, ctx):
         embed = Embed(color=0x36a39f, title="Lottery system")
         embed.add_field(name="Daily lottery",
@@ -323,6 +328,7 @@ class Economy(commands.Cog):
         await ctx.send(embed=embed)
 
     @lotterycmd.command(name="buy", aliases=["purchase", "own"], usage="lottery buy daily 100", no_pm=True)
+    @tools.has_perm()
     async def lotterybuy(self, ctx, option, amount: int):
         if await self.get_money(ctx.author.id, ctx.guild.id) < amount:
             return await ctx.send("Not enough money to buy this!")
@@ -346,6 +352,7 @@ class Economy(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command(name="balance", aliases=["bal"], usage="bal", no_pm=True)
+    @tools.has_perm()
     async def balance(self, ctx, user: discord.Member = None):
         if user is None:
             user = ctx.author
@@ -361,6 +368,7 @@ class Economy(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command(name="pay", aliases=["transfer"], usage="pay @user money", no_pm=True)
+    @tools.has_perm()
     async def pay(self, ctx, user: discord.Member, money: int):
         if await self.get_bank(ctx.author.id) < money:
             return await ctx.send("Not enough money to send this amount!")
@@ -387,6 +395,7 @@ class Economy(commands.Cog):
         await user.send(embed=embed)
 
     @commands.command(name="deposit", aliases=["storemoney", "storecash", "dep"], usage="deposit <amount>", no_pm=True)
+    @tools.has_perm()
     async def deposit(self, ctx, amount):
         db = self.database.bot
         posts = db.economy
@@ -407,6 +416,7 @@ class Economy(commands.Cog):
 
     @commands.command(name="withdraw", aliases=["takemoney", "withdrawnmoney", "withdrawmoney", "with"],
                       usage="withdraw <amount>", no_pm=True)
+    @tools.has_perm()
     async def withdraw(self, ctx, amount):
         if amount == "all":
             amount = await self.get_bank(ctx.author.id)
@@ -432,6 +442,7 @@ class Economy(commands.Cog):
 
     @commands.command(name="work", usage="work")
     @commands.cooldown(1, 43200, commands.BucketType.user)
+    @tools.has_perm()
     async def work(self, ctx):
         chance = random.randint(2, 50)
         mod_val = random.randint(1, 4)

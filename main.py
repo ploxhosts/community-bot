@@ -182,6 +182,17 @@ def get_new_files():
 @bot.command()
 @commands.check(is_owner)
 async def update(ctx):
+    for cog in os.listdir("cogs"):
+        if cog.endswith(".py"):
+            try:
+                cog = f"cogs.{cog.replace('.py', '')}"
+                bot.unload_extension(cog)
+                bot.load_extension(cog)
+            except Exception as e:
+                rootLogger.critical(f"{cog} can not be loaded:")
+                await ctx.send(f"{cog} can not be loaded:")
+                raise e
+    await ctx.send("Updated!")
     try:
         get_new_files()
     except urllib.error.HTTPError as e:

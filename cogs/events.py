@@ -244,8 +244,8 @@ class Events(commands.Cog):
         posts = db.globalusers
         await check_if_update({"user_id": message.author.id}, global_user_profile(message.author.id), posts)
 
-        posts = db.permissions
-        await check_if_update({"guild_id": message.guild.id}, get_permissions_info(message.guild), posts)
+        # posts = db.permissions
+        # await check_if_update({"guild_id": message.guild.id}, get_permissions_info(message.guild), posts)
 
         # PLAYER LEVELING
 
@@ -265,7 +265,7 @@ class Events(commands.Cog):
                 guilds = user["guilds"]
             if cash:
                 if str(message.guild.id) not in cash.keys():
-                    cash[message.guild.id] = 10
+                    cash[str(message.guild.id)] = 10
                     await posts.update_one({"user_id": message.author.id},
                                            {"$set": {"cash": cash}})
             else:

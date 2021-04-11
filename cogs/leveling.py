@@ -8,6 +8,7 @@ import asyncio
 import tools
 from discord.ext.commands import MemberConverter
 
+
 class Levels(commands.Cog):
     """Level related commands"""
 
@@ -67,7 +68,7 @@ class Levels(commands.Cog):
             total_exp += exp
 
             await posts.update_one({"user_id": message.author.id, "guild_id": message.guild.id},
-                             {"$set": {"exp": exp, "total_exp": total_exp, "message_time": new_message_time}})
+                                   {"$set": {"exp": exp, "total_exp": total_exp, "message_time": new_message_time}})
 
             # Do I increase the level?
 
@@ -84,7 +85,7 @@ class Levels(commands.Cog):
 
                 exp = 0
                 await posts.update_one({"user_id": message.author.id, "guild_id": message.guild.id},
-                                 {"$set": {"exp": exp, "level": level}})
+                                       {"$set": {"exp": exp, "level": level}})
                 await asyncio.sleep(5)
                 await delete_me.delete()
         except:
@@ -92,7 +93,8 @@ class Levels(commands.Cog):
 
     @commands.command(name="level", description="Get the level of yourself or someone else",
                       aliases=["levels"], usage="level")
-    async def level(self, ctx, user = None, page: int = 1):
+    @tools.has_perm()
+    async def level(self, ctx, user=None, page: int = 1):
         db = self.database.bot
         posts = db.player_data
         if str(user).lower() in ["leaderboard", "top", "lb", "list"]:
@@ -133,7 +135,7 @@ class Levels(commands.Cog):
 
     @commands.command(name="levelreload", description="Reload the leveling system for your server", usage="levelreload")
     @commands.cooldown(1, 43200, commands.BucketType.guild)
-    @tools.has_perm(manage_guild=True)
+    @tools.has_perm(manage_messages=True)
     async def levelreload(self, ctx):
         db = self.database.bot
         posts = db.player_data
@@ -151,12 +153,13 @@ class Levels(commands.Cog):
             total_exp += exp
 
             await posts.update_one({"user_id": user_id, "guild_id": ctx.guild.id},
-                             {"$set": {"total_exp": total_exp}})
+                                   {"$set": {"total_exp": total_exp}})
         await ctx.send("Successfully reloaded database!")
 
     @commands.group(invoke_without_command=True, case_sensitive=False,
                     description="Enable/Disable leveling on your server",
                     aliases=["levelling"], usage="leveling")
+    @tools.has_perm()
     async def leveling(self, ctx):
         embed = discord.Embed(
             title="Leveling help",
@@ -169,6 +172,7 @@ class Levels(commands.Cog):
         await ctx.send(embed=embed)
 
     @leveling.command(name="text", description="Disable/Enable leveling", usage="leveling text <enable|disable>")
+    @tools.has_perm(manage_messages=True)
     async def text(self, ctx, choice):
         db = self.database.bot
         posts = db.serversettings
@@ -181,6 +185,7 @@ class Levels(commands.Cog):
 
     @leveling.command(name="voice", description="Disable/Enable voice chat leveling",
                       usage="leveling voice <enable|disable>")
+    @tools.has_perm(manage_messages=True)
     async def voice(self, ctx, choice):
         db = self.database.bot
         posts = db.serversettings

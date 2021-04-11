@@ -16,6 +16,7 @@ class Suggestions(commands.Cog):
         self.database = bot.database
 
     @commands.command(name='suggest', aliases=["suggestion"], usage="suggest <suggestion>")
+    @tools.has_perm()
     async def suggest(self, ctx, *, suggestion):
         db = self.database.bot
         posts = db.serversettings

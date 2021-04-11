@@ -35,16 +35,18 @@ class Permissions(commands.Cog):
         db = self.database.bot
         collection = db.permissions
         if await collection.count_documents({"guild_id": guild.id}) > 0:
-            perms = self.get_perms(guild)
-            if perms.get(f"{rank.id}"):
-                if node.lower() in perms.get(f"{rank.id}"):
+            pre_perms = await self.get_perms(guild)
+            if pre_perms.get(f"{rank.id}"):
+                if node.lower() in pre_perms.get(f"{rank.id}"):
                     return
-                perms[f"{rank.id}"].append(node.lower())
+                pre_perms[f"{rank.id}"].append(node.lower())
             else:
-                perms[f"{rank.id}"] = [node.lower()]
-            await collection.update_one({"guild_id": guild.id},
-                                        {"$set": {
-                                            f"perm_nodes": perms}})
+                pass
+                pre_perms[f"{rank.id}"] = [node.lower()]
+            posts = db.permissions
+            await posts.update_one({"guild_id": int(guild.id)},
+                                   {"$set": {
+                                       "perm_nodes": pre_perms}})
         else:
             await collection.insert_one({"guild_id": guild.id, "perm_nodes": {
                 f"{rank.id}": [node.lower()]
@@ -53,26 +55,32 @@ class Permissions(commands.Cog):
     async def get_perms(self, guild):
         db = self.database.bot
         collection = db.permissions
-        return await collection.find_one({"guild_id": guild.id})["perm_nodes"]
+        obj = await collection.find_one({"guild_id": guild.id})
+        return obj["perm_nodes"]
 
     async def get_bad_perms(self, guild):
         db = self.database.bot
         collection = db.permissions
-        return await collection.find_one({"guild_id": guild.id})["bad_perm_nodes"]
+        obj = await collection.find_one({"guild_id": guild.id})
+
+        return obj["bad_perm_nodes"]
 
     async def remove_perm(self, guild, rank, node):
         db = self.database.bot
         collection = db.permissions
-        perms = self.get_perms(guild)
+        perms = await self.get_perms(guild)
         if str(rank.id) in perms:
-            if node == "*":
-                perms[f"{rank.id}"].clear()
-            else:
-                perms[f"{rank.id}"].remove(node)
-            await collection.update_one({"guild_id": guild.id},
-                                        {"$set": {
-                                            f"perm_nodes": perms}})
-            return True
+            if node in perms[str(rank.id)]:
+                if node == "*":
+                    perms[f"{rank.id}"].clear()
+                else:
+                    perms[f"{rank.id}"].remove(node)
+                await collection.update_one({"guild_id": guild.id},
+                                            {"$set": {
+                                                f"perm_nodes": perms}})
+                return True
+            return False
+
         else:
             return False
 
@@ -80,7 +88,7 @@ class Permissions(commands.Cog):
         db = self.database.bot
         collection = db.permissions
         if await collection.count_documents({"guild_id": guild.id}) > 0:
-            bad_perms = self.get_bad_perms(guild)
+            bad_perms = await self.get_bad_perms(guild)
             if bad_perms.get(f"{rank.id}"):
                 if node.lower() in bad_perms.get(f"{rank.id}"):
                     return
@@ -100,7 +108,7 @@ class Permissions(commands.Cog):
         db = self.database.bot
         collection = db.permissions
         if await collection.count_documents({"guild_id": guild.id}) > 0:
-            bad_perms = self.get_bad_perms(guild)
+            bad_perms = await self.get_bad_perms(guild)
             if bad_perms.get(f"{rank.id}"):
                 if node.lower() not in bad_perms.get(f"{rank.id}"):
                     return
@@ -118,6 +126,7 @@ class Permissions(commands.Cog):
 
     @commands.group(invoke_without_command=True, name="permissions", aliases=["permission", "perm", "perms"],
                     usage="permissions <grant|revoke> <permission group | permission node>")
+    @tools.has_perm()
     async def permissions(self, ctx):
         embed = discord.Embed(colour=0x36a39f, title=f"Permissions Examples")
         embed.add_field(name="Give perms to a role:",
@@ -125,8 +134,8 @@ class Permissions(commands.Cog):
         embed.add_field(name="Take a given perm from role:",
                         value="`?perms revoke admin command: Ban, Levels` - take a given permission from that rank to go back to default",
                         inline=False)
-        embed.add_field(name="Reject a  perm from role:",
-                        value="`?perms remove admin command: Ban` - stop that specific rank executing that command",
+        embed.add_field(name="Reject a perm from role:",
+                        value="`?perms deny admin command: Ban` - stop that specific rank executing that command",
                         inline=False)
         embed.add_field(name="Notes:",
                         value="Use the permissions node `*` to give all permissions to a rank, helpful for developers. For example: `?perms grant admin *` or `?perms remove banned *`",
@@ -145,7 +154,7 @@ class Permissions(commands.Cog):
             f_node = node.replace("cmd", "command").strip()
             if "command" in f_node:
                 cor = "command"
-            if await self.valid_permission(cor, f_node.replace("command", "").replace(":", "")):
+            if await self.valid_permission(cor, f_node.replace("command", "").replace(":", "").strip()):
                 await self.add_perm(ctx.guild, rank, f_node)
             else:
                 Failed_nodes.append(node)
@@ -175,10 +184,10 @@ class Permissions(commands.Cog):
             f_node = node.replace("cmd", "command").strip()
             if "command" in f_node:
                 cor = "command"
-            if await self.valid_permission(cor, f_node.replace("command", "").replace(":", "")):
-                if not self.remove_perm(ctx.guild, rank, f_node):
+            if await self.valid_permission(cor, f_node.replace("command", "").replace(":", "").strip()):
+                if not await self.remove_perm(ctx.guild, rank, f_node):
                     return await ctx.send(
-                        f"It seems you used the wrong command. This rank does not have any existing permissions. Try the `permissions deny` command instead.")
+                        f"It seems you used the wrong command. This rank does not have any existing permissions or doesn't have the permission. Try the `permissions deny` command instead.")
             else:
                 Failed_nodes.append(node)
         if f_nodes:
@@ -207,7 +216,7 @@ class Permissions(commands.Cog):
             f_node = node.replace("cmd", "command").strip()
             if "command" in f_node:
                 cor = "command"
-            if await self.valid_permission(cor, f_node.replace("command", "").replace(":", "")):
+            if await self.valid_permission(cor, f_node.replace("command", "").replace(":", "").strip()):
                 await self.revoke_perm(ctx.guild, rank, f_node)
             else:
                 Failed_nodes.append(node)
@@ -230,12 +239,12 @@ class Permissions(commands.Cog):
                          usage="permissions list <rank>")
     @tools.has_perm(manage_guild=True)
     async def list(self, ctx, *, rank: discord.Role):
-        good_perms = self.get_perms(ctx.guild)
+        good_perms = await self.get_perms(ctx.guild)
         if str(rank.id) in good_perms:
             good_perms = "\n".join(list(good_perms[f"{rank.id}"]))
         else:
             good_perms = "This role has no disabled permissions/commands!"
-        bad_perms = self.get_bad_perms(ctx.guild)
+        bad_perms = await self.get_bad_perms(ctx.guild)
         if str(rank.id) in bad_perms:
             bad_perms = "\n".join(list(bad_perms[f"{rank.id}"]))
         else:
