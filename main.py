@@ -15,8 +15,11 @@ from discord_slash import SlashCommand
 # Runs database connections and env
 from prepare import database
 
-token = os.getenv('bot_token')
 
+token = os.getenv('bot_token')
+prod = os.getenv('prod')
+if prod is None:
+    prod = True
 # logger = logging.getLogger('discord')
 # logger.setLevel(logging.DEBUG)
 # handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
@@ -256,16 +259,18 @@ for cog_new in os.listdir("cogs"):
             bot.load_extension(cog)
         except Exception as e:
             rootLogger.critical(f"{cog_new} can not be loaded: {e}")
-
-try:
-    get_new_files()
-except urllib.error.HTTPError as e:
-    rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
-    rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
-    print("--------------------------------------------------------------------------------")
-    print(f"CANNOT UPDATE CODE: {e}")
-    print("--------------------------------------------------------------------------------")
-
+if prod is True:
+    try:
+        get_new_files()
+        print("Pulled new updates")
+    except urllib.error.HTTPError as e:
+        rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
+        rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
+        print("--------------------------------------------------------------------------------")
+        print(f"CANNOT UPDATE CODE: {e}")
+        print("--------------------------------------------------------------------------------")
+else:
+    print("Not pulling new updates")
 # Start up the bot
 
 bot.run(token)
