@@ -3,7 +3,7 @@ from discord.ext import commands
 import datetime
 import asyncio
 import tools
-
+import os
 
 class CustomCommands(commands.Cog):
     """Here you can make commands yourself"""
@@ -39,7 +39,7 @@ class CustomCommands(commands.Cog):
     async def customcommand(self, ctx):
         db = self.database.bot
         posts = db.serversettings
-        prefix = "?"
+        prefix = os.getenv('prefix')
         async for x in posts.find({"guild_id": ctx.guild.id}):
             prefix = x['prefix']
         embed = discord.Embed(

@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import os
 import random
 import re
 from collections import Counter
@@ -79,7 +80,7 @@ class Chat(commands.Cog):
         c = Counter()
         BANNED_WORDS = []
         log_channel = 0
-        prefix = "?"
+        prefix = os.getenv('prefix')
         MAX_MENTIONS = 0
         ban_on_mass_mention = 0
         auto_temp_ban_time = 1440
@@ -429,7 +430,7 @@ class Chat(commands.Cog):
     async def chat(self, ctx):
         db = self.database.bot
         posts = db.serversettings
-        prefix = "?"
+        prefix = os.getenv('prefix')
         async for x in posts.find({"guild_id": ctx.guild.id}):
             prefix = x['prefix']
         embed = discord.Embed(

@@ -1,5 +1,5 @@
 import traceback
-
+import os
 from discord.ext import commands
 from discord.ext.commands.errors import *
 from tools import RevokedAddedPerms, MissingAddedPerms
@@ -18,7 +18,7 @@ class Error_handling(commands.Cog):
     async def on_command_error(self, ctx, exception):
         db = self.database.bot
         posts = db.serversettings
-        prefix = "?"
+        prefix = os.getenv('prefix')
         async for x in posts.find({"guild_id": ctx.guild.id}):
             prefix = x['prefix']
 
