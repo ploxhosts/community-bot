@@ -121,7 +121,6 @@ def has_perm(**perms):
 
         db_obj = await collection.find_one({"guild_id": ctx.guild.id})
         await check_command(ctx.command, perms)
-        print("pizza!")
         if not perms or len(perms) == 0:
             return True
         if "required" in perms:
@@ -187,6 +186,8 @@ def get_cog_model(command: discord.ext.commands.Command):
     return {
         "name": command.cog.qualified_name.lower(),
         "description": command.cog.description,
+        "hidden": False,
+        "admin": False
     }
 
 

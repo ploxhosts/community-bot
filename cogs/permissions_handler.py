@@ -4,7 +4,7 @@ import tools
 
 
 class Permissions(commands.Cog):
-    """Add permissions/commands to certain ranks"""
+    """Add permissions and commands to certain ranks"""
 
     def __init__(self, bot):
         self.bot = bot
