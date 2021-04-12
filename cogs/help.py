@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-
+import os
 import tools
 
 
@@ -15,7 +15,7 @@ class Help(commands.Cog):
     @tools.has_perm()
     async def help(self, ctx, cog=None):
         posts = self.database.bot.serversettings
-        prefix = "?"
+        prefix = os.getenv("prefix")
         async for x in posts.find({"guild_id": ctx.guild.id}):
             prefix = x['prefix']
 

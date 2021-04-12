@@ -1,7 +1,9 @@
 from discord.ext import commands
 import discord
 import tools
+import os
 
+default_prefix = os.getenv('prefix')
 
 class Permissions(commands.Cog):
     """Add permissions and commands to certain ranks"""
@@ -130,15 +132,15 @@ class Permissions(commands.Cog):
     async def permissions(self, ctx):
         embed = discord.Embed(colour=0x36a39f, title=f"Permissions Examples")
         embed.add_field(name="Give perms to a role:",
-                        value="`?perms grant admin command: Ban, Levels` - give a permission to a rank", inline=False)
+                        value=f"`{default_prefix}perms grant admin command: Ban, Levels` - give a permission to a rank", inline=False)
         embed.add_field(name="Take a given perm from role:",
-                        value="`?perms revoke admin command: Ban, Levels` - take a given permission from that rank to go back to default",
+                        value=f"`{default_prefix}perms revoke admin command: Ban, Levels` - take a given permission from that rank to go back to default",
                         inline=False)
         embed.add_field(name="Reject a perm from role:",
-                        value="`?perms deny admin command: Ban` - stop that specific rank executing that command",
+                        value=f"`{default_prefix}perms deny admin command: Ban` - stop that specific rank executing that command",
                         inline=False)
         embed.add_field(name="Notes:",
-                        value="Use the permissions node `*` to give all permissions to a rank, helpful for developers. For example: `?perms grant admin *` or `?perms remove banned *`",
+                        value=f"Use the permissions node `*` to give all permissions to a rank, helpful for developers. For example: `{default_prefix}perms grant admin *` or `{default_prefix}perms remove banned *`",
                         inline=False)
         embed.set_footer(text="Ploxy | Permissions Management")
         await ctx.send(embed=embed)

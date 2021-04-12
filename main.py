@@ -31,7 +31,6 @@ except Exception as e:
     print(e)
     prod = 0
 
-print(prod)
 # logger = logging.getLogger('discord')
 # logger.setLevel(logging.DEBUG)
 # handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
@@ -251,9 +250,9 @@ async def getserverfile(ctx, file=None):
 @tasks.loop(minutes=3.0, count=None, reconnect=True)
 async def change_status():
     unique_joke = str(random.choice(jokes)).replace("|", "").strip()
-    statuses = ["?help | My dms are open ;)",
-                "?help | Open-Source on github",
-                "?help | $1 per gb Plox.Host",
+    statuses = [f"{os.getenv('prefix')}help | My dms are open ;)",
+                f"{os.getenv('prefix')}help | Open-Source on github",
+                f"{os.getenv('prefix')}help | $1 per gb Plox.Host",
                 f"Managing {len(set(bot.get_all_members()))} members!",
                 "Plox.Host", "Management to be looking sus",
                 "Should you be cheating on your test?",

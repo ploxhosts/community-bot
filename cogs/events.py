@@ -1,8 +1,10 @@
 import datetime
-
+import os
 import discord
 from discord.ext import commands
 from tools import check_if_update
+
+default_prefix = os.getenv('prefix')
 
 
 def get_economy_user(member_id, guild_id):
@@ -100,7 +102,7 @@ def global_user_profile(member_id):
 def get_server_settings(guild_id):
     return {
         "guild_id": guild_id,
-        "prefix": "?",  # Default prefix
+        "prefix": default_prefix,  # Default prefix from env
         "users": {},
         "level": 0,
         "levels": {
