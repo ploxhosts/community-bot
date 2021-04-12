@@ -18,8 +18,20 @@ from prepare import database
 
 token = os.getenv('bot_token')
 prod = os.getenv('prod')
-if prod is None:
-    prod = True
+try:
+    if int(prod) == 1:  # main branch
+        prod = "https://github.com/PloxHost-LLC/community-bot/archive/refs/heads/main.zip"
+    elif int(prod) == 2:  # test branch
+        prod = "https://github.com/PloxHost-LLC/community-bot/archive/refs/heads/test.zip"
+    elif int(prod) == 3:
+        prod = os.getenv('prod_string')
+    elif prod is None:
+        prod = "https://github.com/PloxHost-LLC/community-bot/archive/refs/heads/main.zip"
+except Exception as e:
+    print(e)
+    prod = 0
+
+print(prod)
 # logger = logging.getLogger('discord')
 # logger.setLevel(logging.DEBUG)
 # handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
@@ -27,7 +39,7 @@ if prod is None:
 # logger.addHandler(handler)
 
 
-with open('jokes.json') as json_file:
+with open('jokes.json', "r+", encoding="utf-8") as json_file:
     joke_list = json.load(json_file)
     jokes = []
     for joke in joke_list:
@@ -171,7 +183,10 @@ def overwrite_files():
 
 
 def get_new_files():
-    urllib.request.urlretrieve("https://github.com/PloxHost-LLC/community-bot/archive/refs/heads/main.zip", "code.zip")
+    global prod
+    if prod == 0:
+        return
+    urllib.request.urlretrieve(prod, "code.zip")
 
     zip_file = Path('code.zip')
     os.makedirs("new_code", exist_ok=True)
@@ -259,7 +274,7 @@ for cog_new in os.listdir("cogs"):
             bot.load_extension(cog)
         except Exception as e:
             rootLogger.critical(f"{cog_new} can not be loaded: {e}")
-if prod is True:
+if str(prod) != "0":
     try:
         get_new_files()
         print("Pulled new updates")
