@@ -146,7 +146,6 @@ class Levels(commands.Cog):
 
         async for user in posts.find({"guild_id": ctx.guild.id}):
             level = user["level"]
-            total_exp = user["total_exp"]
             user_id = user["user_id"]
             exp = user["exp"]
 
