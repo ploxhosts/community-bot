@@ -110,7 +110,7 @@ class Levels(commands.Cog):
                 member = ctx.guild.get_member(user_id)
                 if member is not None:
                     top.append(f"{count}. {member.name}#{member.discriminator} | Level {level} - {exp} XP")
-                    logger.log(f"{count}. {member.name}#{member.discriminator} | Level {level} - {exp} XP - {total_exp}")
+                    logger.debug(msg=f"{count}. {member.name}#{member.discriminator} | Level {level} - {exp} XP - {total_exp}")
                     count += 1
                 if count % 10 == 0:  # 10, 20, 30, 40, 50
                     if (page * 10) * count:
