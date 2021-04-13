@@ -205,13 +205,16 @@ class Economy(commands.Cog):
         return user["balance"]
 
     async def take_money(self, user_id, guild_id, money):
+        print(money)
         db = self.database.bot
         posts = db.economy
         user = await posts.find_one({"user_id": user_id})
         total_cash = user["cash"]
+        print(total_cash[str(guild_id)] - money)
         total_cash[str(guild_id)] = total_cash[str(guild_id)] - money
         await posts.update_one({"user_id": user_id},
                                {"$set": {f"cash": total_cash}})
+
         return total_cash[str(guild_id)]
 
     async def take_balance(self, user_id, money):
@@ -330,17 +333,21 @@ class Economy(commands.Cog):
     @lotterycmd.command(name="buy", aliases=["purchase", "own"], usage="lottery buy daily 100", no_pm=True)
     @tools.has_perm()
     async def lotterybuy(self, ctx, option, amount: int):
-        if await self.get_money(ctx.author.id, ctx.guild.id) < amount:
-            return await ctx.send("Not enough money to buy this!")
         embed = Embed(color=0x36a39f, title="Lottery system")
         total = 0
         if option.lower() == "daily":
+            if await self.get_money(ctx.author.id, ctx.guild.id) < (amount * 20):
+                return await ctx.send("Not enough money to buy this!")
             total = amount * 20
             embed.add_field(name="You bought", value=f"{amount} of daily tickets for ${total}", inline=True)
         elif option.lower() == "weekly":
+            if await self.get_money(ctx.author.id, ctx.guild.id) < (amount * 40):
+                return await ctx.send("Not enough money to buy this!")
             total = amount * 40
             embed.add_field(name="You bought", value=f"{amount} of weekly tickets for ${total}", inline=True)
         elif option.lower() == "monthly":
+            if await self.get_money(ctx.author.id, ctx.guild.id) < (amount * 100):
+                return await ctx.send("Not enough money to buy this!")
             total = amount * 100
             embed.add_field(name="You bought", value=f"{amount} of monthly tickets for ${total}", inline=True)
         else:
@@ -399,6 +406,8 @@ class Economy(commands.Cog):
     async def deposit(self, ctx, amount):
         db = self.database.bot
         posts = db.economy
+        if amount[0] == "-" or amount == "0":
+            return await ctx.send("Cannot withdraw amounts less than or equal to 0")
         if amount == "all":
             amount = await posts.find_one({"user_id": ctx.author.id})['cash'][str(ctx.guild.id)]
         if await self.get_money(ctx.author.id, ctx.guild.id) < int(amount):
@@ -418,9 +427,10 @@ class Economy(commands.Cog):
                       usage="withdraw <amount>", no_pm=True)
     @tools.has_perm()
     async def withdraw(self, ctx, amount):
+        if amount[0] == "-" or amount == "0":
+            return await ctx.send("Cannot withdraw amounts less than or equal to 0")
         if amount == "all":
             amount = await self.get_bank(ctx.author.id)
-
         if await self.get_bank(ctx.author.id) < int(amount):
             return await ctx.send("Not enough cash to withdraw this amount!")
 
