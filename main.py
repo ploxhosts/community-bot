@@ -17,18 +17,19 @@ from prepare import database
 
 
 token = os.getenv('bot_token')
-prod = os.getenv('prod')
+prod_org = os.getenv('prod')
 try:
-    if int(prod) == 1:  # main branch
+    if int(prod_org) == 1:  # main branch
         prod = "https://github.com/PloxHost-LLC/community-bot/archive/refs/heads/main.zip"
-    elif int(prod) == 2:  # test branch
+    elif int(prod_org) == 2:  # test branch
         prod = "https://github.com/PloxHost-LLC/community-bot/archive/refs/heads/test.zip"
-    elif int(prod) == 3:
+    elif int(prod_org) == 3:
         prod = os.getenv('prod_string')
-    elif prod is None:
+    elif prod_org is None:
         prod = "https://github.com/PloxHost-LLC/community-bot/archive/refs/heads/main.zip"
 except Exception as e:
     print(e)
+    prod_org = 0
     prod = 0
 
 # logger = logging.getLogger('discord')
@@ -158,10 +159,16 @@ async def reload(ctx, cog_name):
 
 
 def overwrite_files():
+    if prod_org == 1:
+        start_path = "new_code/community-bot-main"
+    elif prod_org == 2:
+        start_path = "new_code/community-bot-test"
+    else:
+        return
     # Normal files
-    for new_code_file in os.listdir("new_code/community-bot-main"):
+    for new_code_file in os.listdir(start_path):
         if new_code_file not in ["main.py", "prepare.py", ".env"]:
-            file = f"new_code/community-bot-main/{new_code_file}"
+            file = f"{start_path}/{new_code_file}"
             item = os.path.join(file)
             if os.path.isfile(item):
                 try:
@@ -170,9 +177,9 @@ def overwrite_files():
                     Path(file).replace(new_code_file)
 
     # Cogs
-    for new_code_file in os.listdir("new_code/community-bot-main/cogs"):
+    for new_code_file in os.listdir(f"{start_path}/cogs"):
         existing_file = Path("cogs/" + new_code_file)
-        file = f"new_code/community-bot-main/cogs/{new_code_file}"
+        file = f"/cogs/{new_code_file}"
         item = os.path.join(file)
         if os.path.isfile(item):
             try:
@@ -182,14 +189,14 @@ def overwrite_files():
 
 
 def get_new_files():
-    global prod
+    global prod , prod_org
     if prod == 0:
         return
     urllib.request.urlretrieve(prod, "code.zip")
 
-    zip_file = Path('code.zip')
+    zip_file = 'code.zip'
     os.makedirs("new_code", exist_ok=True)
-    new_code = Path('new_code')
+    new_code = 'new_code'
 
     shutil.unpack_archive(zip_file, new_code)
 
