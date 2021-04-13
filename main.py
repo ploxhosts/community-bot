@@ -122,6 +122,7 @@ async def on_ready():
     print(f"Logged in as {bot.user.id} \nin {len(bot.guilds)} servers with {members} members")
     print('-----------------')
     change_status.start()
+    
 
 
 @bot.event
