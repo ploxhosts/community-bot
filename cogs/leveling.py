@@ -7,7 +7,9 @@ import random
 import asyncio
 import tools
 from discord.ext.commands import MemberConverter
+import logging
 
+logger = logging.getLogger(__name__)
 
 class Levels(commands.Cog):
     """Level related commands"""
@@ -102,11 +104,13 @@ class Levels(commands.Cog):
             count = 1
             async for x in posts.find({"guild_id": ctx.guild.id}).sort('total_exp', pymongo.DESCENDING):
                 user_id = x["user_id"]
+                total_exp = x["total_exp"]
                 level = x["level"]
                 exp = x["exp"]
                 member = ctx.guild.get_member(user_id)
                 if member is not None:
                     top.append(f"{count}. {member.name}#{member.discriminator} | Level {level} - {exp} XP")
+                    logger.log(f"{count}. {member.name}#{member.discriminator} | Level {level} - {exp} XP - {total_exp}")
                     count += 1
                 if count % 10 == 0:  # 10, 20, 30, 40, 50
                     if (page * 10) * count:

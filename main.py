@@ -18,6 +18,7 @@ from prepare import database
 
 token = os.getenv('bot_token')
 prod_org = os.getenv('prod')
+prod = os.getenv('prod')
 try:
     if int(prod_org) == 1:  # main branch
         prod = "https://github.com/PloxHost-LLC/community-bot/archive/refs/heads/main.zip"
