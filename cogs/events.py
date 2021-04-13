@@ -278,7 +278,7 @@ class Events(commands.Cog):
                 await posts.update_one({"user_id": message.author.id},
                                        {"$set": {"guilds": guilds}})
 
-            await check_if_update({"guild_id": message.guild.id},
+            await check_if_update({"user_id": message.author.id},
                                   get_economy_user(message.author.id, message.guild.id),
                                   posts)
 
