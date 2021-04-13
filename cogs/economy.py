@@ -205,12 +205,10 @@ class Economy(commands.Cog):
         return user["balance"]
 
     async def take_money(self, user_id, guild_id, money):
-        print(money)
         db = self.database.bot
         posts = db.economy
         user = await posts.find_one({"user_id": user_id})
         total_cash = user["cash"]
-        print(total_cash[str(guild_id)] - money)
         total_cash[str(guild_id)] = total_cash[str(guild_id)] - money
         await posts.update_one({"user_id": user_id},
                                {"$set": {f"cash": total_cash}})
