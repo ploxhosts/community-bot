@@ -9,49 +9,55 @@ import datetime
 
 
 def generate_flake():
-    flake = (int((time.time() - 946702800) * 1000) << 23) + random.SystemRandom().getrandbits(23)
-    return flake
+    return (
+                   int((time.time() - 946702800) * 1000) << 23
+           ) + random.SystemRandom().getrandbits(23)
+
+
+def check_time(fields):
+    return (
+        "latest_update" in fields
+        and (
+            datetime.datetime.utcnow() - fields["latest_update"]
+        ).total_seconds()
+        < 3600
+    )
 
 
 async def check_if_update(find, main_document, collection):
-    if await collection.count_documents(find) > 0:
-        fields = {}
-        async for x in collection.find(find):
-            fields = x
-        if "latest_update" in fields:
-            last_time = fields["latest_update"]
-            time_diff = datetime.datetime.utcnow() - last_time
-            if time_diff.total_seconds() < 3600:
-                return
-        db_dict = main_document
-        db_dict["_id"] = 0
-        if db_dict.keys() != fields:
-            for key, value in db_dict.items():
-                if key not in fields.keys():
-                    await collection.update_one(find, {"$set": {key: value}})
-                else:
-                    try:
-                        sub_dict = dict(value)
-                        for key2, value2 in sub_dict.items():
-                            if key2 not in fields[key].keys():
-                                new_value = value
-                                new_value[key2] = value2
-                                await collection.update_one(find,
-                                                            {"$set": {key: new_value}})
-                        for key2, value2 in fields[key].items():
-                            if key2 not in sub_dict.keys():
-                                new_dict = {}
-                                for item in sub_dict:
-                                    if item != key2:
-                                        new_dict[item] = sub_dict.get(item)
-                                await collection.update_one(find, {"$set": {key: new_dict}})
-                    except:
-                        pass
-            for key2, value2 in fields.items():
-                if key2 not in db_dict:
-                    await collection.update_one(find, {"$unset": {key2: 1}})
-    else:
-        await collection.insert_one(main_document)
+    if await collection.count_documents(find) == 0:
+        return await collection.insert_one(main_document)
+
+    fields = await collection.find(find)
+
+    if check_time(fields):
+        return
+
+    main_document["_id"] = 0
+    if main_document.keys() == fields:
+        return
+    for key, value in main_document.items():
+        if key not in fields.keys():
+            await collection.update_one(find, {"$set": {key: value}})
+        else:
+            # noinspection PyBroadException
+            try:
+                sub_dict = dict(value)
+                for key2, value2 in sub_dict.items():
+                    if key2 not in fields[key].keys():
+                        new_value = value
+                        new_value[key2] = value2
+                        await collection.update_one(find,
+                                                    {"$set": {key: new_value}})
+                for key2, value2 in fields[key].items():
+                    if key2 not in sub_dict.keys():
+                        new_dict = {item: sub_dict.get(item) for item in sub_dict if item != key2}
+                        await collection.update_one(find, {"$set": {key: new_dict}})
+            except:
+                pass
+    for key2, value2 in fields.items():
+        if key2 not in main_document:
+            await collection.update_one(find, {"$unset": {key2: 1}})
 
 
 def get_time(word):

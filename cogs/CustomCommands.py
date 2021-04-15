@@ -5,6 +5,7 @@ import asyncio
 import tools
 import os
 
+
 class CustomCommands(commands.Cog):
     """Here you can make commands yourself"""
 
@@ -77,7 +78,7 @@ class CustomCommands(commands.Cog):
 
         def check(reaction, user):
             return user == ctx.author and reaction.message == confirm_msg and (
-                        str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
+                    str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
 
         try:
             reaction2, user2 = await self.bot.wait_for('reaction_add', timeout=60.0, check=check)

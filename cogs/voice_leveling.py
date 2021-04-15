@@ -13,10 +13,7 @@ class VLevels(commands.Cog):
 
     @tasks.loop(minutes=1.0)
     async def check_vc_state(self):
-        users = []
-        for sub_user in self.users_in_vc.keys():
-            users.append(sub_user)
-
+        users = [sub_user for sub_user in self.users_in_vc.keys()]
         for user_id in users:
             data = self.users_in_vc[user_id]
             bad_seconds = data["bad_seconds"]
@@ -96,12 +93,11 @@ class VLevels(commands.Cog):
             xp_conv = exp
             while xp_conv >= 0:
                 conv = math.floor(5 * (level ^ 2) + 50 * level + 100)
-                if xp_conv >= conv:
-                    xp_conv -= conv
-                    level += 1
-                else:
+                if xp_conv < conv:
                     break
 
+                xp_conv -= conv
+                level += 1
             await posts.update_one({"user_id": member.id, "guild_id": member.guild.id},
                                    {"$set": {
                                        "exp": xp_conv,
