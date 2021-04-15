@@ -7,3 +7,4 @@ discord.py
 lxml
 motor
 discord-py-slash-command
+dnspython

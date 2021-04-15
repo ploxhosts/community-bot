@@ -106,7 +106,7 @@ class Commands(commands.Cog):
     @commands.command(name="iq", aliases=["getiq"], usage="iq @user")
     @tools.has_perm()
     async def iq(self, ctx, user: discord.Member = ""):
-        if user == "" or user == " ":
+        if user in ["", " "]:
             user = ctx.message.author
         IQ = random.randint(0, 250)
         await ctx.send(f"{user.mention} has got {IQ} IQ")
