@@ -101,7 +101,7 @@ class Suggestions(commands.Cog):
         message = await channel.fetch_message(message_id)
 
         await message.edit(embed=embed)
-        if approve_channel != 0 and approve_channel != channel.id:
+        if approve_channel not in [0, channel.id]:
             accept_channel = ctx.guild.get_channel(approve_channel)
             newmsg = await accept_channel.send(embed=embed)
             if sent_messages:
@@ -166,7 +166,7 @@ class Suggestions(commands.Cog):
         message = await channel.fetch_message(message_id)
 
         await message.edit(embed=embed)
-        if denied_channel != 0 and denied_channel != channel.id:
+        if denied_channel not in [0, channel.id]:
             deny_channel = ctx.guild.get_channel(denied_channel)
             newmsg = await deny_channel.send(embed=embed)
             if sent_messages:

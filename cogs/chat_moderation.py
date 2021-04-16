@@ -330,24 +330,30 @@ class Chat(commands.Cog):
         # <(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>
 
     async def check_contents_both(self, message1, message2):
-        if message1.attachments is not None and message2.attachments is not None:  # Could be multiple image
-            if len(message1.attachments) == len(message2.attachments) and len(
+        if message1.attachments is None or message2.attachments is None:  # Could be multiple image
+            return
+        if len(message1.attachments) == len(message2.attachments) and len(
                     message1.attachments):  # Same amount it is about 2 images
                 # Attachments/images/files
-                for attachment1, attachment2 in zip(message1.attachments,
+            for attachment1, attachment2 in zip(message1.attachments,
                                                     message2.attachments):  # Loop through each attachment
-                    if attachment1.size == attachment2.size:  # The bytes are the same so the image is 99% the same
-                        try:
-                            if await self.delete_message(message2) == "Deleted":
-                                messages = await message2.channel.history(limit=5).flatten()
-                                done = False
-                                for message3 in messages:
-                                    if message3.content == "We do not allow duplicate messages" or message3.content == "We do not allow duplicate images/files being posted!":
-                                        done = True
-                                if not done:
-                                    await message2.channel.send("We do not allow duplicate images/files being posted!")
-                        except discord.NotFound:  # Deleted
-                            pass
+                if attachment1.size == attachment2.size:  # The bytes are the same so the image is 99% the same
+                    try:
+                        if await self.delete_message(message2) == "Deleted":
+                            messages = await message2.channel.history(limit=5).flatten()
+                            done = any(
+                                message3.content
+                                in [
+                                    "We do not allow duplicate messages",
+                                    "We do not allow duplicate images/files being posted!",
+                                ]
+                                for message3 in messages
+                            )
+
+                            if not done:
+                                await message2.channel.send("We do not allow duplicate images/files being posted!")
+                    except discord.NotFound:  # Deleted
+                        pass
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -560,10 +566,7 @@ class Chat(commands.Cog):
             else:
                 return await ctx.send("That link isn't added!")
         elif option.lower() in ["list", "total"]:
-            description_string = ""
-
-            for keyword in BANNED_LINKS:
-                description_string = description_string + f"\n{keyword}"
+            description_string = "".join(f"\n{keyword}" for keyword in BANNED_LINKS)
 
             em = discord.Embed(title="Banned links list", description=description_string, color=855330)
             em.set_footer(text="Ploxy | Chat filter")
@@ -866,7 +869,7 @@ class Chat(commands.Cog):
             for channel in mod_ignore_channels:
                 f_channel = ctx.guild.get_channel(channel)
                 if f_channel:
-                    description_string = description_string + f"\n{f_channel.mention}"
+                    description_string += f"\n{f_channel.mention}"
 
             em = discord.Embed(title="Ignored channel list", description=description_string, color=855330)
             em.set_footer(text="Ploxy | Chat filter")

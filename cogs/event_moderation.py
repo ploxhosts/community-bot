@@ -28,11 +28,13 @@ class EventsMod(commands.Cog):
             BANNED_WORDS = x["banned_words"]
 
         for bad_word in BANNED_WORDS:
-            if bad_word in message.data.content.lower():
-                if await self.delete_message(message) == "Deleted":
-                    guild = self.bot.get_guild(message.guild["id"])
-                    channel = guild.get_channel(message.channel["id"])
-                    await channel.send("A Message was deleted as it contained a banned word.")
+            if (
+                bad_word in message.data.content.lower()
+                and await self.delete_message(message) == "Deleted"
+            ):
+                guild = self.bot.get_guild(message.guild["id"])
+                channel = guild.get_channel(message.channel["id"])
+                await channel.send("A Message was deleted as it contained a banned word.")
 
     async def send_delete_embed(self, channel, user, author_id, content, mid):
         if channel == 0:
@@ -53,12 +55,7 @@ class EventsMod(commands.Cog):
         if channel == 0:
             return
 
-        history = []
-        count = 1
-        for edit in edits:
-            history.append(f"{count}. " + edit)
-            count += 1
-
+        history = [f"{count}. " + edit for count, edit in enumerate(edits, start=1)]
         history = '\n'.join(history)
 
         embed = discord.Embed(colour=0x36a39f,
@@ -185,36 +182,35 @@ class EventsMod(commands.Cog):
         channel_ex: discord.TextChannel
 
         use_file = False
-        file = open(file_name, "w")
-        file.write(f"{len(message.message_ids)} messages deleted in #{channel_ex.name}\n")
-        for ids in message.message_ids:
-            message_content = ""
-            reported = False
-            JSON = None
-            author_id = 0
-            async for x in posts.find({"message_id": ids}):
-                reported = x["reported"]
-                JSON = x["json"]
-                message_content = x["message"]
-                author_id = x["author_id"]
-            if reported is False and JSON is None:  # Not if reported or a self bot
-                try:
-                    await posts.delete_one({"message_id", ids})
-                except:
-                    pass
-            else:
+        with open(file_name, "w") as file:
+            file.write(f"{len(message.message_ids)} messages deleted in #{channel_ex.name}\n")
+            for ids in message.message_ids:
+                message_content = ""
+                reported = False
+                JSON = None
+                author_id = 0
+                async for x in posts.find({"message_id": ids}):
+                    reported = x["reported"]
+                    JSON = x["json"]
+                    message_content = x["message"]
+                    author_id = x["author_id"]
+                if reported is False and JSON is None:  # Not if reported or a self bot
+                    try:
+                        await posts.delete_one({"message_id", ids})
+                    except:
+                        pass
+                else:
+                    if message_content != "":
+                        await posts.update_one({"message_id": ids},
+                                               {"$set": {"deleted": True}})
                 if message_content != "":
-                    await posts.update_one({"message_id": ids},
-                                           {"$set": {"deleted": True}})
-            if message_content != "":
-                user = await self.bot.fetch_user(author_id)
-                user: discord.User
-                file.write(
-                    f"{user.name}#{user.discriminator} ({user.id}) said {message_content} ({ids})\n\n")
-                use_file = True
-                # Do something with deleted message
-                # await self.send_delete_embed(log_channel, user.name, author_id, message_content, ids)
-        file.close()
+                    user = await self.bot.fetch_user(author_id)
+                    user: discord.User
+                    file.write(
+                        f"{user.name}#{user.discriminator} ({user.id}) said {message_content} ({ids})\n\n")
+                    use_file = True
+                    # Do something with deleted message
+                    # await self.send_delete_embed(log_channel, user.name, author_id, message_content, ids)
         embed = discord.Embed(colour=0x36a39f, title=f"Bulk Message delete")
         embed.add_field(name="Messages purged:", value=f"\n{len(message.message_ids)}", inline=False)
         embed.add_field(name="Channel:", value=f"\n{channel_ex.mention}", inline=False)

@@ -26,12 +26,11 @@ class Permissions(commands.Cog):
             for cog_name in self.cog_names:
                 if cog_name.lower() == cor.lower():
                     return True
-            return False
         else:
             for cmd_name in self.commands_list:
                 if cmd_name.lower() == cor.lower():
                     return True
-            return False
+        return False
 
     async def add_perm(self, guild, rank, node):
         db = self.database.bot
@@ -43,7 +42,6 @@ class Permissions(commands.Cog):
                     return
                 pre_perms[f"{rank.id}"].append(node.lower())
             else:
-                pass
                 pre_perms[f"{rank.id}"] = [node.lower()]
             posts = db.permissions
             await posts.update_one({"guild_id": int(guild.id)},
@@ -71,20 +69,16 @@ class Permissions(commands.Cog):
         db = self.database.bot
         collection = db.permissions
         perms = await self.get_perms(guild)
-        if str(rank.id) in perms:
-            if node in perms[str(rank.id)]:
-                if node == "*":
-                    perms[f"{rank.id}"].clear()
-                else:
-                    perms[f"{rank.id}"].remove(node)
-                await collection.update_one({"guild_id": guild.id},
-                                            {"$set": {
-                                                f"perm_nodes": perms}})
-                return True
-            return False
-
-        else:
-            return False
+        if str(rank.id) in perms and node in perms[str(rank.id)]:
+            if node == "*":
+                perms[f"{rank.id}"].clear()
+            else:
+                perms[f"{rank.id}"].remove(node)
+            await collection.update_one({"guild_id": guild.id},
+                                        {"$set": {
+                                            f"perm_nodes": perms}})
+            return True
+        return False
 
     async def revoke_perm(self, guild, rank, node):
         db = self.database.bot
@@ -111,13 +105,12 @@ class Permissions(commands.Cog):
         collection = db.permissions
         if await collection.count_documents({"guild_id": guild.id}) > 0:
             bad_perms = await self.get_bad_perms(guild)
-            if bad_perms.get(f"{rank.id}"):
-                if node.lower() not in bad_perms.get(f"{rank.id}"):
-                    return
-                bad_perms[f"{rank.id}"].remove(node.lower())
-            else:
+            if not bad_perms.get(f"{rank.id}"):
                 return
 
+            if node.lower() not in bad_perms.get(f"{rank.id}"):
+                return
+            bad_perms[f"{rank.id}"].remove(node.lower())
             await collection.update_one({"guild_id": guild.id},
                                         {"$set": {
                                             "bad_perm_nodes": bad_perms}})
@@ -160,18 +153,16 @@ class Permissions(commands.Cog):
                 await self.add_perm(ctx.guild, rank, f_node)
             else:
                 Failed_nodes.append(node)
+        if not f_nodes:
+            return await ctx.send(f"Failed to add {','.join(Failed_nodes)} to {rank.name}")
+        if not Failed_nodes:
+            return await ctx.send(
+                f"Added {','.join(f_nodes)} to {rank.name}.")
+        for Failed in Failed_nodes:
+            f_nodes.remove(Failed)
         if f_nodes:
-            if Failed_nodes:
-                for Failed in Failed_nodes:
-                    f_nodes.remove(Failed)
-                if f_nodes:
-                    return await ctx.send(
-                        f"Added {','.join(f_nodes)} to {rank.name}. Failed to add {','.join(Failed_nodes)}")
-                else:
-                    return await ctx.send(f"Failed to add {','.join(Failed_nodes)} to {rank.name}")
-            else:
-                return await ctx.send(
-                    f"Added {','.join(f_nodes)} to {rank.name}.")
+            return await ctx.send(
+                f"Added {','.join(f_nodes)} to {rank.name}. Failed to add {','.join(Failed_nodes)}")
         else:
             return await ctx.send(f"Failed to add {','.join(Failed_nodes)} to {rank.name}")
 
@@ -192,18 +183,16 @@ class Permissions(commands.Cog):
                         f"It seems you used the wrong command. This rank does not have any existing permissions or doesn't have the permission. Try the `permissions deny` command instead.")
             else:
                 Failed_nodes.append(node)
+        if not f_nodes:
+            return await ctx.send(f"Failed to add {','.join(Failed_nodes)} to {rank.name}")
+        if not Failed_nodes:
+            return await ctx.send(
+                f"Added {','.join(f_nodes)} to {rank.name}.")
+        for Failed in Failed_nodes:
+            f_nodes.remove(Failed)
         if f_nodes:
-            if Failed_nodes:
-                for Failed in Failed_nodes:
-                    f_nodes.remove(Failed)
-                if f_nodes:
-                    return await ctx.send(
-                        f"Added {','.join(f_nodes)} to {rank.name}. Failed to add {','.join(Failed_nodes)}")
-                else:
-                    return await ctx.send(f"Failed to add {','.join(Failed_nodes)} to {rank.name}")
-            else:
-                return await ctx.send(
-                    f"Added {','.join(f_nodes)} to {rank.name}.")
+            return await ctx.send(
+                f"Added {','.join(f_nodes)} to {rank.name}. Failed to add {','.join(Failed_nodes)}")
         else:
             return await ctx.send(f"Failed to add {','.join(Failed_nodes)} to {rank.name}")
 
@@ -222,18 +211,16 @@ class Permissions(commands.Cog):
                 await self.revoke_perm(ctx.guild, rank, f_node)
             else:
                 Failed_nodes.append(node)
+        if not f_nodes:
+            return await ctx.send(f"Failed to deny {','.join(Failed_nodes)} to {rank.name}")
+        if not Failed_nodes:
+            return await ctx.send(
+                f"Added {','.join(f_nodes)} to {rank.name}.")
+        for Failed in Failed_nodes:
+            f_nodes.remove(Failed)
         if f_nodes:
-            if Failed_nodes:
-                for Failed in Failed_nodes:
-                    f_nodes.remove(Failed)
-                if f_nodes:
-                    return await ctx.send(
-                        f"Added {','.join(f_nodes)} to {rank.name}. Failed to deny {','.join(Failed_nodes)}")
-                else:
-                    return await ctx.send(f"Failed to deny {','.join(Failed_nodes)} to {rank.name}")
-            else:
-                return await ctx.send(
-                    f"Added {','.join(f_nodes)} to {rank.name}.")
+            return await ctx.send(
+                f"Added {','.join(f_nodes)} to {rank.name}. Failed to deny {','.join(Failed_nodes)}")
         else:
             return await ctx.send(f"Failed to deny {','.join(Failed_nodes)} to {rank.name}")
 

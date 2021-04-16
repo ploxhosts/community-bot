@@ -274,11 +274,11 @@ class Economy(commands.Cog):
         embed = discord.Embed(colour=0xac6f8f)
         if isinstance(error, CommandOnCooldown):
             seconds = error.retry_after
-            if (seconds / 60) / 60 > 2:
+            if seconds > 7200:
                 embed.add_field(name="You can't beg that soon",
                                 value=f"You must wait {round((seconds / 60) / 60, 1)} hours for the police to eat their doughnuts again.",
                                 inline=False)
-            elif seconds / 60 > 2:
+            elif seconds > 120:
                 embed.add_field(name="You can't beg that soon",
                                 value=f"You must wait {round(seconds / 60, 1)} minutes for the police to eat their doughnuts again.",
                                 inline=False)
@@ -472,11 +472,11 @@ class Economy(commands.Cog):
         embed = discord.Embed(colour=0xac6f8f)
         if isinstance(error, CommandOnCooldown):
             seconds = error.retry_after
-            if (seconds / 60) / 60 > 2:
+            if seconds > 7200:
                 embed.add_field(name="You can't work that soon",
                                 value=f"You must wait {round((seconds / 60) / 60, 1)} hours, you are still very tired.",
                                 inline=False)
-            elif seconds / 60 > 2:
+            elif seconds > 120:
                 embed.add_field(name="You can't work that soon",
                                 value=f"You must wait {round(seconds / 60, 1)} minutes, the alarm still hasn't gone off yet.",
                                 inline=False)

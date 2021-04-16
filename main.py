@@ -57,9 +57,7 @@ async def get_prefix(bot, message):
     collection = db.serversettings
 
     result = await collection.find_one({"guild_id": message.guild.id})
-    if result is None:
-        pass
-    else:
+    if result is not None:
         prefix = result["prefix"]
     return commands.when_mentioned_or(prefix)(bot, message)
 
@@ -122,7 +120,7 @@ async def on_ready():
     print(f"Logged in as {bot.user.id} \nin {len(bot.guilds)} servers with {members} members")
     print('-----------------')
     change_status.start()
-    
+
 
 
 @bot.event
@@ -240,10 +238,12 @@ async def update(ctx):
 @commands.check(is_owner)
 async def getserverfile(ctx, file=None):
     if file is None:
-        files = []
-        for file_name in os.listdir("logs"):
-            if file_name.endswith(".log"):
-                files.append(file_name)
+        files = [
+            file_name
+            for file_name in os.listdir("logs")
+            if file_name.endswith(".log")
+        ]
+
         await ctx.author.send("\n".join(files))
     else:
         try:

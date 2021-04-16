@@ -150,9 +150,12 @@ class Levels(commands.Cog):
             user_id = user["user_id"]
             exp = user["exp"]
 
-            total_exp = 0
-            for level_mini_start in range(int(level)):
-                total_exp += math.floor(5 * (level_mini_start ^ 2) + 50 * level_mini_start + 100)
+            total_exp = sum(
+                math.floor(
+                    5 * (level_mini_start ^ 2) + 50 * level_mini_start + 100
+                )
+                for level_mini_start in range(int(level))
+            )
 
             total_exp += exp
 
