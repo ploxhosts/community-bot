@@ -20,6 +20,7 @@ class Economy(commands.Cog):
         self.interest.start()
         self.executed = False
         self.interested = False
+        self.owner_list = (553614184735047712, 148549003544494080, 518854761714417664)
 
     @tasks.loop(seconds=60.0)
     async def lottery(self):
@@ -38,13 +39,11 @@ class Economy(commands.Cog):
 
         self.executed = True
 
-        total_daily = 0
-        total_weekly = 0
-        total_monthly = 0  # Store the total tickets to get the amount that should be paid out
+        # Store the total tickets to get the amount that should be paid out
+        total_daily, total_weekly, total_monthly = 0, 0, 0
 
-        daily_winners = []
-        weekly_winners = []
-        monthly_winners = []
+        daily_winners, weekly_winners, monthly_winners = [], [], []
+
         async for user in posts.find({}):
             daily = user["d_lottery_tickets"]
             weekly = user["w_lottery_tickets"]
@@ -69,15 +68,11 @@ class Economy(commands.Cog):
         end_monthly_winners = []
 
         daily_money = total_daily * 20
-        monthly_money = 0
-        try:
-            weekly_money = int((total_weekly * 40) / len(end_weekly_winners))
-        except ZeroDivisionError:
-            weekly_money = 0
-        try:
-            monthly_money = int((total_monthly * 100) / len(end_monthly_winners))
-        except ZeroDivisionError:
-            weekly_money = 0
+
+        # The variable will first be assigned, then the check will be performed,
+        # So the check would be useless if the else part divides by 0 and is part of the 'if' statement
+        weekly_money = 0 if len(end_weekly_winners) == 0 else int((total_weekly * 40) / len(end_weekly_winners))
+        monthly_money = 0 if len(end_monthly_winners) == 0 else int((total_monthly * 100) / len(end_monthly_winners))
 
         if len(daily_winners) > 4:  # Needs 4 or more players
             end_daily_winners = random.choice(daily_winners)
@@ -248,13 +243,12 @@ class Economy(commands.Cog):
         pass
 
     @commands.command(name="beg", usage="beg", no_pm=True)
-    @commands.cooldown(1, 43200, commands.BucketType.user)
+    @commands.cooldown(1, 1800, commands.BucketType.user)
     @tools.has_perm()
     async def beg(self, ctx):
         chance = random.randint(1, 100)
-        mod_val = random.randint(2, 3)
-        if (chance % mod_val) == 0:
-            amount = random.randint(1, 50)
+        if chance <= 40:
+            amount = random.randint(10, 30)
             end_total = await self.add_money(ctx.author.id, ctx.guild.id, amount)
             embed = Embed(color=0x36a39f, title="You got paid!")
             embed.add_field(name="You earned", value=f"${amount}", inline=True)
@@ -274,18 +268,13 @@ class Economy(commands.Cog):
         embed = discord.Embed(colour=0xac6f8f)
         if isinstance(error, CommandOnCooldown):
             seconds = error.retry_after
-            if seconds > 7200:
-                embed.add_field(name="You can't beg that soon",
-                                value=f"You must wait {round((seconds / 60) / 60, 1)} hours for the police to eat their doughnuts again.",
-                                inline=False)
-            elif seconds > 120:
-                embed.add_field(name="You can't beg that soon",
-                                value=f"You must wait {round(seconds / 60, 1)} minutes for the police to eat their doughnuts again.",
-                                inline=False)
-            else:
-                embed.add_field(name="You can't beg that soon",
-                                value=f"You must wait {round(seconds)} seconds for the police to eat their doughnuts again.",
-                                inline=False)
+            timeVar = "minutes" if seconds > 120 else "seconds"
+            timeLeft = round(seconds / 60, 1) if timeVar == "minutes" else round(seconds, 1)
+
+            embed.add_field(name="You can't beg that soon",
+                            value=f"You must wait {timeLeft} {timeVar} for the police to eat their doughnuts again.",
+                            inline=False)
+
         embed.set_footer(text="Ploxy")
         await ctx.send(embed=embed)
 
@@ -449,12 +438,12 @@ class Economy(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command(name="work", usage="work")
-    @commands.cooldown(1, 43200, commands.BucketType.user)
+    @commands.cooldown(1, 1800, commands.BucketType.user)
     @tools.has_perm()
     async def work(self, ctx):
-        chance = random.randint(2, 50)
-        mod_val = random.randint(1, 4)
-        if (chance % mod_val) == 0:
+        chance = random.randint(1, 100)
+
+        if chance <= 70:
             amount = random.randint(1, 100)
             end_total = await self.add_money(ctx.author.id, ctx.guild.id, amount)
             embed = Embed(color=0x36a39f, title="You got paid!")
@@ -472,20 +461,26 @@ class Economy(commands.Cog):
         embed = discord.Embed(colour=0xac6f8f)
         if isinstance(error, CommandOnCooldown):
             seconds = error.retry_after
-            if seconds > 7200:
-                embed.add_field(name="You can't work that soon",
-                                value=f"You must wait {round((seconds / 60) / 60, 1)} hours, you are still very tired.",
-                                inline=False)
-            elif seconds > 120:
-                embed.add_field(name="You can't work that soon",
-                                value=f"You must wait {round(seconds / 60, 1)} minutes, the alarm still hasn't gone off yet.",
-                                inline=False)
-            else:
-                embed.add_field(name="You can't work that soon",
-                                value=f"You must wait {round(seconds)} seconds for the light to turn green.",
-                                inline=False)
+            timeVar = "minutes" if seconds > 120 else "seconds"
+            timeLeft = round(seconds / 60, 1) if timeVar == "minutes" else round(seconds, 1)
+            message = ", the alarm still hasn't gone off yet." if timeVar == "minutes" else "seconds for the light to turn green."
+
+            embed.add_field(name="You can't work that soon",
+                            value=f"You must wait {timeLeft} {timeVar}{message}",
+                            inline=False)
+
         embed.set_footer(text="Ploxy")
         await ctx.send(embed=embed)
+
+    @commands.command(name="ecototalreset", usage="ecoreset")
+    async def eco_total_reset(self, ctx):
+        if ctx.author.id not in self.owner_list:
+            return
+
+        EcoPost = self.database.bot.economy
+        await EcoPost.delete_many({})
+
+        await ctx.send("The economy has successfully been reset")
 
 
 def setup(bot):
