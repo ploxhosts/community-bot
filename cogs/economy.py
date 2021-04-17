@@ -20,7 +20,7 @@ class Economy(commands.Cog):
         self.interest.start()
         self.executed = False
         self.interested = False
-        self.owner_list = (553614184735047712, 148549003544494080, 518854761714417664, 364127830512238592)
+        self.owner_list = (553614184735047712, 148549003544494080, 518854761714417664)
 
     @tasks.loop(seconds=60.0)
     async def lottery(self):
@@ -472,8 +472,7 @@ class Economy(commands.Cog):
         embed.set_footer(text="Ploxy")
         await ctx.send(embed=embed)
 
-    @commands.command(name="ecoreset", usage="ecoreset")
-    @tools.has_perm(manage_guild=True)
+    @commands.command(name="ecototalreset", usage="ecoreset")
     async def eco_total_reset(self, ctx):
         if ctx.author.id not in self.owner_list:
             return
