@@ -10,11 +10,11 @@ import urllib.request
 import urllib.error
 import shutil
 from pathlib import Path
+from discord_slash.utils import manage_commands
 from discord_slash import SlashCommand
 
 # Runs database connections and env
 from prepare import database
-
 
 token = os.getenv('bot_token')
 prod_org = os.getenv('prod')
@@ -121,6 +121,8 @@ async def on_ready():
     print('-----------------')
     change_status.start()
 
+    if bot.user.id in [696430450142347357, 749899795782434897]:
+        await manage_commands.remove_all_commands(bot.user.id, token, None)
 
 
 @bot.event
@@ -189,7 +191,7 @@ def overwrite_files():
 
 
 def get_new_files():
-    global prod , prod_org
+    global prod, prod_org
     if prod == 0:
         return
     urllib.request.urlretrieve(prod, "code.zip")
