@@ -396,7 +396,8 @@ class Economy(commands.Cog):
         if amount[0] == "-" or amount == "0":
             return await ctx.send("Cannot withdraw amounts less than or equal to 0")
         if amount == "all":
-            amount = await posts.find_one({"user_id": ctx.author.id})['cash'][str(ctx.guild.id)]
+            db_amount = await posts.find_one({"user_id": ctx.author.id})
+            amount = db_amount['cash'][str(ctx.guild.id)]
         if await self.get_money(ctx.author.id, ctx.guild.id) < int(amount):
             return await ctx.send("Not enough cash to deposit this amount!")
 
