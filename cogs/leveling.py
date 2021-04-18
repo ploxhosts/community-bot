@@ -113,8 +113,8 @@ class Levels(commands.Cog):
                     top.append(f"{count}. {member.name}#{member.discriminator} | Level {level} - {exp} XP")
                     logger.error(msg=f"{count}. {member.name}#{member.discriminator} | Level {level} - {exp} XP - {total_exp}")
                     count += 1
-                if count % 10 == 0:  # 10, 20, 30, 40, 50
-                    if (page * 10) * count:
+                if count % 11 == 0:  # 10, 20, 30, 40, 50
+                    if (page * 11) * count:
                         break
                     else:
                         top.clear()
