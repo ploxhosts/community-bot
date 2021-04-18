@@ -115,7 +115,7 @@ def get_server_settings(guild_id):
     return {
         "guild_id": guild_id,
         "prefix": default_prefix,  # Default prefix from env
-        "users": {},
+        "users": {},  # A user_id with an object of permissions they can use
         "level": 0,
         "levels": {
             "enabled": 1,  # Boolean value to allow leveling system to work, default yes
