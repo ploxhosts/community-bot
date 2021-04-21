@@ -128,6 +128,7 @@ def get_server_settings(guild_id):
         "welcome": {
             "channel": 0,  # Setting up a welcome channel to send embeds/images to
             "code": 0,  # If welcome messages should be sent, default no
+            "message": "Welcome to the server",  # If welcome messages should be sent, default no
         },
 
         "suggestions": {
