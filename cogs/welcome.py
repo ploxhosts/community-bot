@@ -15,7 +15,7 @@ class Welcome(commands.Cog):
         return ctx.guild.id in [346715007469355009, 742055439088353341]  # Replace list with people who you trust
 
     @commands.command(name='welcomechannel', aliases=["wchannel", "welcomchannel", "channelwelcome"], usage="Set the welcome channel",  description="Allow the use of welcome messages")
-    @tools.has_perm()
+    @tools.has_perm(manage_messages=True)
     async def welcomechannel(self, ctx, *, channel: discord.TextChannel = None):
         if channel is None:
             channel = ctx.channel
@@ -29,9 +29,9 @@ class Welcome(commands.Cog):
 
         await posts.update_one({"guild_id": ctx.guild.id}, {"$set": {"welcome.channel": channel.id}})
         if channel_org != 0:
-            await ctx.send(f"New log channel is <#{channel.id}> from <#{channel_org}>")
+            await ctx.send(f"New welcome channel is <#{channel.id}> from <#{channel_org}>")
         else:
-            await ctx.send(f"New log channel is <#{channel.id}>")
+            await ctx.send(f"New welcome channel is <#{channel.id}>")
 
 
 
