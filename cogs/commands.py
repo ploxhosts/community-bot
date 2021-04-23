@@ -3,7 +3,7 @@ from discord.ext import commands
 import random
 from datetime import datetime
 import requests
-
+import aiohttp
 import tools
 
 
@@ -51,9 +51,11 @@ class Commands(commands.Cog):
     @commands.command(name="joke", aliases=["givemejoke", "dadjoke"], usage="joke")
     @tools.has_perm()
     async def joke(self, ctx):
-        res = requests.get("https://icanhazdadjoke.com/", headers={'Accept': 'text/plain',
-                                                                   'User-Agent': 'Ploxy (https://github.com/PloxHost-LLC/community-bot)'})
-        await ctx.send(res.text)
+        async with aiohttp.ClientSession() as session:
+            async with session.get("https://icanhazdadjoke.com/", headers={'Accept': 'text/plain',
+                                                                           'User-Agent': 'Ploxy (https://github.com/PloxHost-LLC/community-bot)'}) as resp:
+                text = await resp.text()
+                await ctx.send(text)
 
     @commands.command(name="greet", aliases=["sayhi"], usage="greet")
     @tools.has_perm()
