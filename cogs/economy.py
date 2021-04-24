@@ -10,6 +10,18 @@ from discord.ext.commands import CommandOnCooldown
 import tools
 
 
+# Static function
+async def GiveNewCard(UserInfo: list):
+    NewCard = random.randint(1, 52)
+
+    while NewCard in UserInfo[0]:
+        NewCard = random.randint(1, 52)
+
+    UserInfo[0].append(NewCard)
+
+    return UserInfo
+
+
 class Economy(commands.Cog):
     """Economy related commands"""
 
@@ -21,6 +33,14 @@ class Economy(commands.Cog):
         self.executed = False
         self.interested = False
         self.owner_list = (553614184735047712, 148549003544494080, 518854761714417664)
+
+        self.Storage = {}
+
+        self.Names = {"1": "Ace", "11": "Jack", "12": "Queen", "0": "King"}
+        self.Worth = {"11": 10, "12": 10, "13": 10, "1": 11}
+        self.Types = ["Clubs", "Diamonds", "Hearts", "Spades"]
+        self.Emotes = {self.Types[0]: ":clubs:", self.Types[1]: ":diamonds:", self.Types[2]: ":hearts:",
+                       self.Types[3]: ":spades:"}
 
     @tasks.loop(seconds=60.0)
     async def lottery(self):
@@ -482,6 +502,129 @@ class Economy(commands.Cog):
         await EcoPost.delete_many({})
 
         await ctx.send("The economy has successfully been reset")
+
+    async def checkSum(self, Info):
+        return sum(card % 13 if str(card % 13) not in self.Worth.keys() else self.Worth[str(card % 13)] for card in Info[0])
+
+    async def addField(self, embed, Info, Name):
+        fieldDescription = ", \u0020".join(
+            f"{card % 13 if not str(card % 13) in self.Names else self.Names[str(card % 13)]} {self.Emotes[self.Types[card // 13]]}"
+            for card in Info[0]
+        )
+
+        fieldDescription += f"\n\n**Score : {await self.checkSum(Info)}**"
+
+        embed.add_field(name=f"**{Name}'s hand**", value=fieldDescription, inline=True)
+
+        return embed
+
+    async def displayBlackjackEmbed(self, message, UserInfo, HouseInfo, Status):
+        if Status in ["won", "lost"]:
+            BlackjackEmbed = discord.Embed(title="Blackjack", colour=3580831)
+        else:
+            BlackjackEmbed = discord.Embed(blackjack="\u200b", colour=3580831)
+
+        BlackjackEmbed = await self.addField(BlackjackEmbed, UserInfo, message.author)
+        BlackjackEmbed.add_field(name="\u200b", value="\u200b", inline=True)
+        BlackjackEmbed = await self.addField(BlackjackEmbed, HouseInfo, "House")
+
+        if Status in ["won", "lost"]:
+            BlackjackEmbed.add_field(name="\u200b", value=f"**Outcome :** You {Status} {UserInfo[1]}", inline=False)
+        else:
+            BlackjackEmbed.add_field(name="\u200b", value=f"Options : **Draw** or **Stay**", inline=False)
+
+        await message.channel.send(embed=BlackjackEmbed)
+
+    async def BlackjackGather(self, UserId: str, Bet: int = 0):
+        if UserId in self.Storage.keys():
+            Cards = self.Storage[UserId]["Cards"]
+            Bet = self.Storage[UserId]["Bet"]
+        else:
+            Cards = []
+            Bet = Bet
+
+        return [Cards, Bet]
+
+    @commands.command(name="blackjack", usage="blackjack <amount>")
+    async def blackjack(self, ctx, amount):
+        if amount[0] == "-" or amount == "0":
+            return await ctx.send("Cannot bet amounts less than or equal to 0")
+
+        try:
+            amount = int(amount)
+        except ValueError:
+            return await ctx.channel.send("A valid amount must be specified")
+
+        if await self.get_money(ctx.author.id, ctx.guild.id) < amount:
+            return await ctx.channel.send("Not enough money to bet that much")
+
+        if str(ctx.author.id) not in self.Storage.keys():
+            await self.take_money(ctx.author.id, ctx.guild.id, amount)
+            User = await self.BlackjackGather(str(ctx.author.id), amount)
+            House = await self.BlackjackGather(str(ctx.author.id) + "H", amount)
+
+            User = await GiveNewCard(User)
+            House = await GiveNewCard(House)
+
+            await self.displayBlackjackEmbed(ctx, User, House, "")
+
+            self.Storage[str(ctx.author.id)] = {"Cards": User[0], "Bet": amount}
+
+            self.Storage[str(ctx.author.id) + "H"] = {"Cards": House[0], "Bet": amount}
+        else:
+            await ctx.channel.send("You already have a game of blackjack in progress")
+
+    async def BlackjackAnswersHandler(self, message):
+        End = False
+        if message.content.lower() in ["d", "draw"] and str(message.author.id) in self.Storage.keys():
+            User = await self.BlackjackGather(str(message.author.id))
+            House = await self.BlackjackGather(str(message.author.id) + "H")
+
+            User = await GiveNewCard(User)
+
+            if await self.checkSum(User) > 21:
+                await self.displayBlackjackEmbed(message, User, House, "lost")
+                End = True
+
+            elif await self.checkSum(User) == 21:
+                await self.add_money(message.author.id, message.guild.id, int(User[1]) * 2)
+                await self.displayBlackjackEmbed(message, User, House, "won")
+                End = True
+
+            else:
+                self.Storage[str(message.author.id)]["Cards"] = User[0]
+
+                await self.displayBlackjackEmbed(message, User, House, "")
+
+        elif message.content.lower() in ["s", "stay"] and str(message.author.id) in self.Storage.keys():
+            User = await self.BlackjackGather(str(message.author.id))
+            House = await self.BlackjackGather(str(message.author.id) + "H")
+
+            while not await self.checkSum(House) >= 17:
+                House = await GiveNewCard(House)
+
+            if await self.checkSum(House) > 21 or (await self.checkSum(User) > await self.checkSum(House)):
+                await self.add_money(message.author.id, message.guild.id, int(User[1]) * 2)
+                await self.displayBlackjackEmbed(message, User, House, "won")
+                End = True
+
+            elif await self.checkSum(House) == 21 or (await self.checkSum(User) <= await self.checkSum(House)):
+                await self.displayBlackjackEmbed(message, User, House, "lost")
+                End = True
+
+        if End:
+            del self.Storage[str(message.author.id)]
+            del self.Storage[str(message.author.id) + "H"]
+
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        if message.guild is None:
+            return
+        if message.author.bot:
+            return
+
+        if message.content.lower().split(" ")[0] in ["d", "draw", "s", "stay"]:
+            await self.BlackjackAnswersHandler(message)
 
 
 def setup(bot):
