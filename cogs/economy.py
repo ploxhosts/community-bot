@@ -37,7 +37,7 @@ class Economy(commands.Cog):
         self.Storage = {}
 
         self.Names = {"1": "Ace", "11": "Jack", "12": "Queen", "0": "King"}
-        self.Worth = {"11": 10, "12": 10, "13": 10, "1": 11}
+        self.Worth = {"11": 10, "12": 10, "0": 10, "1": 11}
         self.Types = ["Clubs", "Diamonds", "Hearts", "Spades"]
         self.Emotes = {self.Types[0]: ":clubs:", self.Types[1]: ":diamonds:", self.Types[2]: ":hearts:",
                        self.Types[3]: ":spades:"}
