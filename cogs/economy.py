@@ -256,7 +256,7 @@ class Economy(commands.Cog):
         money_total2 = user["balance"] + money
 
         await posts.update_one({"user_id": id2},
-                               {"$set": {"balance": money_total2}})
+                               {"$set": {"balance": money_total2, "user_id": id2}})
 
     @commands.group(name="economy", aliases=["eco"], usage="economy", no_pm=True)
     async def economy(self, ctx):
@@ -387,7 +387,12 @@ class Economy(commands.Cog):
         if await self.get_bank(ctx.author.id) < money:
             return await ctx.send("Not enough money to send this amount!")
 
-        await self.send_money(ctx.author.id, ctx.guild.id, money)
+        toSendId = user if type(user) is int else user.id
+
+        if await self.database.bot.economy.count_documents({"user_id": toSendId}) == 0:
+            return await ctx.send("Cannot pay the user !")
+
+        await self.send_money(ctx.author.id, toSendId, money)
 
         db = self.database.bot
         posts = db.economy
