@@ -62,7 +62,7 @@ class Levels(commands.Cog):
                 return
 
             if total_exp == 0:
-                for level_mini_start in range(int(level)):
+                for level_mini_start in range(int(level) + 1):
                     total_exp += math.floor(5 * (level_mini_start ^ 2) + 50 * level_mini_start + 100)
                 total_exp += exp
 
@@ -154,7 +154,7 @@ class Levels(commands.Cog):
                 math.floor(
                     5 * (level_mini_start ^ 2) + 50 * level_mini_start + 100
                 )
-                for level_mini_start in range(int(level))
+                for level_mini_start in range(int(level) + 1)
             )
 
             total_exp += exp
