@@ -550,7 +550,8 @@ class Economy(commands.Cog):
 
         return [Cards, Bet]
 
-    @commands.command(name="blackjack", usage="blackjack <amount>", alias=["bj"])
+    @commands.command(name="blackjack", usage="blackjack <amount>", aliases=["bj"])
+    @tools.has_perm()
     async def blackjack(self, ctx, amount):
         if amount[0] == "-" or amount == "0":
             return await ctx.send("Cannot bet amounts less than or equal to 0")
