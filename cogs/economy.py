@@ -404,7 +404,6 @@ class Economy(commands.Cog):
         embed.set_footer(text="Ploxy | Economy system")
         await ctx.send(embed=embed)
 
-        # {"balance": money, "cash": 0}
         data = await posts.find_one({"user_id": user.id})
 
         embed = Embed(color=0x36a39f, title=f"You got sent money in server: {ctx.guild.name}")
