@@ -256,7 +256,7 @@ class Economy(commands.Cog):
         money_total2 = user["balance"] + money
 
         await posts.update_one({"user_id": id2},
-                               {"$set": {"balance": money_total2}})
+                               {"$set": {"balance": money_total2, "user_id": id2}})
 
     @commands.group(name="economy", aliases=["eco"], usage="economy", no_pm=True)
     async def economy(self, ctx):
@@ -387,7 +387,12 @@ class Economy(commands.Cog):
         if await self.get_bank(ctx.author.id) < money:
             return await ctx.send("Not enough money to send this amount!")
 
-        await self.send_money(ctx.author.id, ctx.guild.id, money)
+        toSendId = user if type(user) is int else user.id
+
+        if await self.database.bot.economy.count_documents({"user_id": toSendId}) == 0:
+            return await ctx.send("Cannot pay the user !")
+
+        await self.send_money(ctx.author.id, toSendId, money)
 
         db = self.database.bot
         posts = db.economy
@@ -399,6 +404,7 @@ class Economy(commands.Cog):
         embed.set_footer(text="Ploxy | Economy system")
         await ctx.send(embed=embed)
 
+        # {"balance": money, "cash": 0}
         data = await posts.find_one({"user_id": user.id})
 
         embed = Embed(color=0x36a39f, title=f"You got sent money in server: {ctx.guild.name}")
@@ -545,8 +551,7 @@ class Economy(commands.Cog):
 
         return [Cards, Bet]
 
-    @commands.command(name="blackjack", usage="blackjack <amount>", aliases=["bj"])
-    @tools.has_perm()
+    @commands.command(name="blackjack", usage="blackjack <amount>", alias=["bj"])
     async def blackjack(self, ctx, amount):
         if amount[0] == "-" or amount == "0":
             return await ctx.send("Cannot bet amounts less than or equal to 0")
