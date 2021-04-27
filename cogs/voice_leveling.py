@@ -80,13 +80,16 @@ class VLevels(commands.Cog):
             self.users_in_vc.pop(str(member.id))
             # Calculate the time difference between now and then
             new_seconds_in_vc = datetime.datetime.now().timestamp() - time_since_join_vc.timestamp()
+
             if new_seconds_in_vc - user_obj["bad_seconds"] > 0:
                 exp += int(
                     ((new_seconds_in_vc - user_obj["bad_seconds"]) / 60 * 10) * multiplier)  # Multiplier may be a float
 
-            for level_mini_start in range(int(level)):
-                total_exp += math.floor(5 * (level_mini_start ^ 2) + 50 * level_mini_start + 100)
-            total_exp += exp
+            if total_exp == 0:
+                for level_mini_start in range(int(level) + 1):
+                    total_exp += math.floor(5 * (level_mini_start ^ 2) + 50 * level_mini_start + 100)
+
+            total_exp += int(((new_seconds_in_vc - user_obj["bad_seconds"]) / 60 * 10) * multiplier)
             seconds_in_vc += new_seconds_in_vc - user_obj["bad_seconds"]
             # formula for level up
 
