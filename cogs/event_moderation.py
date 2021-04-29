@@ -222,6 +222,39 @@ class EventsMod(commands.Cog):
             await log_channel.send(embed=embed)
         os.remove(file_name)
 
+    @commands.Cog.listener()
+    async def on_member_join(self, member):
+        db = self.database.bot
+        posts = db.serversettings
+
+        log_channel = 0
+
+        async for x in posts.find({"guild_id": member.guild.id}):
+            log_channel = x['log_channel']
+
+        embed = discord.Embed(colour=0x36a39f, title=f"{member.name}#{member.discriminator} joined")
+        embed.add_field(name="User id:", value=f"\n{member.id}", inline=False)
+        embed.set_thumbnail(url=member.avatar_url)
+        embed.set_footer(text="Ploxy | Logging and monitoring")
+        log_channel = self.bot.get_channel(log_channel)
+        await log_channel.send(embed=embed)
+
+    @commands.Cog.listener()
+    async def on_member_remove(self, member):
+        db = self.database.bot
+        posts = db.serversettings
+
+        log_channel = 0
+
+        async for x in posts.find({"guild_id": member.guild.id}):
+            log_channel = x['log_channel']
+
+        embed = discord.Embed(colour=0x36a39f, title=f"{member.name}#{member.discriminator} left")
+        embed.add_field(name="User id:", value=f"\n{member.id}", inline=False)
+        embed.set_thumbnail(url=member.avatar_url)
+        embed.set_footer(text="Ploxy | Logging and monitoring")
+        log_channel = self.bot.get_channel(log_channel)
+        await log_channel.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(EventsMod(bot))
