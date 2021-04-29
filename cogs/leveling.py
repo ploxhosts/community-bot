@@ -111,14 +111,16 @@ class Levels(commands.Cog):
                 member = ctx.guild.get_member(user_id)
                 if member is not None:
                     top.append(f"{count}. {member.name}#{member.discriminator} | Level {level} - {exp} XP")
-                    logger.error(msg=f"{count}. {member.name}#{member.discriminator} | Level {level} - {exp} XP - {total_exp}")
                     count += 1
                 if count % 11 == 0:  # 11, 22, 33, 44, 55
                     if (page * 11) == count:
                         break
                     else:
                         top.clear()
-            embed = discord.Embed(color=0x36a39f, title="Top 10 most active users", description="\n".join(top))
+            title_message = "Top 10 most active users"
+            if page > 1:
+                title_message = f"Top {page*10} most active users"
+            embed = discord.Embed(color=0x36a39f, title=title_message, description="\n".join(top))
             return await ctx.send(embed=embed)
         exp = 0
         level = 0
