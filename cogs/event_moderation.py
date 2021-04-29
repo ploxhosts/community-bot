@@ -291,5 +291,41 @@ class EventsMod(commands.Cog):
         log_channel = self.bot.get_channel(log_channel)
         await log_channel.send(embed=embed)
 
+    @commands.Cog.listener()
+    async def on_user_update(self, before, after):
+        db = self.database.bot
+
+        main_posts = db.player_data
+        async for guild in main_posts.find({"user_id": before.id}):
+            posts = db.serversettings
+            log_channel = 0
+
+            async for x in posts.find({"guild_id": guild["guild_id"]}):
+                log_channel = x['log_channel']
+
+            if before.avatar_url != after.avatar_url:  # role got changed
+                embed = discord.Embed(colour=0x36a39f, title=f"{after.name}#{after.discriminator}'s avatar updated")
+                embed.add_field(name="User id:", value=f"\n{after.id}", inline=False)
+                embed.add_field(name="Before:", value=f"\n{before.avatar_url}", inline=True)
+                embed.add_field(name="After:", value=f"\n{after.avatar_url}", inline=True)
+                embed.set_thumbnail(url=after.avatar_url)
+
+            elif before.name != after.name:  # nickname got changed
+                embed = discord.Embed(colour=0x36a39f, title=f"{after.name}#{after.discriminator} username changed")
+                embed.add_field(name="User id:", value=f"\n{after.id}", inline=False)
+                embed.add_field(name="Nickname changes:",
+                                value=f"\n`{before.name}` changed to `{after.name}`", inline=False)
+            elif before.discriminator != after.discriminator:  # nickname got changed
+                embed = discord.Embed(colour=0x36a39f, title=f"{after.name}#{after.discriminator} discriminator changed")
+                embed.add_field(name="User id:", value=f"\n{after.id}", inline=False)
+                embed.add_field(name="Nickname changes:",
+                                value=f"\n`{after.name}#{before.discriminator}` changed to `{after.name}#{after.discriminator}`", inline=False)
+            else:
+                return
+            embed.set_footer(text="Ploxy | Logging and monitoring")
+
+            log_channel = self.bot.get_channel(log_channel)
+            await log_channel.send(embed=embed)
+
 def setup(bot):
     bot.add_cog(EventsMod(bot))
