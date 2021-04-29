@@ -256,5 +256,40 @@ class EventsMod(commands.Cog):
         log_channel = self.bot.get_channel(log_channel)
         await log_channel.send(embed=embed)
 
+    @commands.Cog.listener()
+    async def on_member_update(self, before, after):
+        db = self.database.bot
+        posts = db.serversettings
+
+        log_channel = 0
+
+        async for x in posts.find({"guild_id": before.guild.id}):
+            log_channel = x['log_channel']
+
+        if before.roles != after.roles:  # role got changed
+            diff_roles = ""
+            role_changes = list(set(before.roles) - set(after.roles))
+            if not role_changes:
+                role_changes = list(set(after.roles) - set(before.roles))
+            for role in role_changes:
+                if role in before.roles:
+                    diff_roles += f"\n[**-**] {role.name}"
+                else:
+                    diff_roles += f"\n[**+**] {role.name}"
+            embed = discord.Embed(colour=0x36a39f, title=f"{after.name}#{after.discriminator}'s roles updated")
+            embed.add_field(name="User id:", value=f"\n{after.id}", inline=False)
+            embed.add_field(name="Role changes:", value=f"\n{diff_roles}", inline=False)
+
+        elif before.display_name != after.display_name: # nickname got changed
+            embed = discord.Embed(colour=0x36a39f, title=f"{after.name}#{after.discriminator} nickname changed")
+            embed.add_field(name="User id:", value=f"\n{after.id}", inline=False)
+            embed.add_field(name="Nickname changes:", value=f"\n`{before.display_name}` changed to `{after.display_name}`", inline=False)
+        else:
+            return
+        embed.set_footer(text="Ploxy | Logging and monitoring")
+        embed.set_thumbnail(url=after.avatar_url)
+        log_channel = self.bot.get_channel(log_channel)
+        await log_channel.send(embed=embed)
+
 def setup(bot):
     bot.add_cog(EventsMod(bot))
