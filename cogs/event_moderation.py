@@ -65,6 +65,7 @@ class EventsMod(commands.Cog):
         embed.add_field(name="Message:", value=f"\n{message.data['content']}", inline=False)
         embed.add_field(name="Edit history:", value=f"\n{history}", inline=False)
         embed.set_footer(text="Ploxy | Logging and monitoring")
+
         log_channel = self.bot.get_channel(channel)
 
         await log_channel.send(embed=embed)
@@ -103,6 +104,8 @@ class EventsMod(commands.Cog):
         log_channel = 0
         async for x in posts.find({"guild_id": message.guild_id}):
             log_channel = x['log_channel']
+        if log_channel == 0:
+            return
         posts = db.message_logs
         reported = False
         JSON = False
@@ -147,6 +150,9 @@ class EventsMod(commands.Cog):
 
             for x in posts.find({"guild_id": int(message.data["guild_id"])}):
                 log_channel = x['log_channel']
+
+            if log_channel == 0:
+                return
 
             posts = db.message_logs
             edits = []
@@ -215,6 +221,8 @@ class EventsMod(commands.Cog):
         embed.add_field(name="Messages purged:", value=f"\n{len(message.message_ids)}", inline=False)
         embed.add_field(name="Channel:", value=f"\n{channel_ex.mention}", inline=False)
         embed.set_footer(text="Ploxy | Logging and monitoring")
+        if log_channel == 0:
+            return
         log_channel = self.bot.get_channel(log_channel)
         if use_file:
             await log_channel.send(embed=embed, file=discord.File(file_name, filename="log.txt"))
@@ -236,6 +244,8 @@ class EventsMod(commands.Cog):
         embed.add_field(name="User id:", value=f"\n{member.id}", inline=False)
         embed.set_thumbnail(url=member.avatar_url)
         embed.set_footer(text="Ploxy | Logging and monitoring")
+        if log_channel == 0:
+            return
         log_channel = self.bot.get_channel(log_channel)
         await log_channel.send(embed=embed)
 
@@ -253,6 +263,10 @@ class EventsMod(commands.Cog):
         embed.add_field(name="User id:", value=f"\n{member.id}", inline=False)
         embed.set_thumbnail(url=member.avatar_url)
         embed.set_footer(text="Ploxy | Logging and monitoring")
+
+        if log_channel == 0:
+            return
+
         log_channel = self.bot.get_channel(log_channel)
         await log_channel.send(embed=embed)
 
@@ -288,6 +302,10 @@ class EventsMod(commands.Cog):
             return
         embed.set_footer(text="Ploxy | Logging and monitoring")
         embed.set_thumbnail(url=after.avatar_url)
+
+        if log_channel == 0:
+            return
+
         log_channel = self.bot.get_channel(log_channel)
         await log_channel.send(embed=embed)
 
@@ -324,6 +342,8 @@ class EventsMod(commands.Cog):
                 return
             embed.set_footer(text="Ploxy | Logging and monitoring")
 
+            if log_channel == 0:
+                return
             log_channel = self.bot.get_channel(log_channel)
             await log_channel.send(embed=embed)
 
