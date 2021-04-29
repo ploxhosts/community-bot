@@ -384,8 +384,9 @@ class Economy(commands.Cog):
     @commands.command(name="pay", aliases=["transfer"], usage="pay @user money", no_pm=True)
     @tools.has_perm()
     async def pay(self, ctx, user: discord.Member, money: int):
-        if await self.get_bank(ctx.author.id) < money:
-            return await ctx.send("Not enough money to send this amount!")
+        pre_balance = await self.get_bank(ctx.author.id)
+        if pre_balance < money:
+            return await ctx.send("Not enough bank balance to send this amount!")
 
         toSendId = user if type(user) is int else user.id
 
@@ -398,19 +399,17 @@ class Economy(commands.Cog):
         posts = db.economy
         data = await posts.find_one({"user_id": ctx.author.id})
 
-        embed = Embed(color=0x36a39f, title=f"Sent {user.name}#{user.discriminator} money")
-        embed.add_field(name="💰Total Balance:", value=f"${data['balance']}", inline=True)
-        embed.add_field(name="💸Total Cash:", value=f"${data['cash'][str(ctx.guild.id)]}", inline=True)
+        embed = Embed(color=0x36a39f, title=f"Sent ${money} to {user.name}#{user.discriminator}", description=f"✅ {user.mention} has received the money!")
         embed.set_footer(text="Ploxy | Economy system")
         await ctx.send(embed=embed)
 
         data = await posts.find_one({"user_id": user.id})
 
-        embed = Embed(color=0x36a39f, title=f"You got sent money in server: {ctx.guild.name}")
+        embed = Embed(color=0x36a39f, title=f"You got Money from {ctx.author.name}#{ctx.author.discriminator}!")
         embed.add_field(name="📧Money received:", value=f"${money}", inline=True)
         embed.add_field(name="💰Total Balance:", value=f"${data['balance']}", inline=True)
-        embed.add_field(name="💸Total Cash:", value=f"${data['cash'][str(ctx.guild.id)]}", inline=True)
-        embed.set_footer(text="Ploxy | Economy system")
+        embed.add_field(name="Link to channel:", value=f"{ctx.channel.mention}", inline=True)
+        embed.set_footer(text=f"Ploxy | Economy system | {ctx.guild.name}")
         await user.send(embed=embed)
 
     @commands.command(name="deposit", aliases=["storemoney", "storecash", "dep"], usage="deposit <amount>", no_pm=True)
