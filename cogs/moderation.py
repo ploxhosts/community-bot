@@ -22,12 +22,12 @@ class Mod(commands.Cog):
         posts = db.pending_mutes
         async for user in posts.find({}):
             try:
-                user_id = user["user_id"]
-                guild_id = user["guild_id"]
                 ban_time = user["time"]
                 if ban_time is not None:
                     iat = user["issued"]
                     roles = user["roles"]
+                    user_id = user["user_id"]
+                    guild_id = user["guild_id"]
                     current_time_utc = datetime.datetime.now()
                     change = current_time_utc - iat
                     minutes_change = change.total_seconds() / 60
@@ -172,7 +172,7 @@ class Mod(commands.Cog):
             await posts.insert_one(
                 {"guild_id": ctx.guild.id, "user_id": member.id, "time": duration_formatted,
                  "issued": datetime.datetime.now(), "roles": role_list2})
-            if duration_formatted is not None and (duration_formatted * 60) < 800:
+            if duration_formatted is not None and duration_formatted < 800 / 60:
                 await asyncio.sleep(duration_formatted * 60)
                 await posts.delete_many({"guild_id": ctx.guild.id, "user_id": member.id})
                 await member.remove_roles(role, reason="Mute expired")
@@ -334,11 +334,8 @@ class Mod(commands.Cog):
             embed = discord.Embed(colour=0x36a39f, description=f"You have been banned")
             embed.add_field(name="Reason", value=f"{reason}", inline=False)
             await user.send(embed=embed)
-            await ctx.guild.ban(user=user, reason=reason)
-            await ctx.send(f"{user} has been banned for {reason}")
-        else:
-            await ctx.guild.ban(user=user, reason=reason)
-            await ctx.send(f"{user} has been banned for {reason}")
+        await ctx.guild.ban(user=user, reason=reason)
+        await ctx.send(f"{user} has been banned for {reason}")
         warn_id = tools.generate_flake()
         time_warned = datetime.datetime.now()
         await posts.insert_one({"user_id": user.id,

@@ -293,7 +293,7 @@ class Chat(commands.Cog):
                 await guild.ban(user=message.author.id, reason="Mass mention - auto moderation", delete_message_days=0)
                 await channel.send(
                     f"{message.author.id} | {message.author.name} has been banned from the server for mentioning too many people!")
-        urls = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+',
+        urls = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|%[0-9a-fA-F][0-9a-fA-F])+',
                           message.content)
         spam_links = []
         for url in urls:
@@ -333,10 +333,10 @@ class Chat(commands.Cog):
         if message1.attachments is None or message2.attachments is None:  # Could be multiple image
             return
         if len(message1.attachments) == len(message2.attachments) and len(
-                    message1.attachments):  # Same amount it is about 2 images
-                # Attachments/images/files
+                message1.attachments):  # Same amount it is about 2 images
+            # Attachments/images/files
             for attachment1, attachment2 in zip(message1.attachments,
-                                                    message2.attachments):  # Loop through each attachment
+                                                message2.attachments):  # Loop through each attachment
                 if attachment1.size == attachment2.size:  # The bytes are the same so the image is 99% the same
                     try:
                         if await self.delete_message(message2) == "Deleted":
@@ -623,7 +623,7 @@ class Chat(commands.Cog):
             await ctx.send(embed=em)
 
     @chat.command(name="invites", aliases=["invite"], usage="chat invites <add|remove|list>")
-    @tools.has_perm(manage_guild=True)
+    @tools.has_perm(manage_messages=True)
     async def invites(self, ctx, option, *, setting=None):
         db = self.database.bot
         posts = db.serversettings
@@ -696,7 +696,7 @@ class Chat(commands.Cog):
             return await ctx.send(f"Turned off invite detection and removal!")
 
     @chat.command(name="mod", aliases=["moderation"], usage="chat mod <enable|disable>")
-    @tools.has_perm(manage_guild=True)
+    @tools.has_perm(manage_messages=True)
     async def mod(self, ctx, option="else"):
         db = self.database.bot
         posts = db.serversettings
@@ -729,7 +729,7 @@ class Chat(commands.Cog):
                 await ctx.send("Chat moderation is off!")
 
     @chat.command(name="mentions", aliases=["mention"], usage="chat mentions <set|reset> <value>")
-    @tools.has_perm(manage_guild=True)
+    @tools.has_perm(manage_messages=True)
     async def mentions(self, ctx, option, value: int):
         db = self.database.bot
         posts = db.serversettings
@@ -770,7 +770,7 @@ class Chat(commands.Cog):
             await ctx.send(f"Disallowed chat moderation and anti raid!")
 
     @chat.command(name="bans", aliases=["ban"], usage="chat bans <set|reset> <minutes>")
-    @tools.has_perm(manage_guild=True)
+    @tools.has_perm(manage_bans=True)
     async def bans(self, ctx, option, value: int):
         db = self.database.bot
         posts = db.serversettings
@@ -801,7 +801,7 @@ class Chat(commands.Cog):
             await ctx.send(f"Temp ban time disabled!")
 
     @chat.command(name="mutes", aliases=["mute"], usage="chat mutes <set|reset> <minutes>")
-    @tools.has_perm(manage_guild=True)
+    @tools.has_perm(manage_messages=True)
     async def mutes(self, ctx, option, value: int):
         db = self.database.bot
         posts = db.serversettings
@@ -832,7 +832,7 @@ class Chat(commands.Cog):
             await ctx.send(f"Disallowed auto chat muting!")
 
     @chat.command(name="channel", aliases=["channels"], usage="chat channel <add|remove|list> <#channel>")
-    @tools.has_perm(manage_guild=True)
+    @tools.has_perm(manage_messages=True)
     async def channel(self, ctx, option, value: discord.TextChannel = "all"):
         db = self.database.bot
         posts = db.serversettings
