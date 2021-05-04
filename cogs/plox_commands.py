@@ -13,9 +13,43 @@ class Support(commands.Cog):
         self.database = bot.database
 
     async def cog_check(self, ctx):
-        return ctx.guild.id in [346715007469355009, 742055439088353341]  # Replace list with people who you trust
+        db = self.database
+        posts = db.serversettings
+        data = await posts.find_one({"guild_id": ctx.guild.id})
 
-    @commands.command(name='book', aliases=["rtfm"], usage="book How to delete server files",  description="search the knowledge base")
+        return bool(
+            data["support"] is True
+            or ctx.guild.id in [346715007469355009, 742055439088353341]
+        )
+
+    @commands.group(name='support', aliases=["spprt"], usage="support",
+                    description="Access the support settings")
+    @tools.has_perm()
+    async def support(self, ctx):
+        pass
+
+    @support.command(name='allow', aliases=["enable"], usage="support allow",
+                     description="Allows the use of support commands and features such as auto support and knowledge base search")
+    @tools.has_perm(manage_messages=True)
+    async def allow(self, ctx):
+        db = self.database
+        posts = db.serversettings
+        await posts.update_one({"guild_id": ctx.guild.id},
+                               {"$set": {"support": True}})
+        await ctx.send("Allowed the use of support services in this server.")
+
+    @support.command(name='deny', aliases=["disable"], usage="support deny",
+                     description="Denies the use of support commands and features such as auto support and knowledge base search")
+    @tools.has_perm(manage_messages=True)
+    async def deny(self, ctx):
+        db = self.database
+        posts = db.serversettings
+        await posts.update_one({"guild_id": ctx.guild.id},
+                               {"$set": {"support": False}})
+        await ctx.send("Allowed the use of support services in this server.")
+
+    @commands.command(name='book', aliases=["rtfm"], usage="book How to delete server files",
+                      description="search the knowledge base")
     @tools.has_perm()
     async def book(self, ctx, *, search):
         csrf_token = None

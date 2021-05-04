@@ -162,6 +162,7 @@ def get_server_settings(guild_id):
         "extra_settings": {},
         "latest_update": datetime.datetime.utcnow(),
         "linked_guilds": {},  # guild_id with a parent or child or mutual where bans get transferred
+        "support": False
     }
 
 
