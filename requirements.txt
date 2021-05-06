@@ -8,3 +8,5 @@ lxml
 motor
 discord-py-slash-command
 dnspython
+opencv-python
+pytesseract
