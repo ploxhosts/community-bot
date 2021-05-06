@@ -9,8 +9,8 @@ COPY . .
 
 
 RUN apt-get update
-RUN apt-get install tesseract-ocr
-RUN apt-get install libtesseract-dev
+RUN apt-get install tesseract-ocr -y
+RUN apt-get install libtesseract-dev -y
 
 # install dependencies
 RUN pip install -r requirements.txt
