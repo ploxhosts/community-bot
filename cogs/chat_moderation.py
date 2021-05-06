@@ -770,7 +770,7 @@ class Chat(commands.Cog):
             await ctx.send(f"Disallowed chat moderation and anti raid!")
 
     @chat.command(name="bans", aliases=["ban"], usage="chat bans <set|reset> <minutes>")
-    @tools.has_perm(manage_bans=True)
+    @tools.has_perm(ban_members=True)
     async def bans(self, ctx, option, value: int):
         db = self.database.bot
         posts = db.serversettings
