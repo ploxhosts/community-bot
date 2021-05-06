@@ -10,10 +10,8 @@ services:
             - mongodb
         networks:
             - backend
-        environment:
-            - prefix=?
-            - bot_token=TOKEN
-            - connection_string=mongodb://root:root@mongodb
+        env_file: 
+            - .env
     mongodb:
         image: mongo:latest
         restart: unless-stopped
@@ -21,9 +19,8 @@ services:
             - mongodb_combot:/data/db
         expose:
             - "27017"
-        environment:
-            MONGO_INITDB_ROOT_USERNAME: root
-            MONGO_INITDB_ROOT_PASSWORD: root
+        env_file: 
+            - .env
         networks:
             - backend
 networks:
