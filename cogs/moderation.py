@@ -215,10 +215,8 @@ class Mod(commands.Cog):
         async for x in posts.find({"guild_id": ctx.guild.id, "user_id": user.id}):
             logs = x["mod_logs"]
 
-        a = len(logs)
-        if not a:
-            a = 0
-        a += 1
+        warn_count = len(logs) + 1
+
         warn_id = tools.generate_flake()
         logs.append({"type": "WARNED", "warn_id": warn_id, "reason": reason, "issuer": ctx.author.id,
                      "time": time_warned.strftime('%c')})
@@ -228,7 +226,7 @@ class Mod(commands.Cog):
         embed = discord.Embed(colour=discord.Colour(0x36a39f), description=f"You have been warned!")
         embed.add_field(name="Reason:", value=f"{reason}", inline=False)
         embed.add_field(name="ID:", value=f"{warn_id}", inline=False)
-        embed.add_field(name="You now have:", value=f"{a} warnings", inline=True)
+        embed.add_field(name="You now have:", value=f"{warn_count} warnings", inline=True)
         embed.set_footer(text="Ploxy | Moderation")
         embed = discord.Embed(colour=discord.Colour(0x36a39f), description=f"{user.mention} has been warned!")
         embed.add_field(name="user ID:", value=f"{user.id}", inline=False)
