@@ -230,12 +230,15 @@ class Mod(commands.Cog):
         embed.add_field(name="ID:", value=f"{warn_id}", inline=False)
         embed.add_field(name="You now have:", value=f"{a} warnings", inline=True)
         embed.set_footer(text="Ploxy | Moderation")
-        await user.send(embed=embed)
-
         embed = discord.Embed(colour=discord.Colour(0x36a39f), description=f"{user.mention} has been warned!")
         embed.add_field(name="user ID:", value=f"{user.id}", inline=False)
         embed.add_field(name="Reason:", value=f"{reason}", inline=False)
         embed.add_field(name="ID:", value=f"{warn_id}", inline=False)
+        try:
+            await user.send(embed=embed)
+        except:
+            embed.add_field(name="Dm warning", value=f"❌ Failed", inline=False)
+
         embed.set_footer(text="Ploxy | Moderation")
         await ctx.send(embed=embed)
         await ctx.message.delete()
@@ -263,8 +266,11 @@ class Mod(commands.Cog):
             embed.add_field(name="Reason", value=f"{reason}", inline=False)
             embed.add_field(name="You now have:", value=f"{a} warnings", inline=True)
             embed.set_footer(text="Ploxy | Moderation")
-            await user.send(embed=embed)
-            await ctx.send(f"{user.name}'s warning with the id of `{warn_id}` has been removed!")
+            try:
+                await user.send(embed=embed)
+                await ctx.send(f"{user.name}'s warning with the id of `{warn_id}` has been removed!")
+            except:
+                await ctx.send(f"{user.name}'s warning with the id of `{warn_id}` has been removed but they did not recieve a dm!")
             await ctx.message.delete()
 
             await posts.update_one({"guild_id": ctx.guild.id, "user_id": user.id},
