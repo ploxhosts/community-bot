@@ -8,9 +8,12 @@ WORKDIR /code
 COPY . .
 
 
+RUN apt-get update
+RUN apt-get install tesseract-ocr -y
+RUN apt-get install libtesseract-dev -y
+
 # install dependencies
 RUN pip install -r requirements.txt
-
 
 
 # command to run on container start
