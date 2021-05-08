@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 from dotenv import load_dotenv
 import os
 from motor.motor_asyncio import AsyncIOMotorClient
