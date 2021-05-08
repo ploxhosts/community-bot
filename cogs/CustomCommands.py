@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import discord
-from discord.ext import commands
-import datetime
 import asyncio
-import tools
 import os
+
+from discord.ext import commands
+import discord
+
+import tools
 
 
 class CustomCommands(commands.Cog):

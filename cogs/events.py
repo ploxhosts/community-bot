@@ -3,8 +3,10 @@
 
 import datetime
 import os
-import discord
+
 from discord.ext import commands
+import discord
+
 from tools import check_if_update
 
 default_prefix = os.getenv('prefix')

@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import datetime
+import asyncio
+import logging
+import random
+import math
+
+from discord.ext.commands import MemberConverter
+from discord.ext import commands
 import discord
 import pymongo
-from discord.ext import commands
-import math
-import datetime
-import random
-import asyncio
+
 import tools
-from discord.ext.commands import MemberConverter
-import logging
 
 logger = logging.getLogger(__name__)
 

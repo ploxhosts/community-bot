@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import os
+
 from discord.ext import commands
 import discord
+
 import tools
-import os
 
 default_prefix = os.getenv('prefix')
 

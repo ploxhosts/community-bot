@@ -2,15 +2,17 @@
 # -*- coding: utf-8 -*-
 
 import asyncio
+import os
 
 from discord.ext import commands
-import discord
-import tools
 from bs4 import BeautifulSoup
-import aiohttp
-import cv2
 import pytesseract
-import os
+import aiohttp
+import discord
+import cv2
+
+import tools
+
 
 if os.name == 'nt':
     pytesseract.pytesseract.tesseract_cmd = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"

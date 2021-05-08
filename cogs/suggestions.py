@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from discord.ext import commands
-import discord
-import asyncio
 import datetime
-import time
 import random
+import time
+
+from discord.ext import commands
+import asyncio
+import discord
+
 import tools
 
 

@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from typing import Iterator
+import datetime
 import random
 import time
-from discord.ext import commands
+
 from discord.ext.commands import MissingPermissions
-from typing import Iterator
-from prepare import database
+from discord.ext import commands
 import discord
-import datetime
+
+from prepare import database
 
 
 def generate_flake():

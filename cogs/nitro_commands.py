@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import datetime
+
 from discord.ext import commands
 import discord
-import datetime
+
 import tools
 
 

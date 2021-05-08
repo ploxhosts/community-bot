@@ -5,10 +5,10 @@ import calendar
 import datetime
 import random
 
-import discord
-from discord import Embed
-from discord.ext import commands, tasks
 from discord.ext.commands import CommandOnCooldown
+from discord.ext import commands, tasks
+from discord import Embed
+import discord
 
 import tools
 

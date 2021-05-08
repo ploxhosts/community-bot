@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import datetime
 import math
 import json
+
 from discord.ext import commands, tasks
+import datetime
 
 
 class VLevels(commands.Cog):

@@ -2,12 +2,14 @@
 # -*- coding: utf-8 -*-
 
 import traceback
-import os
-from discord.ext import commands
-from discord.ext.commands.errors import *
-from tools import RevokedAddedPerms, MissingAddedPerms
-import discord
 import logging
+import os
+
+from discord.ext.commands.errors import *
+from discord.ext import commands
+import discord
+
+from tools import RevokedAddedPerms, MissingAddedPerms
 
 logger = logging.getLogger(__name__)
 

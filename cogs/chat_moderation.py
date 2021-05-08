@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import asyncio
-import datetime
-import os
-import random
-import re
-from collections import Counter
 from urllib.parse import urlparse
-import discord
+from collections import Counter
+import datetime
+import asyncio
+import random
+import os
+import re
+
 from discord.ext import commands
+import discord
+
 import tools
 
 

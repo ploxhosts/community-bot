@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from discord_slash.utils.manage_commands import create_option
 from discord_slash import cog_ext, SlashContext
 from discord.ext import commands
-import discord
-import tools
 from bs4 import BeautifulSoup
 import aiohttp
-from discord_slash.utils.manage_commands import create_option, create_choice
+import discord
 
 
 class SlashCommands(commands.Cog):

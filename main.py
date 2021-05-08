@@ -1,20 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import datetime
-import json
-import logging
-import os
-import random
-import time
-import discord
-from discord.ext import commands, tasks
+from pathlib import Path
 import urllib.request
 import urllib.error
+import datetime
+import logging
+import random
 import shutil
-from pathlib import Path
+import json
+import time
+import os
+
 from discord_slash.utils import manage_commands
+from discord.ext import commands, tasks
 from discord_slash import SlashCommand
+import discord
 
 # Runs database connections and env
 from prepare import database

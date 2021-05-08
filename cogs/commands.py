@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import discord
-from discord.ext import commands
-import random
 from datetime import datetime
-import requests
+import random
+
+from discord.ext import commands
+import discord
 import aiohttp
+
 import tools
 
 
