@@ -125,7 +125,10 @@ def overwrite_files():
 
 
 def get_new_files() -> None:
-    if prod == 0:
+    if prod == 0 or prod is None:
+        rootLogger.critical(
+            "Not fetching new files. Because prod is 0 or not set"
+        )
         return
 
     urllib.request.urlretrieve(prod, "code.zip")
@@ -264,9 +267,9 @@ if __name__ == '__main__':
     bot.delete_message_cache = []  # type: ignore
 
     if Global.prod is not None:
-        prod: str = Prod.urls[Global.prod]
+        prod = Prod.urls[Global.prod]
 
-        if not prod:
+        if not prod or prod is None:
             rootLogger.critical("No production URL set")
 
     else:

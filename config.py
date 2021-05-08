@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from typing import Dict, Union
 import os
 
 
@@ -15,7 +16,7 @@ class Global(object):
 
 
 class Prod(object):
-    urls = {
+    urls: Dict[int, Union[str, None]] = {
         0: None,
         1: 'https://github.com/PloxHost-LLC/community-bot/archive/refs/heads/main.zip',
         2: 'https://github.com/PloxHost-LLC/community-bot/archive/refs/heads/test.zip',
