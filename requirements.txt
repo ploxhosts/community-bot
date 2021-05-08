@@ -10,3 +10,4 @@ discord-py-slash-command
 dnspython
 opencv-python
 pytesseract
+aiosqlite==0.17.0
