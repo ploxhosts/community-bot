@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from pathlib import Path
+from typing import List
 import urllib.request
 import urllib.error
 import datetime
@@ -15,91 +16,40 @@ import os
 from discord_slash.utils import manage_commands
 from discord.ext import commands, tasks
 from discord_slash import SlashCommand
+from dotenv import load_dotenv
 import discord
 
+# init env before local imports
+load_dotenv()
+
 # Runs database connections and env
+from config import Global, Ids, Prod
 from prepare import database
 
-token = os.getenv('bot_token')
-prod_org = os.getenv('prod')
-prod = os.getenv('prod')
-try:
-    if int(prod_org) == 1:  # main branch
-        prod = "https://github.com/PloxHost-LLC/community-bot/archive/refs/heads/main.zip"
-    elif int(prod_org) == 2:  # test branch
-        prod = "https://github.com/PloxHost-LLC/community-bot/archive/refs/heads/test.zip"
-    elif int(prod_org) == 3:
-        prod = os.getenv('prod_string')
-    elif prod_org is None:
-        prod = "https://github.com/PloxHost-LLC/community-bot/archive/refs/heads/main.zip"
-except Exception as e:
-    print(e)
-    prod_org = 0
-    prod = 0
 
-# logger = logging.getLogger('discord')
-# logger.setLevel(logging.DEBUG)
-# handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
-# handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-# logger.addHandler(handler)
-
-
-with open('jokes.json', "r+", encoding="utf-8") as json_file:
-    joke_list = json.load(json_file)
-    jokes = []
-    for joke in joke_list:
-        jokes.append(joke_list[str(joke)])
-
-
-# noinspection PyShadowingNames
-async def get_prefix(bot, message):
-    prefix = os.getenv("prefix") or "?"  # Default prefix specified in the env file or ? as default
-
-    if not message.guild:
-        return commands.when_mentioned_or(prefix)(bot, message)
-    db = database.bot
-    collection = db.serversettings
-
-    result = await collection.find_one({"guild_id": message.guild.id})
-    if result is not None:
-        prefix = result["prefix"]
-    return commands.when_mentioned_or(prefix)(bot, message)
-
-
-intents = discord.Intents.all()  # Allow the use of custom intents
-
-bot = commands.Bot(command_prefix=get_prefix, case_insensitive=True, intents=intents)
-slash = SlashCommand(bot, sync_commands=True, override_type=True)
-
-bot.remove_command('help')  # Get rid of the default help command as there is no use for it
-
-bot.database = database  # for use else where
-
-bot.delete_message_cache = []
-
+# Setup logger
 os.makedirs("logs", exist_ok=True)
 
 fileName = time.strftime("%Y-%m-%d-%H%M")
 
 for filename in os.listdir("logs"):
-
     if filename.endswith(".log"):
         f_name = filename.split("-")
         year = int(f_name[0])
         month = int(f_name[1])
         day = int(f_name[2])
         now = datetime.datetime.now()
+
         if now.month - month >= 1:
             os.remove(os.path.join("logs", filename))
 
-f = open(f"logs/{fileName}.log", "w")
-f.close()
 
 fileHandler = logging.FileHandler(f"logs/{fileName}.log")
-
 rootLogger = logging.getLogger()
 
-logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
+logFormatter = logging.Formatter(
+    "%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s"
+)
 fileHandler.setFormatter(logFormatter)
 rootLogger.addHandler(fileHandler)
 
@@ -107,27 +57,30 @@ consoleHandler = logging.StreamHandler()
 consoleHandler.setFormatter(logFormatter)
 rootLogger.addHandler(consoleHandler)
 
+intents = discord.Intents.all()  # Allow the use of custom intents
 
-# What gets executed when bot connects to discord's api
+# noinspection PyShadowingNames
+async def get_prefix(bot, message):
+    prefix = Global.prefix
 
-@bot.event
-async def on_ready():
-    members = len(set(bot.get_all_members()))
-    channel = bot.get_channel(809129113985876020)
-    if channel:
-        channel: discord.TextChannel
-        await channel.send(f"Logged in as {bot.user.id} \nin {len(bot.guilds)} servers with {members} members")
-    rootLogger.debug('-----------------')
-    rootLogger.debug(f"Logged in as {bot.user.id} \nin {len(bot.guilds)} servers with {members} members")
-    rootLogger.debug('-----------------')
-    print('-----------------')
-    print(f"Logged in as {bot.user.id} \nin {len(bot.guilds)} servers with {members} members")
-    print('-----------------')
-    change_status.start()
+    if not message.guild:
+        return commands.when_mentioned_or(prefix)(bot, message)
 
-    if bot.user.id in [696430450142347357, 749899795782434897]:
-        await manage_commands.remove_all_commands(bot.user.id, token, None)
+    db = database.bot
+    collection = db.serversettings
 
+    result = await collection.find_one({"guild_id": message.guild.id})
+
+    if result is not None:
+        prefix = result["prefix"]
+
+    return commands.when_mentioned_or(prefix)(bot, message)
+
+bot = commands.Bot(
+    command_prefix=get_prefix,
+    case_insensitive=True,
+    intents=intents
+)
 
 @bot.event
 async def on_message(message):
@@ -138,36 +91,13 @@ async def on_message(message):
 # Allow /cog/ restart command for the bot owner
 
 async def is_owner(ctx):
-    return ctx.author.id in [553614184735047712, 148549003544494080,
-                             518854761714417664]  # Replace list with people who you trust
-
-
-@bot.command()
-@commands.check(is_owner)
-async def shutdown(ctx):
-    try:
-        await ctx.bot.logout()
-    except EnvironmentError as error:
-        rootLogger.error(error)
-        ctx.bot.clear()
-
-
-@bot.command()
-@commands.check(is_owner)
-async def reload(ctx, cog_name):
-    try:
-        bot.unload_extension(f"cogs.{cog_name}")
-        bot.load_extension(f"cogs.{cog_name}")
-        await ctx.send(f"{cog_name} reloaded")
-    except Exception as exception:
-        rootLogger.critical(f"{cog_name} can not be loaded: {exception}")
-        raise exception
+    return ctx.author.id in Ids.owners
 
 
 def overwrite_files():
-    if prod_org == 1:
+    if Global.prod == 1:
         start_path = "new_code/community-bot-main"
-    elif prod_org == 2:
+    elif Global.prod == 2:
         start_path = "new_code/community-bot-test"
     else:
         return
@@ -194,10 +124,10 @@ def overwrite_files():
                 Path(file).replace(existing_file)
 
 
-def get_new_files():
-    global prod, prod_org
+def get_new_files() -> None:
     if prod == 0:
         return
+
     urllib.request.urlretrieve(prod, "code.zip")
 
     zip_file = 'code.zip'
@@ -207,6 +137,28 @@ def get_new_files():
     shutil.unpack_archive(zip_file, new_code)
 
     overwrite_files()
+
+
+@bot.command()
+@commands.check(is_owner)
+async def shutdown(ctx):
+    try:
+        await ctx.bot.logout()
+    except EnvironmentError as error:
+        rootLogger.error(error)
+        ctx.bot.clear()
+
+
+@bot.command()
+@commands.check(is_owner)
+async def reload(ctx, cog_name):
+    try:
+        bot.unload_extension(f"cogs.{cog_name}")
+        bot.load_extension(f"cogs.{cog_name}")
+        await ctx.send(f"{cog_name} reloaded")
+    except Exception as exception:
+        rootLogger.critical(f"{cog_name} can not be loaded: {exception}")
+        raise exception
 
 
 @bot.command()
@@ -244,62 +196,103 @@ async def update(ctx):
 @commands.check(is_owner)
 async def getserverfile(ctx, file=None):
     if file is None:
-        files = [
-            file_name
-            for file_name in os.listdir("logs")
-            if file_name.endswith(".log")
-        ]
-
+        files = [x for x in os.listdir("logs") if x.endswith(".log")]
         await ctx.author.send("\n".join(files))
+
     else:
         try:
             await ctx.author.send(file=discord.File(os.path.join("logs", file)))
         except Exception as e:
             await ctx.send("An error occurred!")
-            print(e)
             rootLogger.critical(e)
 
 
 # Used for the automatic change of status messages
-
 @tasks.loop(minutes=3.0, count=None, reconnect=True)
 async def change_status():
-    unique_joke = str(random.choice(jokes)).replace("|", "").strip()
-    statuses = [f"{os.getenv('prefix')}help | My dms are open ;)",
-                f"{os.getenv('prefix')}help | Open-Source on github",
-                f"{os.getenv('prefix')}help | $1 per gb Plox.Host",
-                f"Managing {len(set(bot.get_all_members()))} members!",
-                "Plox.Host", "Management to be looking sus",
-                "Should you be cheating on your test?",
-                "Do I have friends?",
-                f"{unique_joke}",
-                "Some random joke failed to be rendered",
-                "HTML is a programming language no cap"]
+    unique_joke = random.choice(jokes).replace("|", "").strip()
+
+    statuses = [
+        f"{os.getenv('prefix')}help | My dms are open ;)",
+        f"{os.getenv('prefix')}help | Open-Source on github",
+        f"{os.getenv('prefix')}help | $1 per gb Plox.Host",
+        f"Managing {len(set(bot.get_all_members()))} members!",
+        "Plox.Host", "Management to be looking sus",
+        "Should you be cheating on your test?",
+        "Do I have friends?",
+        f"{unique_joke}",
+        "Some random joke failed to be rendered",
+        "HTML is a programming language no cap"
+    ]
     status = random.choice(statuses)
+
     await bot.change_presence(status=discord.Status.online, activity=discord.Game(status))
 
 
-# Adding sub commands from folder /cogs/ to clean up main.py
-# All commands should be added to the cogs and not touch main.py unless needed to
-for cog_new in os.listdir("cogs"):
-    if cog_new.endswith(".py"):
-        try:
-            cog = f"cogs.{cog_new.replace('.py', '')}"
-            bot.load_extension(cog)
-        except Exception as e:
-            rootLogger.critical(f"{cog_new} can not be loaded: {e}")
-if str(prod) != "0":
-    try:
-        get_new_files()
-        print("Pulled new updates")
-    except urllib.error.HTTPError as e:
-        rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
-        rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
-        print("--------------------------------------------------------------------------------")
-        print(f"CANNOT UPDATE CODE: {e}")
-        print("--------------------------------------------------------------------------------")
-else:
-    print("Not pulling new updates")
-# Start up the bot
+@bot.event
+async def on_ready():
+    members = len(set(bot.get_all_members()))
+    channel: discord.TextChannel = bot.get_channel(
+        809129113985876020
+    )  # type: ignore
+    msg = f"Logged in as {bot.user.id} \nin {len(bot.guilds)} servers with {members} members"
 
-bot.run(token)
+    if channel is not None:
+        await channel.send(msg)
+
+    rootLogger.debug('-' * 17)
+    rootLogger.debug(msg)
+    rootLogger.debug('-' * 17)
+
+    print('-' * 17)
+    print(msg)
+    print('-' * 17)
+
+    change_status.start()
+
+    if bot.user.id in Ids.ploxy.values():
+        await manage_commands.remove_all_commands(bot.user.id, Global.token, None)
+
+if __name__ == '__main__':
+    slash = SlashCommand(bot, sync_commands=True, override_type=True)
+
+    # Get rid of the default help command as there is no use for it
+    bot.remove_command('help')
+
+    # for use elsewhere
+    bot.database = database  # type: ignore
+    bot.delete_message_cache = []  # type: ignore
+
+    if Global.prod is not None:
+        prod: str = Prod.urls[Global.prod]
+
+        if not prod:
+            rootLogger.critical("No production URL set")
+
+    else:
+        prod = Prod.urls[1]
+
+    with open('jokes.json', 'r+') as f:
+        jokes: List[str] = json.load(f)['jokes']
+
+    # Adding sub commands from folder /cogs/ to clean up main.py
+    # All commands should be added to the cogs and not touch main.py unless needed to
+    for cog_new in os.listdir("cogs"):
+        if cog_new.endswith(".py"):
+            try:
+                cog = f"cogs.{cog_new.replace('.py', '')}"
+                bot.load_extension(cog)
+            except Exception as e:
+                rootLogger.critical(f"{cog_new} can not be loaded: {e}")
+
+    if Global.prod != 0:
+        try:
+            get_new_files()
+            rootLogger.info("Pulled new updates")
+        except urllib.error.HTTPError as e:
+            rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
+    else:
+        rootLogger.info("Not pulling new updates")
+    
+    # Start up the bot
+    bot.run(Global.token)
