@@ -164,7 +164,7 @@ class Economy(commands.Cog):
 
     @tasks.loop(minutes=1.0)
     async def interest(self):
-        db = self.database.bot
+        db = self.database.botg
         posts = db.economy
         time = datetime.datetime.now()
 
@@ -181,7 +181,7 @@ class Economy(commands.Cog):
         async for user in posts.find({}):
             balance = user["balance"]
             interest_money = balance * 0.05
-            await self.add_balance(user["user_id"], interest_money)
+            await self.add_balance(user["user_id"], round(interest_money, 2))
         self.interested = True
 
     @interest.before_loop
@@ -300,7 +300,7 @@ class Economy(commands.Cog):
 
     @commands.command(name="coinflip", usage="coinflip <head|tails> <bet>", no_pm=True)
     @tools.has_perm()
-    async def coinflip(self, ctx, choice, bet: int):
+    async def coinflip(self, ctx, choice, bet: float):
         if await self.get_money(ctx.author.id, ctx.guild.id) < bet:
             return await ctx.send("Not enough money to buy this!")
         chance = random.choice(["Heads", "Tails"])
@@ -443,7 +443,7 @@ class Economy(commands.Cog):
             return await ctx.send("Cannot withdraw amounts less than or equal to 0")
         if amount == "all":
             amount = await self.get_bank(ctx.author.id)
-        if await self.get_bank(ctx.author.id) < int(amount):
+        if await self.get_bank(ctx.author.id) < float(amount):
             return await ctx.send("Not enough cash to withdraw this amount!")
 
         db = self.database.bot
@@ -469,7 +469,7 @@ class Economy(commands.Cog):
         chance = random.randint(1, 100)
 
         if chance <= 70:
-            amount = random.randint(1, 100)
+            amount = round(random.randint(1, 100), 2)
             end_total = await self.add_money(ctx.author.id, ctx.guild.id, amount)
             embed = Embed(color=0x36a39f, title="You got paid!")
             embed.add_field(name="You earned", value=f"${amount}", inline=True)
