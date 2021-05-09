@@ -181,7 +181,7 @@ class Chat(commands.Cog):
                                 if message.guild == 346715007469355009:
                                     fluxed_channel = message.guild.get_channel(824417561735200838)
                                     await fluxed_channel.send(
-                                        f"USER CHAT WARNING!\n**User ID:** {message.author.id}\n**USER name:** {message.author.name}\n**self.spam_warned_users**: ```\n{self.spam_warned_users}\n```\n**Message list**:\n```\n{message_list}\n```"
+                                        f"USER CHAT WARNING!\n**User ID:** {message.author.id}\n**USER name:** {message.author.name}\n**self.spam_warned_users**:\n```\n{self.spam_warned_users}\n```\n**Message list**:\n```\n{message_list}\n```"
                                     )
                 if (len(message_list)) > 10:
                     time_diff = duplicate_items[-1]["time_sent"] - duplicate_items[0]["time_sent"]
