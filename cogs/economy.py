@@ -164,7 +164,7 @@ class Economy(commands.Cog):
 
     @tasks.loop(minutes=1.0)
     async def interest(self):
-        db = self.database.botg
+        db = self.database.bot
         posts = db.economy
         time = datetime.datetime.now()
 
