@@ -17,6 +17,7 @@ RUN apt-get install ffmpeg libsm6 libxext6 libgl1-mesa-dev -y
 # install dependencies
 RUN pip install -r requirements.txt
 
+ENV docker true
 
 # command to run on container start
 CMD [ "python", "./main.py", "&&", "curl", "mongodb:27017"]
