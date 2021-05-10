@@ -30,6 +30,7 @@ class Levels(commands.Cog):
         try:
             exp = 0
             level = 0
+            messages_counted = 0
             total_exp = 0
 
             # Check if it's allowed
@@ -54,6 +55,7 @@ class Levels(commands.Cog):
                 total_exp = x["total_exp"]
                 exp = x["exp"]
                 message_time = x["message_time"]
+                messages_counted = x["messages_counted"]
 
             new_message_time = datetime.datetime.utcnow()
             time_difference = round((new_message_time - message_time).total_seconds() / 60)
@@ -69,9 +71,10 @@ class Levels(commands.Cog):
             exp = exp + up
 
             total_exp += up
+            messages_counted += 1
 
             await posts.update_one({"user_id": message.author.id, "guild_id": message.guild.id},
-                                   {"$set": {"exp": exp, "total_exp": total_exp, "message_time": new_message_time}})
+                                   {"$set": {"exp": exp, "total_exp": total_exp, "message_time": new_message_time, "messages_counted": messages_counted}})
 
             # Do I increase the level?
 

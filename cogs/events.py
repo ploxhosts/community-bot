@@ -73,6 +73,7 @@ def get_user_stats(member_id, guild_id):
         "guild_id": guild_id,  # guild id
         "level": 0,  # the main level
         "exp": 0,  # the exp
+        "messages_counted": 0,
         "total_exp": 0,   # calculated based on level and exp and helps determine the level leaderboard
         "multiplier": 1,  # For any boost they buy from the economy system
         "seconds_in_vc": 0,  # Total time spent in vc
