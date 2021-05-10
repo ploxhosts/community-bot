@@ -12,13 +12,17 @@ import shutil
 from pathlib import Path
 from discord_slash.utils import manage_commands
 from discord_slash import SlashCommand
+import subprocess
 
 # Runs database connections and env
 from prepare import database
 
 token = os.getenv('bot_token')
 prod_org = os.getenv('prod')
-prod = os.getenv('prod')
+try:
+    prod = int(os.getenv('prod'))
+except:
+    prod = 0
 try:
     if int(prod_org) == 1:  # main branch
         prod = "https://github.com/PloxHost-LLC/community-bot/archive/refs/heads/main.zip"
@@ -190,15 +194,30 @@ def overwrite_files():
                 Path(file).replace(existing_file)
 
 
+def runningInDocker():
+    with open('/proc/self/cgroup', 'r') as procfile:
+        for line in procfile:
+            fields = line.strip().split('/')
+            if 'docker' in fields:
+                return True
+
+    return False
+
+
 def get_new_files():
     global prod, prod_org
     if prod == 0:
         return
     urllib.request.urlretrieve(prod, "code.zip")
     try:
-        stream = os.popen('pip install -r requirements.txt')
-        output = stream.read()
-        logging.info(output)
+        if runningInDocker:
+            subprocess.Popen(['pip', 'install -r requirements.txt'],
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE)
+        else:
+            subprocess.Popen(['pip3', 'install -r requirements.txt'],
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE)
     except Exception as e:
         logging.critical(e)
     zip_file = 'code.zip'
