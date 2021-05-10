@@ -195,7 +195,12 @@ def get_new_files():
     if prod == 0:
         return
     urllib.request.urlretrieve(prod, "code.zip")
-
+    try:
+        stream = os.popen('pip install -r requirements.txt')
+        output = stream.read()
+        logging.info(output)
+    except Exception as e:
+        logging.critical(e)
     zip_file = 'code.zip'
     os.makedirs("new_code", exist_ok=True)
     new_code = 'new_code'
