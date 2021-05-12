@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import logging
 import os
 import random
 import re
@@ -9,6 +10,7 @@ import discord
 from discord.ext import commands
 import tools
 
+logger = logging.getLogger(__name__)
 
 class Chat(commands.Cog):
     """Chat moderation features"""
@@ -180,6 +182,9 @@ class Chat(commands.Cog):
                                     {"user": message.author.id, "guild": message.guild.id, "time": time_warned})
                                 if message.guild == 346715007469355009:
                                     fluxed_channel = message.guild.get_channel(824417561735200838)
+                                    logger.critical(
+                                        f"USER CHAT WARNING!\nUser ID: {message.author.id}\nUSER name: {message.author.name}\nself.spam_warned_users:\n\n{self.spam_warned_users}\n\nMessage list:\n\n{message_list}\n"
+                                    )
                                     await fluxed_channel.send(
                                         f"USER CHAT WARNING!\n**User ID:** {message.author.id}\n**USER name:** {message.author.name}\n**self.spam_warned_users**:\n```\n{self.spam_warned_users}\n```\n**Message list**:\n```\n{message_list}\n```"
                                     )
