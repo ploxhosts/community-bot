@@ -214,7 +214,6 @@ class Economy(commands.Cog):
         posts = db.economy
         user = await posts.find_one({"user_id": user_id})
         money_total = user["balances"]
-        print(money_total[str(guild_id)] + money)
         money_total[str(guild_id)] = money_total[str(guild_id)] + money
         await posts.update_one({"user_id": user_id},
                                {"$set": {"balances": money_total}})
