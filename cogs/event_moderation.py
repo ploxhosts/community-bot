@@ -65,6 +65,7 @@ class EventsMod(commands.Cog):
         embed.add_field(name="Message:", value=f"\n{message.data['content']}", inline=False)
         embed.add_field(name="Edit history:", value=f"\n{history}", inline=False)
         embed.set_footer(text="Ploxy | Logging and monitoring")
+
         log_channel = self.bot.get_channel(channel)
 
         await log_channel.send(embed=embed)
@@ -103,6 +104,8 @@ class EventsMod(commands.Cog):
         log_channel = 0
         async for x in posts.find({"guild_id": message.guild_id}):
             log_channel = x['log_channel']
+        if log_channel == 0:
+            return
         posts = db.message_logs
         reported = False
         JSON = False
@@ -147,6 +150,9 @@ class EventsMod(commands.Cog):
 
             for x in posts.find({"guild_id": int(message.data["guild_id"])}):
                 log_channel = x['log_channel']
+
+            if log_channel == 0:
+                return
 
             posts = db.message_logs
             edits = []
@@ -215,6 +221,8 @@ class EventsMod(commands.Cog):
         embed.add_field(name="Messages purged:", value=f"\n{len(message.message_ids)}", inline=False)
         embed.add_field(name="Channel:", value=f"\n{channel_ex.mention}", inline=False)
         embed.set_footer(text="Ploxy | Logging and monitoring")
+        if log_channel == 0:
+            return
         log_channel = self.bot.get_channel(log_channel)
         if use_file:
             await log_channel.send(embed=embed, file=discord.File(file_name, filename="log.txt"))
@@ -222,6 +230,122 @@ class EventsMod(commands.Cog):
             await log_channel.send(embed=embed)
         os.remove(file_name)
 
+    @commands.Cog.listener()
+    async def on_member_join(self, member):
+        db = self.database.bot
+        posts = db.serversettings
+
+        log_channel = 0
+
+        async for x in posts.find({"guild_id": member.guild.id}):
+            log_channel = x['log_channel']
+
+        embed = discord.Embed(colour=0x36a39f, title=f"{member.name}#{member.discriminator} joined")
+        embed.add_field(name="User id:", value=f"\n{member.id}", inline=False)
+        embed.set_thumbnail(url=member.avatar_url)
+        embed.set_footer(text="Ploxy | Logging and monitoring")
+        if log_channel == 0:
+            return
+        log_channel = self.bot.get_channel(log_channel)
+        await log_channel.send(embed=embed)
+
+    @commands.Cog.listener()
+    async def on_member_remove(self, member):
+        db = self.database.bot
+        posts = db.serversettings
+
+        log_channel = 0
+
+        async for x in posts.find({"guild_id": member.guild.id}):
+            log_channel = x['log_channel']
+
+        embed = discord.Embed(colour=0x36a39f, title=f"{member.name}#{member.discriminator} left")
+        embed.add_field(name="User id:", value=f"\n{member.id}", inline=False)
+        embed.set_thumbnail(url=member.avatar_url)
+        embed.set_footer(text="Ploxy | Logging and monitoring")
+
+        if log_channel == 0:
+            return
+
+        log_channel = self.bot.get_channel(log_channel)
+        await log_channel.send(embed=embed)
+
+    @commands.Cog.listener()
+    async def on_member_update(self, before, after):
+        db = self.database.bot
+        posts = db.serversettings
+
+        log_channel = 0
+
+        async for x in posts.find({"guild_id": before.guild.id}):
+            log_channel = x['log_channel']
+
+        if before.roles != after.roles:  # role got changed
+            diff_roles = ""
+            role_changes = list(set(before.roles) - set(after.roles))
+            if not role_changes:
+                role_changes = list(set(after.roles) - set(before.roles))
+            for role in role_changes:
+                if role in before.roles:
+                    diff_roles += f"\n[**-**] {role.name}"
+                else:
+                    diff_roles += f"\n[**+**] {role.name}"
+            embed = discord.Embed(colour=0x36a39f, title=f"{after.name}#{after.discriminator}'s roles updated")
+            embed.add_field(name="User id:", value=f"\n{after.id}", inline=False)
+            embed.add_field(name="Role changes:", value=f"\n{diff_roles}", inline=False)
+
+        elif before.display_name != after.display_name: # nickname got changed
+            embed = discord.Embed(colour=0x36a39f, title=f"{after.name}#{after.discriminator} nickname changed")
+            embed.add_field(name="User id:", value=f"\n{after.id}", inline=False)
+            embed.add_field(name="Nickname changes:", value=f"\n`{before.display_name}` changed to `{after.display_name}`", inline=False)
+        else:
+            return
+        embed.set_footer(text="Ploxy | Logging and monitoring")
+        embed.set_thumbnail(url=after.avatar_url)
+
+        if log_channel == 0:
+            return
+
+        log_channel = self.bot.get_channel(log_channel)
+        await log_channel.send(embed=embed)
+
+    @commands.Cog.listener()
+    async def on_user_update(self, before, after):
+        db = self.database.bot
+
+        main_posts = db.player_data
+        async for guild in main_posts.find({"user_id": before.id}):
+            posts = db.serversettings
+            log_channel = 0
+
+            async for x in posts.find({"guild_id": guild["guild_id"]}):
+                log_channel = x['log_channel']
+
+            if before.avatar_url != after.avatar_url:  # role got changed
+                embed = discord.Embed(colour=0x36a39f, title=f"{after.name}#{after.discriminator}'s avatar updated")
+                embed.add_field(name="User id:", value=f"\n{after.id}", inline=False)
+                embed.add_field(name="Before:", value=f"\n{before.avatar_url}", inline=True)
+                embed.add_field(name="After:", value=f"\n{after.avatar_url}", inline=True)
+                embed.set_thumbnail(url=after.avatar_url)
+
+            elif before.name != after.name:  # nickname got changed
+                embed = discord.Embed(colour=0x36a39f, title=f"{after.name}#{after.discriminator} username changed")
+                embed.add_field(name="User id:", value=f"\n{after.id}", inline=False)
+                embed.add_field(name="Nickname changes:",
+                                value=f"\n`{before.name}` changed to `{after.name}`", inline=False)
+            elif before.discriminator != after.discriminator:  # nickname got changed
+                embed = discord.Embed(colour=0x36a39f, title=f"{after.name}#{after.discriminator} discriminator changed")
+                embed.add_field(name="User id:", value=f"\n{after.id}", inline=False)
+                embed.add_field(name="Nickname changes:",
+                                value=f"\n`{after.name}#{before.discriminator}` changed to `{after.name}#{after.discriminator}`", inline=False)
+            else:
+                return
+            embed.set_footer(text="Ploxy | Logging and monitoring")
+
+            if log_channel == 0:
+                return
+            log_channel = self.bot.get_channel(log_channel)
+            await log_channel.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(EventsMod(bot))

@@ -24,11 +24,12 @@ class CustomCommands(commands.Cog):
 
         db = self.database.bot
         posts = db.customcommand
-        splitted_content = message.content.split()
+        # splitted_content = message.content.split()
         response = ""
         try:
-            async for x in posts.find({"guild_id": message.guild.id, "command": splitted_content[0]}):
-                response = x["content"]
+            async for x in posts.find({"guild_id": message.guild.id}):
+                if message.content == x["command"]:
+                    response = x["content"]
             if response != "":
                 await message.delete()
                 await message.channel.send(response)
@@ -96,7 +97,7 @@ class CustomCommands(commands.Cog):
 
     @customcommand.command(name="delete", aliases=["remove"], usage="cc remove !pizza")
     @tools.has_perm(manage_messages=True)
-    async def delete(self, ctx, command):
+    async def delete(self, ctx, *, command):
         db = self.database.bot
         posts = db.customcommand
 

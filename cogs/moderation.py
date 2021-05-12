@@ -22,12 +22,12 @@ class Mod(commands.Cog):
         posts = db.pending_mutes
         async for user in posts.find({}):
             try:
-                user_id = user["user_id"]
-                guild_id = user["guild_id"]
                 ban_time = user["time"]
                 if ban_time is not None:
                     iat = user["issued"]
                     roles = user["roles"]
+                    user_id = user["user_id"]
+                    guild_id = user["guild_id"]
                     current_time_utc = datetime.datetime.now()
                     change = current_time_utc - iat
                     minutes_change = change.total_seconds() / 60
@@ -172,7 +172,7 @@ class Mod(commands.Cog):
             await posts.insert_one(
                 {"guild_id": ctx.guild.id, "user_id": member.id, "time": duration_formatted,
                  "issued": datetime.datetime.now(), "roles": role_list2})
-            if duration_formatted is not None and (duration_formatted * 60) < 800:
+            if duration_formatted is not None and duration_formatted < 800 / 60:
                 await asyncio.sleep(duration_formatted * 60)
                 await posts.delete_many({"guild_id": ctx.guild.id, "user_id": member.id})
                 await member.remove_roles(role, reason="Mute expired")
@@ -212,30 +212,36 @@ class Mod(commands.Cog):
             await ctx.send("Please provide a reason!")
             return
         time_warned = datetime.datetime.now()
-        async for x in posts.find({"guild_id": ctx.guild.id, "user_id": user.id}):
-            logs = x["mod_logs"]
+        data = await posts.find_one({"guild_id": ctx.guild.id, "user_id": user.id})
+        logs = data["mod_logs"]
 
-        a = len(logs)
-        if not a:
-            a = 0
-        a += 1
+        warn_count = len(logs) + 1
+
         warn_id = tools.generate_flake()
-        logs.append({"type": "WARNED", "warn_id": warn_id, "reason": reason, "issuer": ctx.author.id,
-                     "time": time_warned.strftime('%c')})
 
         await posts.update_one({"user_id": user.id, "guild_id": ctx.guild.id},
-                               {"$set": {"mod_logs": logs}})
+                               {"$push":
+                                   {"mod_logs": {
+                                       "type": "WARNED",
+                                       "warn_id": warn_id,
+                                       "reason": reason,
+                                       "issuer": ctx.author.id,
+                                       "time": time_warned.strftime('%c')
+                                   }}})
         embed = discord.Embed(colour=discord.Colour(0x36a39f), description=f"You have been warned!")
         embed.add_field(name="Reason:", value=f"{reason}", inline=False)
         embed.add_field(name="ID:", value=f"{warn_id}", inline=False)
-        embed.add_field(name="You now have:", value=f"{a} warnings", inline=True)
+        embed.add_field(name="You now have:", value=f"{warn_count} warnings", inline=True)
         embed.set_footer(text="Ploxy | Moderation")
-        await user.send(embed=embed)
-
         embed = discord.Embed(colour=discord.Colour(0x36a39f), description=f"{user.mention} has been warned!")
         embed.add_field(name="user ID:", value=f"{user.id}", inline=False)
         embed.add_field(name="Reason:", value=f"{reason}", inline=False)
         embed.add_field(name="ID:", value=f"{warn_id}", inline=False)
+        try:
+            await user.send(embed=embed)
+        except:
+            embed.add_field(name="Dm warning", value=f"❌ Failed", inline=False)
+
         embed.set_footer(text="Ploxy | Moderation")
         await ctx.send(embed=embed)
         await ctx.message.delete()
@@ -263,8 +269,12 @@ class Mod(commands.Cog):
             embed.add_field(name="Reason", value=f"{reason}", inline=False)
             embed.add_field(name="You now have:", value=f"{a} warnings", inline=True)
             embed.set_footer(text="Ploxy | Moderation")
-            await user.send(embed=embed)
-            await ctx.send(f"{user.name}'s warning with the id of `{warn_id}` has been removed!")
+            try:
+                await user.send(embed=embed)
+                await ctx.send(f"{user.name}'s warning with the id of `{warn_id}` has been removed!")
+            except:
+                await ctx.send(
+                    f"{user.name}'s warning with the id of `{warn_id}` has been removed but they did not recieve a dm!")
             await ctx.message.delete()
 
             await posts.update_one({"guild_id": ctx.guild.id, "user_id": user.id},
@@ -334,11 +344,8 @@ class Mod(commands.Cog):
             embed = discord.Embed(colour=0x36a39f, description=f"You have been banned")
             embed.add_field(name="Reason", value=f"{reason}", inline=False)
             await user.send(embed=embed)
-            await ctx.guild.ban(user=user, reason=reason)
-            await ctx.send(f"{user} has been banned for {reason}")
-        else:
-            await ctx.guild.ban(user=user, reason=reason)
-            await ctx.send(f"{user} has been banned for {reason}")
+        await ctx.guild.ban(user=user, reason=reason)
+        await ctx.send(f"{user} has been banned for {reason}")
         warn_id = tools.generate_flake()
         time_warned = datetime.datetime.now()
         await posts.insert_one({"user_id": user.id,

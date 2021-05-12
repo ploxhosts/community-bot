@@ -1,7 +1,7 @@
 version: "3"
 services:
     bot:
-        image: registry.plox.host/ploxhost/communitybot:latest
+        build: https://github.com/PloxHost-LLC/community-bot.git#main
         pull_policy: always
         restart: unless-stopped
         depends_on:
