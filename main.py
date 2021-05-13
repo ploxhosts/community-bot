@@ -203,32 +203,47 @@ def get_new_files():
         # env variables are strings.
         if os.getenv('docker') == "true":
             proc = subprocess.Popen(['pip', 'install -r requirements.txt'],
-                                       stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE)
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE)
         else:
             # list of what i hope covers pip installations in majority of OSs
             # including (yuck!) windows.
             pips = [
-                'pip3', 'pip', 'py -m pip', 'py -m pip3', 
+                'pip3', 'pip', 'py -m pip', 'py -m pip3',
                 'python -m pip', 'python -m pip3', 'python-pip3'
             ]
-            
+
             # sort of a trial an error now
             for pip in pips:
                 proc = subprocess.Popen([pip, 'install -r requirements.txt'],
-                                           stdout=subprocess.PIPE,
-                                           stderr=subprocess.PIPE)
-                proc.communicate()[0]
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE)
+                process = proc.communicate()[0]
                 ret = process.returncode
-                
+
                 if ret != 0:
                     rootLogger.debug(f"Failed to update pip packages with {pip}")
                 else:
                     rootLogger.debug(f"Successfully updated pip packages with {pip}")
                     break
-                
+
     except Exception as e:
         logging.critical(e)
+    zip_file = 'code.zip'
+    os.makedirs("new_code", exist_ok=True)
+    new_code = 'new_code'
+
+    shutil.unpack_archive(zip_file, new_code)
+
+    overwrite_files()
+
+
+def get_new_files_org():
+    global prod, prod_org
+    if prod == 0:
+        return
+    urllib.request.urlretrieve(prod, "code.zip")
+
     zip_file = 'code.zip'
     os.makedirs("new_code", exist_ok=True)
     new_code = 'new_code'
@@ -254,6 +269,37 @@ async def update(ctx):
     await ctx.send("Updated!")
     try:
         get_new_files()
+    except urllib.error.HTTPError as e:
+        return await ctx.send("Cannot load files!")
+    for cog in os.listdir("cogs"):
+        if cog.endswith(".py"):
+            try:
+                cog = f"cogs.{cog.replace('.py', '')}"
+                bot.unload_extension(cog)
+                bot.load_extension(cog)
+            except Exception as e:
+                rootLogger.critical(f"{cog} can not be loaded:")
+                await ctx.send(f"{cog} can not be loaded:")
+                raise e
+    await ctx.send("Updated!")
+
+
+@bot.command()
+@commands.check(is_owner)
+async def update_org(ctx):
+    for cog in os.listdir("cogs"):
+        if cog.endswith(".py"):
+            try:
+                cog = f"cogs.{cog.replace('.py', '')}"
+                bot.unload_extension(cog)
+                bot.load_extension(cog)
+            except Exception as e:
+                rootLogger.critical(f"{cog} can not be loaded:")
+                await ctx.send(f"{cog} can not be loaded:")
+                raise e
+    await ctx.send("Updated!")
+    try:
+        get_new_files_org()
     except urllib.error.HTTPError as e:
         return await ctx.send("Cannot load files!")
     for cog in os.listdir("cogs"):
