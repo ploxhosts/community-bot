@@ -238,21 +238,6 @@ def get_new_files():
     overwrite_files()
 
 
-def get_new_files_org():
-    global prod, prod_org
-    if prod == 0:
-        return
-    urllib.request.urlretrieve(prod, "code.zip")
-
-    zip_file = 'code.zip'
-    os.makedirs("new_code", exist_ok=True)
-    new_code = 'new_code'
-
-    shutil.unpack_archive(zip_file, new_code)
-
-    overwrite_files()
-
-
 @bot.command()
 @commands.check(is_owner)
 async def update(ctx):
@@ -284,6 +269,46 @@ async def update(ctx):
     await ctx.send("Updated!")
 
 
+def overwrite_files_org():
+    start_path = "new_code/community-bot-main"
+    # Normal files
+    for new_code_file in os.listdir(start_path):
+        if new_code_file not in ["main.py", "prepare.py", ".env"]:
+            file = f"{start_path}/{new_code_file}"
+            item = os.path.join(file)
+            if os.path.isfile(item):
+                try:
+                    Path(file).rename(new_code_file)
+                except FileExistsError:
+                    Path(file).replace(new_code_file)
+
+    # Cogs
+    for new_code_file in os.listdir(f"{start_path}/cogs"):
+        existing_file = Path("cogs/" + new_code_file)
+        file = f"/cogs/{new_code_file}"
+        item = os.path.join(file)
+        if os.path.isfile(item):
+            try:
+                Path(file).rename(existing_file)
+            except FileExistsError:
+                Path(file).replace(existing_file)
+
+
+def get_new_files_org():
+    global prod, prod_org
+    if prod == 0:
+        return
+    urllib.request.urlretrieve(prod, "code.zip")
+
+    zip_file = 'code.zip'
+    os.makedirs("new_code", exist_ok=True)
+    new_code = 'new_code'
+
+    shutil.unpack_archive(zip_file, new_code)
+
+    overwrite_files_org()
+
+
 @bot.command()
 @commands.check(is_owner)
 async def update_org(ctx):
@@ -312,7 +337,6 @@ async def update_org(ctx):
                 rootLogger.critical(f"{cog} can not be loaded:")
                 await ctx.send(f"{cog} can not be loaded:")
                 raise e
-    await ctx.send("Updated!")
 
 
 @bot.command()
