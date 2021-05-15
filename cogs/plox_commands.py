@@ -24,7 +24,8 @@ class Support(commands.Cog):
     async def cog_check(self, ctx):
         db = self.database
         posts = db.serversettings
-        data = await posts.find_one({"guild_id": ctx.guild.id})
+        async for x in posts.find({"guild_id": ctx.guild.id}):
+            data = x
 
         return bool(
             data["support"] is True
