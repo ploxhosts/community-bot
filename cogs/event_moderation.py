@@ -24,7 +24,7 @@ class EventsMod(commands.Cog):
         db = self.database.bot
         posts = db.serversettings
 
-        for x in posts.find({"guild_id": message.data["guild_id"]}):
+        async for x in posts.find({"guild_id": message.data["guild_id"]}):
             BANNED_WORDS = x["banned_words"]
 
         for bad_word in BANNED_WORDS:
@@ -85,7 +85,7 @@ class EventsMod(commands.Cog):
 
         db = self.database.bot
         posts = db.message_logs
-        posts.insert_one({
+        await posts.insert_one({
             "message": message.content,  # See the message content
             "json": JSON,  # Get contents of a self bot message
             "edits": [],  # See a nice summary of total changes
@@ -148,7 +148,7 @@ class EventsMod(commands.Cog):
 
             log_channel = 0
 
-            for x in posts.find({"guild_id": int(message.data["guild_id"])}):
+            async for x in posts.find({"guild_id": int(message.data["guild_id"])}):
                 log_channel = x['log_channel']
 
             if log_channel == 0:
