@@ -10,11 +10,12 @@ import pytesseract
 import os
 
 if os.name == 'nt':
+    # noinspection SpellCheckingInspection
     pytesseract.pytesseract.tesseract_cmd = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
 
 
 class Support(commands.Cog):
-    """Commands that exclusive to the ploxhost server"""
+    """Commands that are designed to be used in the main PloxHost server."""
 
     def __init__(self, bot):
         self.bot = bot
