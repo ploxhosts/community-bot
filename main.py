@@ -12,17 +12,13 @@ import shutil
 from pathlib import Path
 from discord_slash.utils import manage_commands
 from discord_slash import SlashCommand
-import subprocess
 
 # Runs database connections and env
 from prepare import database
 
 token = os.getenv('bot_token')
 prod_org = os.getenv('prod')
-try:
-    prod = int(os.getenv('prod'))
-except:
-    prod = 0
+prod = os.getenv('prod')
 try:
     if int(prod_org) == 1:  # main branch
         prod = "https://github.com/PloxHost-LLC/community-bot/archive/refs/heads/main.zip"
@@ -199,36 +195,7 @@ def get_new_files():
     if prod == 0:
         return
     urllib.request.urlretrieve(prod, "code.zip")
-    try:
-        # env variables are strings.
-        if os.getenv('docker') == "true":
-            proc = subprocess.Popen(['pip', 'install -r requirements.txt'],
-                                    stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE)
-        else:
-            # list of what i hope covers pip installations in majority of OSs
-            # including (yuck!) windows.
-            pips = [
-                'pip3', 'pip', 'py -m pip', 'py -m pip3',
-                'python -m pip', 'python -m pip3', 'python-pip3'
-            ]
 
-            # sort of a trial an error now
-            for pip in pips:
-                proc = subprocess.Popen([pip, 'install -r requirements.txt'],
-                                        stdout=subprocess.PIPE,
-                                        stderr=subprocess.PIPE)
-                process = proc.communicate()[0]
-                ret = process.returncode
-
-                if ret != 0:
-                    rootLogger.debug(f"Failed to update pip packages with {pip}")
-                else:
-                    rootLogger.debug(f"Successfully updated pip packages with {pip}")
-                    break
-
-    except Exception as e:
-        logging.critical(e)
     zip_file = 'code.zip'
     os.makedirs("new_code", exist_ok=True)
     new_code = 'new_code'
@@ -267,76 +234,6 @@ async def update(ctx):
                 await ctx.send(f"{cog} can not be loaded:")
                 raise e
     await ctx.send("Updated!")
-
-
-def overwrite_files_org():
-    start_path = "new_code/community-bot-main"
-    # Normal files
-    for new_code_file in os.listdir(start_path):
-        if new_code_file not in ["main.py", "prepare.py", ".env"]:
-            file = f"{start_path}/{new_code_file}"
-            item = os.path.join(file)
-            if os.path.isfile(item):
-                try:
-                    Path(file).rename(new_code_file)
-                except FileExistsError:
-                    Path(file).replace(new_code_file)
-
-    # Cogs
-    for new_code_file in os.listdir(f"{start_path}/cogs"):
-        existing_file = Path("cogs/" + new_code_file)
-        file = f"/cogs/{new_code_file}"
-        item = os.path.join(file)
-        if os.path.isfile(item):
-            try:
-                Path(file).rename(existing_file)
-            except FileExistsError:
-                Path(file).replace(existing_file)
-
-
-def get_new_files_org():
-    global prod, prod_org
-    if prod == 0:
-        return
-    urllib.request.urlretrieve(prod, "code.zip")
-
-    zip_file = 'code.zip'
-    os.makedirs("new_code", exist_ok=True)
-    new_code = 'new_code'
-
-    shutil.unpack_archive(zip_file, new_code)
-
-    overwrite_files_org()
-
-
-@bot.command()
-@commands.check(is_owner)
-async def update_org(ctx):
-    for cog in os.listdir("cogs"):
-        if cog.endswith(".py"):
-            try:
-                cog = f"cogs.{cog.replace('.py', '')}"
-                bot.unload_extension(cog)
-                bot.load_extension(cog)
-            except Exception as e:
-                rootLogger.critical(f"{cog} can not be loaded:")
-                await ctx.send(f"{cog} can not be loaded:")
-                raise e
-    await ctx.send("Updated!")
-    try:
-        get_new_files_org()
-    except urllib.error.HTTPError as e:
-        return await ctx.send("Cannot load files!")
-    for cog in os.listdir("cogs"):
-        if cog.endswith(".py"):
-            try:
-                cog = f"cogs.{cog.replace('.py', '')}"
-                bot.unload_extension(cog)
-                bot.load_extension(cog)
-            except Exception as e:
-                rootLogger.critical(f"{cog} can not be loaded:")
-                await ctx.send(f"{cog} can not be loaded:")
-                raise e
 
 
 @bot.command()
