@@ -12,7 +12,7 @@ services:
             - backend
         environment:
             - prefix=?
-            - bot_token=Njk2NDMwNDUwMTQyMzQ3MzU3.XoonZg.WbjR_7X96-E-r_9z1s2fpJEoAOk
+            - bot_token=TOKEN
             - connection_string=mongodb://root:root@mongodb
     mongodb:
         image: mongo:latest
