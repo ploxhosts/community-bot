@@ -22,14 +22,8 @@ class Support(commands.Cog):
         self.database = bot.database
 
     async def cog_check(self, ctx):
-        db = self.database
-        posts = db.serversettings
-        async for x in posts.find({"guild_id": ctx.guild.id}):
-            data = x
-
         return bool(
-            data["support"] is True
-            or ctx.guild.id in [346715007469355009, 742055439088353341]
+            ctx.guild.id in [346715007469355009, 742055439088353341]
         )
 
     def check_trigger_message(self, trigger_check, message_raw):
