@@ -4,6 +4,7 @@
 from datetime import datetime
 import random
 
+from discord.ext.commands import Bot, Context
 from discord.ext import commands
 import discord
 import aiohttp
@@ -15,11 +16,11 @@ class Commands(commands.Cog):
     """Fun and misc commands"""
 
     def __init__(self, bot):
-        self.bot = bot
+        self.bot: Bot = bot
 
     @commands.command(name="poll", aliases=["polls"], usage="poll <question>")
     @tools.has_perm()
-    async def poll(self, ctx, *, text: str):
+    async def poll(self, ctx: Context, *, text: str):
         await ctx.message.delete()
         embed = discord.Embed(color=0x36a39f)
         embed.add_field(name=f"Poll:", value=f"{text}", inline=True)

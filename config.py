@@ -13,6 +13,7 @@ class Global(object):
     prod = int(_prod) if _prod.isdigit() else None
     # Default prefix specified in the env file or ? as default
     prefix = os.getenv("prefix") or "?"
+    useSqlite = os.getenv("sqlite") == "true"
 
 
 class Prod(object):
@@ -29,12 +30,12 @@ class Ids(object):
 
     # Replace list with people who you trust
     owners = [
-        553614184735047712, 
+        553614184735047712,
         148549003544494080,
-        518854761714417664
+        518854761714417664,
     ]
 
     ploxy = {
         'test': 696430450142347357,
-        'main': 749899795782434897
+        'main': 749899795782434897,
     }

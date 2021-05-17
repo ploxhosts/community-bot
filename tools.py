@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import Iterator
+from typing import Iterator, Union
 import datetime
 import random
 import time
@@ -13,10 +13,11 @@ import discord
 from prepare import database
 
 
-def generate_flake():
+def generate_flake() -> int:
     return (
-                   int((time.time() - 946702800) * 1000) << 23
-           ) + random.SystemRandom().getrandbits(23)
+        (int((time.time() - 946702800) * 1000) << 23)
+        + random.SystemRandom().getrandbits(23)
+    )
 
 
 async def check_if_update(find, main_document, collection):
@@ -60,24 +61,28 @@ async def check_if_update(find, main_document, collection):
         await collection.insert_one(main_document)
 
 
-def get_time(word):
+def get_time(word: str) -> Union[float, int, None]:
     res = None
-    if "perm" == word.lower():
-        pass
-    elif "s" in word:
+
+    if "s" in word:
         res = int(word.split("s")[0]) / 60
+
     elif "m" in word:
         formatted_word = word.split("m")
         res = int(formatted_word[0])
+
     elif "h" in word:
         formatted_word = word.split("h")
         res = int(formatted_word[0]) * 60
+
     elif "d" in word:
         formatted_word = word.split("d")
         res = int(formatted_word[0]) * 60 * 24
+
     elif "w" in word:
         formatted_word = word.split("w")
         res = int(formatted_word[0]) * 60 * 24 * 7
+
     return res
 
 
@@ -95,7 +100,9 @@ class RevokedAddedPerms(commands.CommandError):
         self.cog_perm_node = cog_perm_node
         self.role_name = role_name
         super().__init__(
-            f'Role `{role_name}` cannot run the command: **{perm_node}** or the cog: **{cog_perm_node}**. Try enabling it with the `perms grant` command.')
+            f'Role `{role_name}` cannot run the command: **{perm_node}** ' 
+            f'or the cog: **{cog_perm_node}**. Try enabling it with the `perms grant` command.'
+        )
 
 
 def has_perm(**perms):
@@ -116,7 +123,8 @@ def has_perm(**perms):
             missing = []
             for perm, value in perms.items():
                 if perm == "required":
-                    raise MissingAddedPerms(ctx.command.name.lower(), ctx.command.cog.qualified_name)
+                    raise MissingAddedPerms(
+                        ctx.command.name.lower(), ctx.command.cog.qualified_name)
                 if getattr(permissions, perm) != value:
                     missing.append(perm)
 
@@ -144,13 +152,16 @@ def has_perm(**perms):
                     cog: discord.ext.commands.Cog
 
                     if bad_perm == "*":
-                        raise RevokedAddedPerms(ctx.command.name, cog.qualified_name, role.name)
+                        raise RevokedAddedPerms(
+                            ctx.command.name, cog.qualified_name, role.name)
                     if "command" in bad_perm:
                         if ctx.command.name.lower() == bad_perm.replace("command:", "").strip().lower():
-                            raise RevokedAddedPerms(ctx.command.name, cog.qualified_name, role.name)
+                            raise RevokedAddedPerms(
+                                ctx.command.name, cog.qualified_name, role.name)
                     else:
                         if ctx.cog.qualified_name.lower() == bad_perm.lower():
-                            raise RevokedAddedPerms(ctx.command.name, cog.qualified_name, role.name)
+                            raise RevokedAddedPerms(
+                                ctx.command.name, cog.qualified_name, role.name)
             # If the perm is allowed to that role
             if str(role.id) in perm_nodes:
                 for good_perm in perm_nodes[f"{role.id}"]:
@@ -169,12 +180,13 @@ def has_perm(**perms):
             if role.id == 476614251096571920:  # Only works in the main PloxHost server so other servers are not affected basically allowing management to use everything
                 return True
 
-        raise MissingAddedPerms(ctx.command.name.lower(), ctx.command.cog.qualified_name)
+        raise MissingAddedPerms(ctx.command.name.lower(),
+                                ctx.command.cog.qualified_name)
 
     return commands.check(predicate)
 
 
-def get_command_model(command: discord.ext.commands.Command, perms):
+def get_command_model(command: commands.Command, perms):
     return {
         "name": command.name.lower(),
         "usage": command.usage,
