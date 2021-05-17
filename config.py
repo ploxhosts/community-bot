@@ -14,8 +14,9 @@ class Global(object):
     # Default prefix specified in the env file or ? as default
     prefix = os.getenv("prefix") or "?"
     useSqlite = os.getenv("sqlite") == "true"
-
-
+    connection_default = 'mongodb://localhost:27017'
+    connection_str = os.getenv("connection_string")
+    
 class Prod(object):
     urls: Dict[int, Union[str, None]] = {
         0: None,

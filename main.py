@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from prepare import database
-from config import Global, Ids, Prod
 from pathlib import Path
 from typing import List
 import urllib.request
@@ -25,7 +23,7 @@ import discord
 load_dotenv()
 
 # Runs database connections and env
-
+from config import Global, Ids, Prod
 
 # Setup logger
 os.makedirs("logs", exist_ok=True)
@@ -260,6 +258,26 @@ async def on_ready():
         await manage_commands.remove_all_commands(bot.user.id, Global.token, None)
 
 if __name__ == '__main__':
+    # setup the databse
+    if Global.useSqlite:
+        # import motorsqlite
+        # TODO(blaze): setup motor-sqlite
+        # database = ....
+        pass
+    else:
+        from motor.motor_asyncio import AsyncIOMotorClient
+
+        if not Global.connection_str:
+            rootLogger.critical(
+                "MongoDB has been set, but there is no connection string!\n",
+                f"using default of: {Global.connection_default}."
+            )
+
+            # set `connection_str` to default now, for future use.
+            Global.connection_str = Global.connection_default
+
+        database = AsyncIOMotorClient(Global.connection_str)
+
     slash = SlashCommand(bot, sync_commands=True, override_type=True)
 
     # Get rid of the default help command as there is no use for it
