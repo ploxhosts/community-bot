@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from prepare import database
+from config import Global, Ids, Prod
 from pathlib import Path
 from typing import List
 import urllib.request
@@ -23,8 +25,6 @@ import discord
 load_dotenv()
 
 # Runs database connections and env
-from config import Global, Ids, Prod
-from prepare import database
 
 
 # Setup logger
@@ -60,6 +60,8 @@ rootLogger.addHandler(consoleHandler)
 intents = discord.Intents.all()  # Allow the use of custom intents
 
 # noinspection PyShadowingNames
+
+
 async def get_prefix(bot, message):
     prefix = Global.prefix
 
@@ -81,6 +83,7 @@ bot = commands.Bot(
     case_insensitive=True,
     intents=intents
 )
+
 
 @bot.event
 async def on_message(message):
@@ -296,6 +299,6 @@ if __name__ == '__main__':
             rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
     else:
         rootLogger.info("Not pulling new updates")
-    
+
     # Start up the bot
     bot.run(Global.token)

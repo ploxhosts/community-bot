@@ -7,7 +7,7 @@ import os
 
 class Global(object):
     prod_string = os.getenv('prod_string')
-    token = os.getenv('bot_token')
+    token = os.getenv('bot_token') or ''
     _prod = os.getenv('prod') or '0'
     # Should be 0, 1, 2, 3 or None
     prod = int(_prod) if _prod.isdigit() else None
