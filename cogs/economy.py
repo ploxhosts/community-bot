@@ -214,7 +214,6 @@ class Economy(commands.Cog):
         posts = db.economy
         user = await posts.find_one({"user_id": user_id})
         money_total = user["balances"]
-        print(money_total[str(guild_id)] + money)
         money_total[str(guild_id)] = money_total[str(guild_id)] + money
         await posts.update_one({"user_id": user_id},
                                {"$set": {"balances": money_total}})
@@ -585,7 +584,7 @@ class Economy(commands.Cog):
             seconds = error.retry_after
             timeVar = "minutes" if seconds > 120 else "seconds"
             timeLeft = round(seconds / 60, 1) if timeVar == "minutes" else round(seconds, 1)
-            message = ", the alarm still hasn't gone off yet." if timeVar == "minutes" else "seconds for the light to turn green."
+            message = ", the alarm still hasn't gone off yet." if timeVar == "minutes" else ", for the light to turn green."
 
             embed.add_field(name="You can't work that soon",
                             value=f"You must wait {timeLeft} {timeVar}{message}",

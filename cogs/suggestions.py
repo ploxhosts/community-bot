@@ -9,7 +9,7 @@ import tools
 
 # noinspection PyBroadException
 class Suggestions(commands.Cog):
-    """Commands for suggesting new features"""
+    """Commands for suggesting new features in the server"""
 
     def __init__(self, bot):
         self.bot = bot

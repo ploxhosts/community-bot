@@ -10,24 +10,20 @@ import pytesseract
 import os
 
 if os.name == 'nt':
+    # noinspection SpellCheckingInspection
     pytesseract.pytesseract.tesseract_cmd = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
 
 
 class Support(commands.Cog):
-    """Commands that exclusive to the ploxhost server"""
+    """Commands that are designed to be used in the main PloxHost server."""
 
     def __init__(self, bot):
         self.bot = bot
         self.database = bot.database
 
     async def cog_check(self, ctx):
-        db = self.database
-        posts = db.serversettings
-        data = await posts.find_one({"guild_id": ctx.guild.id})
-
         return bool(
-            data["support"] is True
-            or ctx.guild.id in [346715007469355009, 742055439088353341]
+            ctx.guild.id in [346715007469355009, 742055439088353341]
         )
 
     def check_trigger_message(self, trigger_check, message_raw):
@@ -116,6 +112,16 @@ class Support(commands.Cog):
                 "triggers": ["lagging alot", "laggin alot", "vanilla"],
                 "prevents": ["vps", "-s"],
                 "response": "The time has come, for you to learn. You should be using Paper or a fork of it such as Purpur.\nYes this does enable you to use plugins but comes with performance benefits.\n\nYou can select this by using the jar selection on the main multicraft panel of your server.Make sure you click save at the bottom and restart. **Make sure you install the correction version**, Minecraft will only let you install a version higher or the same version to avoid world corruption unless you want your world to be deleted.\n\nFor optimised configuration files please visit: https://discord.com/channels/346715007469355009/476634353808441344/831237483278237707"
+            },
+            "needticket": {
+                "triggers": ["how to create a ticket", "the ticket link", "ticket link", "create a ticket"],
+                "prevents": ["you can", "-s"],
+                "response": "You can create a ticket at https://support.plox.host/"
+            },
+            "nodecmds": {
+                "triggers": ["command terminal", "run npm commands", "npm audit"],
+                "prevents": ["you can", "you should", "-s"],
+                "response": "You can create a ticket at https://support.plox.host/ to have commands ran on your discrd bot hosting service.\nThis is because Pterodactyl does not support the use of such commands in the terminal."
             }
         }
 
