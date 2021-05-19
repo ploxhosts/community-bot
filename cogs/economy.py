@@ -619,7 +619,7 @@ class Economy(commands.Cog):
 
     async def addField(self, embed, Info, Name):
         fieldDescription = ", \u0020".join(
-            f"{card % 13 if not str(card % 13) in self.Names else self.Names[str(card % 13)]} {self.Emotes[self.Types[card // 13]]}"
+            f"{card % 13 if not str(card % 13) in self.Names else self.Names[str(card % 13)]} {self.Emotes[self.Types[card // 13 if not card == 52 else 3]]}"
             for card in Info[0]
         )
 
