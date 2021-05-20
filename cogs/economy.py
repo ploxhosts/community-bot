@@ -318,7 +318,7 @@ class Economy(commands.Cog):
         pass
 
     @commands.command(name="beg", usage="beg", no_pm=True)
-    @commands.cooldown(1, 1800, commands.BucketType.user)
+    @commands.cooldown(1, 1200, commands.BucketType.user)
     @tools.has_perm()
     async def beg(self, ctx):
         chance = random.randint(1, 100)
