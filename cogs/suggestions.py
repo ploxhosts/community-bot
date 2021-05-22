@@ -51,7 +51,7 @@ class Suggestions(commands.Cog):
                           "time_sent": datetime.datetime.now().timestamp(), "edits": 0, "g_votes": 0, "n_votes": 0,
                           "b_votes": 0, "status": "awaiting for approval",
                           "id": flake, "suggestion": suggestion, "sent_messages": [], "comments": []})
-        await ctx.author.send("Suggestions added! 🧧")
+        await ctx.send("Suggestions added! 🧧")
         await asyncio.sleep(1)
         await ctx.message.delete()
 
