@@ -50,7 +50,7 @@ class Suggestions(commands.Cog):
         posts.insert_one({"guild_id": ctx.guild.id, "user_id": ctx.author.id, "message_id": message.id,
                           "time_sent": datetime.datetime.now().timestamp(), "edits": 0, "g_votes": 0, "n_votes": 0,
                           "b_votes": 0, "status": "awaiting for approval",
-                          "id": flake, "suggestion": suggestion, "sent_messages": [], "comments": []})
+                          "id": flake, "suggestion": suggestion, "sent_messages": [], "comments": [], "voters": []})
         await ctx.send("Suggestions added! 🧧")
         await asyncio.sleep(1)
         await ctx.message.delete()
@@ -290,6 +290,7 @@ class Suggestions(commands.Cog):
         g_votes = 0
         n_votes = 0
         b_votes = 0
+        voters = []
         valid = False
         try:
             async for x in posts.find({"guild_id": payload.guild_id, "message_id": payload.message_id}):
@@ -297,18 +298,21 @@ class Suggestions(commands.Cog):
                 g_votes = x["g_votes"]  # good votes
                 n_votes = x["n_votes"]  # neutral
                 b_votes = x["b_votes"]  # bad votes
+                voters = x["voters"]  # bad votes
         except KeyError:
             pass
         if not valid:
             return
         if str(payload.emoji) == "✅":
             g_votes -= 1
+            voters.remove(payload.user_id)  # Remove the ability to dm them on an approval
         elif str(payload.emoji) == "🟧":
             n_votes -= 1
         elif str(payload.emoji) == "❌":
             b_votes -= 1
+
         await posts.update_one({"guild_id": payload.guild_id, "message_id": payload.message_id},
-                               {"$set": {"g_votes": g_votes, "n_votes": n_votes, "b_votes": b_votes}})
+                               {"$set": {"g_votes": g_votes, "n_votes": n_votes, "b_votes": b_votes, "voters": voters}})
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
@@ -317,6 +321,7 @@ class Suggestions(commands.Cog):
         g_votes = 0
         n_votes = 0
         b_votes = 0
+        voters = []
         valid = False
         try:
             async for x in posts.find({"guild_id": payload.guild_id, "message_id": payload.message_id}):
@@ -324,18 +329,20 @@ class Suggestions(commands.Cog):
                 g_votes = x["g_votes"]  # good votes
                 n_votes = x["n_votes"]  # neutral
                 b_votes = x["b_votes"]  # bad votes
+                voters = x["voters"]  # bad votes
         except KeyError:
             pass
         if not valid:
             return
         if str(payload.emoji) == "✅":
             g_votes += 1
+            voters.append(payload.user_id)  # Remove the ability to dm them on an approval
         elif str(payload.emoji) == "🟧":
             n_votes += 1
         elif str(payload.emoji) == "❌":
             b_votes += 1
         await posts.update_one({"guild_id": payload.guild_id, "message_id": payload.message_id},
-                               {"$set": {"g_votes": g_votes, "n_votes": n_votes, "b_votes": b_votes}})
+                               {"$set": {"g_votes": g_votes, "n_votes": n_votes, "b_votes": b_votes, "voters": voters}})
 
 
 def setup(bot):
