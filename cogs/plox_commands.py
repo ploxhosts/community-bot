@@ -21,11 +21,6 @@ class Support(commands.Cog):
         self.bot = bot
         self.database = bot.database
 
-    async def cog_check(self, ctx):
-        return bool(
-            ctx.guild.id in [346715007469355009, 742055439088353341]
-        )
-
     def check_trigger_message(self, trigger_check, message_raw):
         for trigger in trigger_check:
             if trigger.lower() in message_raw.lower():
@@ -63,6 +58,8 @@ class Support(commands.Cog):
         loop = asyncio.get_event_loop()
         support_message_needed = message.content
         if message.author.bot:
+            return
+        if message.guild.id not in [346715007469355009, 742055439088353341]:
             return
 
         for attachment in attachments:
