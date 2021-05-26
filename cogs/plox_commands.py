@@ -112,7 +112,7 @@ class Support(commands.Cog):
             },
             "needticket": {
                 "triggers": ["how to create a ticket", "the ticket link", "ticket link", "create a ticket"],
-                "prevents": ["you can", "-s"],
+                "prevents": ["you can", "support.plox.host", "-s"],
                 "response": "You can create a ticket at https://support.plox.host/"
             },
             "nodecmds": {
