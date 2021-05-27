@@ -523,7 +523,7 @@ class Economy(commands.Cog):
             if amount <= 0:
                 return await ctx.send("You do not have any cash to deposit")
 
-        amount = round(amount, 2)
+        amount = round(int(amount), 2)
 
         if await self.get_money(ctx.author.id, ctx.guild.id) < int(amount):
             return await ctx.send("Not enough cash to deposit this amount!")
@@ -549,7 +549,7 @@ class Economy(commands.Cog):
             if amount <= 0:
                 return await ctx.send("You do not have any cash to deposit")
 
-        amount = round(amount, 2)
+        amount = round(int(amount), 2)
         if await self.get_bank(ctx.author.id, ctx.guild.id) < float(amount):
             return await ctx.send("Not enough cash to withdraw this amount!")
 
