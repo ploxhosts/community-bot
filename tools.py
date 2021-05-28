@@ -10,7 +10,9 @@ from discord.ext.commands import MissingPermissions
 from discord.ext import commands
 import discord
 
-from prepare import database
+from config import Global
+
+database = Global.database
 
 
 def generate_flake() -> int:
@@ -100,7 +102,7 @@ class RevokedAddedPerms(commands.CommandError):
         self.cog_perm_node = cog_perm_node
         self.role_name = role_name
         super().__init__(
-            f'Role `{role_name}` cannot run the command: **{perm_node}** ' 
+            f'Role `{role_name}` cannot run the command: **{perm_node}** '
             f'or the cog: **{cog_perm_node}**. Try enabling it with the `perms grant` command.'
         )
 

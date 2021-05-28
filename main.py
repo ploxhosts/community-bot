@@ -260,16 +260,18 @@ async def on_ready():
 if __name__ == '__main__':
     # setup the databse
     if Global.useSqlite:
-        # import motorsqlite
-        # TODO(blaze): setup motor-sqlite
-        # database = ....
-        pass
+        from motorsqlite.src import MotorSqlite
+
+        # create the database collections folder
+        os.makedirs(os.path.join('data'), exist_ok=True)
+
+        database = MotorSqlite()
     else:
         from motor.motor_asyncio import AsyncIOMotorClient
 
         if not Global.connection_str:
             rootLogger.critical(
-                "MongoDB has been set, but there is no connection string!\n",
+                "MongoDB has been set, but there is no connection string!\n" +
                 f"using default of: {Global.connection_default}."
             )
 
@@ -284,7 +286,8 @@ if __name__ == '__main__':
     bot.remove_command('help')
 
     # for use elsewhere
-    bot.database = database  # type: ignore
+    Global.database = database
+    bot.database = database
     bot.delete_message_cache = []  # type: ignore
 
     if Global.prod is not None:

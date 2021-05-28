@@ -4,6 +4,9 @@
 from typing import Dict, Union
 import os
 
+from motor.motor_asyncio import AsyncIOMotorDatabase
+from motorsqlite.src import MotorSqlite
+
 
 class Global(object):
     prod_string = os.getenv('prod_string')
@@ -16,7 +19,9 @@ class Global(object):
     useSqlite = os.getenv("sqlite") == "true"
     connection_default = 'mongodb://localhost:27017'
     connection_str = os.getenv("connection_string")
-    
+    database: Union[AsyncIOMotorDatabase, MotorSqlite] = None
+
+
 class Prod(object):
     urls: Dict[int, Union[str, None]] = {
         0: None,
