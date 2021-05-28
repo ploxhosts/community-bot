@@ -6,3 +6,5 @@ code.zip
 /new_code
 **/__pycache__/
 .mypy_cache
+/.nvim
+.nvimlog

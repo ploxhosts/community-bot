@@ -23,7 +23,7 @@ import discord
 load_dotenv()
 
 # Runs database connections and env
-from config import Global, Ids, Prod
+from config import Global, Ids, Prod  # noqa
 
 # Setup logger
 os.makedirs("logs", exist_ok=True)
