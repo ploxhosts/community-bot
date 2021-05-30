@@ -3,11 +3,7 @@ python-dotenv~=0.15.0
 requests~=2.25.0
 aiohttp>=3.7.4
 beautifulsoup4~=4.9.3
-discord.py
-lxml
-motor
-discord-py-slash-command
-dnspython
-opencv-python
-pytesseract
-youtube_dl
+motor~=2.3.1
+opencv-python~=4.5.1.48
+pytesseract~=0.3.7
+PyYAML~=5.3.1
