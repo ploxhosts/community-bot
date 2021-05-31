@@ -381,17 +381,13 @@ async def create_tables() -> Union[bool, None]:
     # a small hackish parser for the schemas to create an sql query
     for table, schema in schemas.items():
         query: List[str] = []
-        isFirst = True
 
-        query.append(f'CREATE TABLE IF NOT EXISTS {table} (')
+        query.append(
+            f'CREATE TABLE IF NOT EXISTS {table} ( _id INTEGER PRIMARY KEY'
+        )
 
         for key, value in schema.items():
-            if not isFirst:
-                query.append(',')
-            else:
-                isFirst = not isFirst
-
-            query.append(key)
+            query.append(',' + key)
 
             if isinstance(value, dict) or isinstance(value, list):
                 # blob, since sqlite does not support these types
