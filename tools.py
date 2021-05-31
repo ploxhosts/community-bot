@@ -1,18 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import Iterator, Union
+from typing import Iterator, Union, List
 import datetime
 import random
 import time
 
+from motor.motor_asyncio import AsyncIOMotorDatabase
 from discord.ext.commands import MissingPermissions
 from discord.ext import commands
 import discord
 
+from motorsqlite.src import MotorSqlite
 from config import Global
 
-database = Global.database
+
+def init(_database: Union[AsyncIOMotorDatabase, MotorSqlite]) -> None:
+    global database
+
+    Global.database = _database
+    database = _database
 
 
 def generate_flake() -> int:
@@ -229,3 +236,169 @@ async def get_all_commands(bot) -> Iterator[commands.Command]:
         for cog in bot.walk_cogs(module):
             for cmd in bot.walk_commands(cog):
                 yield cmd
+
+
+async def create_tables() -> Union[bool, None]:
+    """
+    Function which should be run to create tables + schemas required for the
+    bot in the sqlite3 databases. Will return None when sqlite3 is not enabled
+    in the config file, or a boolean dependant on the success of the creation(s)
+    """
+
+    if not Global.useSqlite or not isinstance(database, MotorSqlite):
+        return None
+
+    # DATATYPES:
+        # NULL
+        # INTEGER (signed number)
+        # REAL (floating point value)
+        # TEXT (text string)
+        # BLOB (stored exactly as given)
+    # TODO(blaze): maybe create these schemas dynamically instead of hardcoding?
+    schemas = {
+        'economy': {
+            'user_id': 'INTEGER',
+            'balance': 'REAL',
+            'balances': {'TEXT': 'INTEGER'},
+            'cash': {'TEXT': 'INTEGER'},
+            'stocks': {
+                'TEXT': {
+                    'TEXT': 'INTEGER',
+                    'TEXT': 'INTEGER',
+                },
+            },
+            'guilds': ['INTEGER'],
+            'multiplier': 'REAL',
+            'd_lottery_tickets': 'INTEGER',
+            'w_lottery_tickets': 'INTEGER',
+            'm_lottery_tickets': 'INTEGER',
+            'latest_update': 'TEXT',
+        },
+        'servereconomy': {
+            'guild_id': 'INTEGER',
+            'level': 'INTEGER',
+            'balance': 'REAL',
+            'tax_rate': 'REAL',
+            'computer': {
+                'firewall': 'INTEGER',
+                'antivirus': 'INTEGER',
+                'sdk': 'INTEGER',
+                'malware': 'INTEGER',
+            },
+            'weapons': {
+                'sns': 'INTEGER',
+            },
+            'worth': 'REAL',
+            'latest_update': 'TEXT',
+        },
+        'player_data': {
+            'user_id': 'INTEGER',
+            'guild_id': 'INTEGER',
+            'level': 'INTEGER',
+            'exp': 'INTEGER',
+            'total_exp': 'INTEGER',
+            'multiplier': 'REAL',
+            'seconds_in_vc': 'INTEGER',
+            'time_since_join_vc': 'INTEGER',
+            'latest_vc_channel': 'INTEGER',
+            'message_time': 'TEXT',
+            'mod_logs': [],
+            'latest_update': 'TEXT',
+        },
+        'globalusers': {
+            'user_id': 'INTEGER',
+            'email': 'TEXT',
+            'notify_settings': {
+                'on_ban': 'INTEGER',  # bool
+                'on_kick': 'INTEGER',  # bool
+                'on_modify_settings': 'INTEGER',  # bool
+                'on_bot_major_update': 'INTEGER',  # bool
+                'on_admin_abuse': 'INTEGER',  # bool
+            },
+            'guilds': {},
+            'user_rank': 'INTEGER',
+            'coins': 'INTEGER',
+            'verified': 'INTEGER',  # bool
+            'last_seen': 'TEXT',
+            'on_website': 'INTEGER',  # bool
+            'github': 'TEXT',
+            'additions': 'INTEGER',
+            'negations': 'INTEGER',
+            'ranks': {
+                'dev': 'INTEGER',  # bool
+                'staff': 'INTEGER',  # bool
+                'admin': 'INTEGER',  # bool
+                'contributor': 'INTEGER',  # bool
+            },
+            'latest_update': 'TEXT',
+        },
+        'serversettings': {
+            'guild_id': 'INTEGER',
+            'prefix': 'TEXT',
+            'users': {},
+            'level': 'INTEGER',
+            'levels': {
+                'enbaled': 'INTEGER',  # bool
+                'voice_enabled': 'INTEGER',  # bool
+                'level_ignore_channels': [],
+                'level_ignore_roles': [],
+            },
+            'welcome': {
+                'channel': 'INTEGER',
+                'code': 'INTEGER',  # bool
+                'message': 'TEXT',
+            },
+            'suggestions': {
+                'intake_channel': 'INTEGER',
+                'approved_channel': 'INTEGER',
+                'denied_channel': 'INTEGER',
+            },
+            'auto_mod': {
+                'chat_moderation': 'INTEGER',  # bool
+                'blacklisted_domains': [],
+                'anti_invite': 'INTEGER',  # bool
+                'allowed_invites': [],
+                'banned_words': [],
+                'ignore_roles': [],
+                'mod_ignore_channels': [],
+                'max_mentions': 'INTEGER',
+                'on_mass_mention': 'INTEGER',  # enum 0, 1, 2, 3, 4
+                'auto_temp_ban_time': 'INTEGER',
+                'max_caps': 'REAL',
+                'spam_prevention': 'INTEGER',  # bool
+                'auto_mute': 'INTEGER',  # bool
+                'auto_mute_time': 'INTEGER',
+            },
+            'log_channel': 'INTEGER',
+            'muted_role_id': 'INTEGER',
+            'extra_settings': {},
+            'latest_update': 'TEXT',
+            'linked_guilds': {},
+            'support': 'INTEGER',  # bool
+        }
+    }
+
+    # a small hackish parser for the schemas to create an sql query
+    for table, schema in schemas.items():
+        query: List[str] = []
+        isFirst = True
+
+        query.append(f'CREATE TABLE IF NOT EXISTS {table} (')
+
+        for key, value in schema.items():
+            if not isFirst:
+                query.append(',')
+            else:
+                isFirst = not isFirst
+
+            query.append(key)
+
+            if isinstance(value, dict) or isinstance(value, list):
+                # blob, since sqlite does not support these types
+                query.append('BLOB')
+            else:
+                query.append(value)
+
+        query.append(');')
+
+        await database.bot.__getattr__(key).execute_raw(' '.join(query))

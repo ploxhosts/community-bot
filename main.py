@@ -6,6 +6,7 @@ from typing import List
 import urllib.request
 import urllib.error
 import datetime
+import asyncio
 import logging
 import random
 import shutil
@@ -24,6 +25,7 @@ load_dotenv()
 
 # Runs database connections and env
 from config import Global, Ids, Prod  # noqa
+import tools  # noqa
 
 # Setup logger
 os.makedirs("logs", exist_ok=True)
@@ -271,8 +273,10 @@ if __name__ == '__main__':
 
         if not Global.connection_str:
             rootLogger.critical(
-                "MongoDB has been set, but there is no connection string!\n" +
-                f"using default of: {Global.connection_default}."
+                "MongoDB has been set, but there is no connection string!\n"
+            )
+            rootLogger.critical(
+                f'Using the default of: {Global.connection_default}.'
             )
 
             # set `connection_str` to default now, for future use.
@@ -289,6 +293,12 @@ if __name__ == '__main__':
     Global.database = database
     bot.database = database
     bot.delete_message_cache = []  # type: ignore
+
+    tools.init(database)
+
+    if Global.useSqlite:
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(tools.create_tables())
 
     if Global.prod is not None:
         prod = Prod.urls[Global.prod]

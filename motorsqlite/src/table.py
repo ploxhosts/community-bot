@@ -28,6 +28,7 @@ class MotorSqliteTable(object):
         self.insert_sql = f'INSERT INTO {table} '
         self.delete_sql = f'DELETE FROM {table} WHERE '
         self.drop_sql = f'DROP TABLE {table}'
+        self.count_sql = f'SELECT COUNT(*) FROM {table}'
 
     async def _execute(
         self, query: str, values: Iterable[Any] = None
@@ -45,9 +46,11 @@ class MotorSqliteTable(object):
     async def find(
         self, _dict: Dict[str, Any]
     ) -> Generator[Dict[str, Union[str, int]], None, None]:
-
-        query, values = build_query(self.select_sql, _dict)
-        cursor = await self._execute(query, values)
+        if not _dict:
+            cursor = await self._execute(self.select_sql.split(' WHERE')[0])
+        else:
+            query, values = build_query(self.select_sql, _dict)
+            cursor = await self._execute(query, values)
 
         # async generator to keep it similar to motor api
         for res in await cursor.fetchall():
@@ -125,3 +128,15 @@ class MotorSqliteTable(object):
 
     async def delete_one(self, data: Dict[str, Any]) -> bool:
         return await self.delete(data, True) == 1
+
+    async def count_documents(self, _dict: Dict[str, Any] = None) -> int:
+        query = self.count_sql
+        values = None
+
+        if _dict is not None:
+            query += ' WHERE '
+            query, values = build_query(query, _dict)
+
+        cursor = await self._execute(query, values)
+
+        return (await cursor.fetchone())['COUNT(*)']
