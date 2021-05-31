@@ -28,7 +28,7 @@ class EventsMod(commands.Cog):
         db = self.database.bot
         posts = db.serversettings
 
-        for x in posts.find({"guild_id": message.data["guild_id"]}):
+        async for x in posts.find({"guild_id": message.data["guild_id"]}):
             BANNED_WORDS = x["banned_words"]
 
         for bad_word in BANNED_WORDS:
@@ -89,7 +89,7 @@ class EventsMod(commands.Cog):
 
         db = self.database.bot
         posts = db.message_logs
-        posts.insert_one({
+        await posts.insert_one({
             "message": message.content,  # See the message content
             "json": JSON,  # Get contents of a self bot message
             "edits": [],  # See a nice summary of total changes
@@ -98,6 +98,7 @@ class EventsMod(commands.Cog):
             "guild_id": message.guild.id,  # Used to delete an entire server/guild from database when removed
             "deleted": False,  # Used for checking if a message has been deleted after it's been reported
             "reported": False,  # Be able to report specific messages
+            "mentions": [x.id for x in message.mentions],
             "time_sent": datetime.datetime.utcnow()  # Get a date of time sent was: int(round(time.time() * 1000))
         })
 
@@ -108,19 +109,21 @@ class EventsMod(commands.Cog):
         log_channel = 0
         async for x in posts.find({"guild_id": message.guild_id}):
             log_channel = x['log_channel']
-        if log_channel == 0:
-            return
         posts = db.message_logs
         reported = False
         JSON = False
         message_content = ""
         author_id = 0
+        mentions = []
         async for x in posts.find({"message_id": message.message_id}):
             reported = x["reported"]
             JSON = x["json"]
             message_content = x["message"]
             author_id = x["author_id"]
-
+            try:
+                mentions = x["mentions"]
+            except:
+                pass
         if message_content != "":
             if reported is False and JSON is None:  # Not if reported or a self bot
                 try:
@@ -132,9 +135,23 @@ class EventsMod(commands.Cog):
                                  {"$set": {"deleted": True}})
             user = await self.bot.fetch_user(author_id)
             if message.message_id not in self.bot.delete_message_cache:
-                await self.send_delete_embed(log_channel, user.name, author_id, message_content, message.message_id)
+                if log_channel != 0:
+                    await self.send_delete_embed(log_channel, user.name, author_id, message_content, message.message_id)
             else:
                 self.bot.delete_message_cache.remove(message.message_id)
+            guild = self.bot.get_guild(message.guild_id)
+            save_msg = any(
+                guild.get_member(member).guild_permissions.manage_messages
+                for member in mentions
+            )
+            if save_msg:
+                channel = self.bot.get_channel(message.channel_id)
+                embed = discord.Embed(colour=0xac6f8f, description=f"{user.mention} deleted a message containing a mention!")
+                embed.add_field(name="Message content: ", value=f"{message_content}", inline=False)
+                embed.set_footer(text="Ploxy | Logging and monitoring")
+                await channel.send(embed=embed)
+
+
 
     @commands.Cog.listener()
     async def on_raw_message_edit(self, message):
@@ -152,7 +169,7 @@ class EventsMod(commands.Cog):
 
             log_channel = 0
 
-            for x in posts.find({"guild_id": int(message.data["guild_id"])}):
+            async for x in posts.find({"guild_id": int(message.data["guild_id"])}):
                 log_channel = x['log_channel']
 
             if log_channel == 0:

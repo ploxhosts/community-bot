@@ -5,6 +5,7 @@ from urllib.parse import urlparse
 from collections import Counter
 import datetime
 import asyncio
+import logging
 import random
 import os
 import re
@@ -14,6 +15,7 @@ import discord
 
 import tools
 
+logger = logging.getLogger(__name__)
 
 class Chat(commands.Cog):
     """Chat moderation features"""
@@ -183,10 +185,13 @@ class Chat(commands.Cog):
                                 spam_msg = await message.channel.send("Please do not send duplicate messages!")
                                 self.spam_warned_users.append(
                                     {"user": message.author.id, "guild": message.guild.id, "time": time_warned})
+                                logger.critical(
+                                    f"USER CHAT WARNING!\nUser ID: {message.author.id}\nUSER name: {message.author.name}\nself.spam_warned_users:\n\n{self.spam_warned_users}\n\nMessage list:\n\n{message_list}\n"
+                                )
                                 if message.guild == 346715007469355009:
                                     fluxed_channel = message.guild.get_channel(824417561735200838)
                                     await fluxed_channel.send(
-                                        f"USER CHAT WARNING!\n**User ID:** {message.author.id}\n**USER name:** {message.author.name}\n**self.spam_warned_users**: ```\n{self.spam_warned_users}\n```\n**Message list**:\n```\n{message_list}\n```"
+                                        f"USER CHAT WARNING!\n**User ID:** {message.author.id}\n**USER name:** {message.author.name}\n**self.spam_warned_users**:\n```\n{self.spam_warned_users}\n```\n**Message list**:\n```\n{message_list}\n```"
                                     )
                 if (len(message_list)) > 10:
                     time_diff = duplicate_items[-1]["time_sent"] - duplicate_items[0]["time_sent"]

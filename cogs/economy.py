@@ -14,10 +14,11 @@ import tools
 
 
 # Static function
-async def GiveNewCard(UserInfo: list):
+async def GiveNewCard(UserInfo: list, OtherHand: list):
     NewCard = random.randint(1, 52)
 
-    while NewCard in UserInfo[0]:
+    # Yes, this could be improved by having a centralised counter / storage for both hands, but i'm lazy
+    while NewCard in UserInfo[0] or NewCard in OtherHand[0]:
         NewCard = random.randint(1, 52)
 
     UserInfo[0].append(NewCard)
@@ -44,6 +45,8 @@ class Economy(commands.Cog):
         self.Types = ["Clubs", "Diamonds", "Hearts", "Spades"]
         self.Emotes = {self.Types[0]: ":clubs:", self.Types[1]: ":diamonds:", self.Types[2]: ":hearts:",
                        self.Types[3]: ":spades:"}
+
+        self.DayTaxRates = {"1": 0.1, "2": 0.08, "3": 0.06, "4": 0.08, "5": 0.1, "6": 0.15, "7": 0.12}
 
     @tasks.loop(seconds=60.0)
     async def lottery(self):
@@ -136,7 +139,7 @@ class Economy(commands.Cog):
                         end_balance = await self.add_balance(user["user_id"], daily_money)
                         embed = Embed(colour=0xac6f8f, description=f"You won the daily lottery!")
                         embed.add_field(name="Current balance:", value=f"{end_balance}", inline=False)
-                        embed.add_field(name="Money earned:", value=f"{daily_money}", inline=False)
+                        embed.add_field(name="Cash earned:", value=f"{daily_money}", inline=False)
                         embed.set_footer(text="Ploxy | Lottery system")
                         await member.send(embed=embed)
                 if time.weekday() + 1 == 7:
@@ -145,7 +148,7 @@ class Economy(commands.Cog):
                             end_balance = await self.add_balance(user["user_id"], weekly_money)
                             embed = Embed(colour=0xac6f8f, description=f"You won the weekly lottery!")
                             embed.add_field(name="Current balance:", value=f"{end_balance}", inline=False)
-                            embed.add_field(name="Money earned:", value=f"{weekly_money}", inline=False)
+                            embed.add_field(name="Cash earned:", value=f"{weekly_money}", inline=False)
                             embed.set_footer(text="Ploxy | Lottery system")
                             await member.send(embed=embed)
                 if calendar.monthrange(time.year, time.month)[1] == time.day:  # Monthly
@@ -154,7 +157,7 @@ class Economy(commands.Cog):
                             end_balance = await self.add_balance(user["user_id"], monthly_money)
                             embed = Embed(colour=0xac6f8f, description=f"You won the monthly lottery!")
                             embed.add_field(name="Current balance:", value=f"{end_balance}", inline=False)
-                            embed.add_field(name="Money earned:", value=f"{monthly_money}", inline=False)
+                            embed.add_field(name="Cash earned:", value=f"{monthly_money}", inline=False)
                             embed.set_footer(text="Ploxy | Lottery system")
                             await member.send(embed=embed)
 
@@ -184,7 +187,7 @@ class Economy(commands.Cog):
         async for user in posts.find({}):
             balance = user["balance"]
             interest_money = balance * 0.05
-            await self.add_balance(user["user_id"], interest_money)
+            await self.add_balance(user["user_id"], round(interest_money, 2))
         self.interested = True
 
     @interest.before_loop
@@ -210,17 +213,42 @@ class Economy(commands.Cog):
                                {"$set": {"balance": money_total}})
         return money_total
 
+    async def add_balances(self, user_id, guild_id, money):
+        db = self.database.bot
+        posts = db.economy
+        user = await posts.find_one({"user_id": user_id})
+        money_total = user["balances"]
+        money_total[str(guild_id)] = money_total[str(guild_id)] + money
+        await posts.update_one({"user_id": user_id},
+                               {"$set": {"balances": money_total}})
+        return money_total
+
+    async def add_server_balance(self, guild_id, amount):
+        db = self.database.bot
+        posts = db.servereconomy
+
+        guild = await posts.find_one({"guild_id": guild_id})
+        await posts.update_one({"guild_id": guild_id},
+                               {"$set": {"balance": guild["balance"] + amount}})
+        return guild["balance"] + amount
+
     async def get_money(self, user_id, guild_id):
         db = self.database.bot
         posts = db.economy
         user = await posts.find_one({"user_id": user_id})
         return user["cash"][str(guild_id)]
 
-    async def get_bank(self, user_id):
+    async def get_global(self, user_id):
         db = self.database.bot
         posts = db.economy
         user = await posts.find_one({"user_id": user_id})
         return user["balance"]
+
+    async def get_bank(self, user_id, guild_id):
+        db = self.database.bot
+        posts = db.economy
+        user = await posts.find_one({"user_id": user_id})
+        return user["balances"][str(guild_id)]
 
     async def take_money(self, user_id, guild_id, money):
         db = self.database.bot
@@ -237,17 +265,45 @@ class Economy(commands.Cog):
         db = self.database.bot
         posts = db.economy
         user = await posts.find_one({"user_id": user_id})
-        money_total = user["balance"] - money
+        money_total = money - user["balance"]
         await posts.update_one({"user_id": user_id},
                                {"$set": {"balance": money_total}})
         return money_total
 
-    async def send_money(self, id1, id2, money):
+    async def take_balances(self, user_id, guild_id, money):
+        db = self.database.bot
+        posts = db.economy
+        user = await posts.find_one({"user_id": user_id})
+        money_total = user["balances"]
+        money_total[str(guild_id)] = money_total[str(guild_id)] - money
+        await posts.update_one({"user_id": user_id},
+                               {"$set": {"balances": money_total}})
+        return money_total
+
+    async def send_money(self, id1, id2, money, guild_id):
         db = self.database.bot
         posts = db.economy
 
         user = await posts.find_one({"user_id": id1})
+        money_total1 = user["balances"]
+        money_total1[str(guild_id)] = money_total1[str(guild_id)] - money
 
+        await posts.update_one({"user_id": id1},
+                               {"$set": {"balances": money_total1}})
+
+        # receiver
+        user = await posts.find_one({"user_id": id2})
+        money_total2 = user["balances"]
+        money_total2[str(guild_id)] = money_total2[str(guild_id)] + money
+
+        await posts.update_one({"user_id": id2},
+                               {"$set": {"balances": money_total2, "user_id": id2}})
+
+    async def send_global_money(self, id1, id2, money):
+        db = self.database.bot
+        posts = db.economy
+
+        user = await posts.find_one({"user_id": id1})
         money_total1 = user["balance"] - money
 
         await posts.update_one({"user_id": id1},
@@ -255,7 +311,6 @@ class Economy(commands.Cog):
 
         # receiver
         user = await posts.find_one({"user_id": id2})
-
         money_total2 = user["balance"] + money
 
         await posts.update_one({"user_id": id2},
@@ -266,7 +321,7 @@ class Economy(commands.Cog):
         pass
 
     @commands.command(name="beg", usage="beg", no_pm=True)
-    @commands.cooldown(1, 1800, commands.BucketType.user)
+    @commands.cooldown(1, 1200, commands.BucketType.user)
     @tools.has_perm()
     async def beg(self, ctx):
         chance = random.randint(1, 100)
@@ -303,9 +358,10 @@ class Economy(commands.Cog):
 
     @commands.command(name="coinflip", usage="coinflip <head|tails> <bet>", no_pm=True)
     @tools.has_perm()
-    async def coinflip(self, ctx, choice, bet: int):
+    async def coinflip(self, ctx, choice, bet: float):
+        bet = round(bet, 2)
         if await self.get_money(ctx.author.id, ctx.guild.id) < bet:
-            return await ctx.send("Not enough money to buy this!")
+            return await ctx.send("Not enough cash to buy this!")
         chance = random.choice(["Heads", "Tails"])
         if choice.lower() in ["head", "h", "heads"]:
             choice = "Heads"
@@ -347,17 +403,17 @@ class Economy(commands.Cog):
         total = 0
         if option.lower() == "daily":
             if await self.get_money(ctx.author.id, ctx.guild.id) < (amount * 20):
-                return await ctx.send("Not enough money to buy this!")
+                return await ctx.send("Not enough cash to buy this!")
             total = amount * 20
             embed.add_field(name="You bought", value=f"{amount} of daily tickets for ${total}", inline=True)
         elif option.lower() == "weekly":
             if await self.get_money(ctx.author.id, ctx.guild.id) < (amount * 40):
-                return await ctx.send("Not enough money to buy this!")
+                return await ctx.send("Not enough cash to buy this!")
             total = amount * 40
             embed.add_field(name="You bought", value=f"{amount} of weekly tickets for ${total}", inline=True)
         elif option.lower() == "monthly":
             if await self.get_money(ctx.author.id, ctx.guild.id) < (amount * 100):
-                return await ctx.send("Not enough money to buy this!")
+                return await ctx.send("Not enough cash to buy this!")
             total = amount * 100
             embed.add_field(name="You bought", value=f"{amount} of monthly tickets for ${total}", inline=True)
         else:
@@ -379,15 +435,22 @@ class Economy(commands.Cog):
         data = await posts.find_one({"user_id": user.id})
 
         embed = Embed(color=0x36a39f, title=f"Balance of {user.name}#{user.discriminator}")
-        embed.add_field(name="💰Total Balance:", value=f"${data['balance']}", inline=True)
-        embed.add_field(name="💸Total Cash:", value=f"${data['cash'][str(ctx.guild.id)]}", inline=True)
+        embed.add_field(name="🏦Global Balance:", value=f"${round(data['balance'])}", inline=True)
+        embed.add_field(name="💰Total Balance:", value=f"${round(data['balances'][str(ctx.guild.id)])}", inline=True)
+        embed.add_field(name="💸Total Cash:", value=f"${round(data['cash'][str(ctx.guild.id)])}", inline=True)
         embed.set_footer(text="Ploxy | Economy system")
         await ctx.send(embed=embed)
 
-    @commands.command(name="pay", aliases=["transfer"], usage="pay @user money", no_pm=True)
+    @commands.command(name="pay", aliases=["transfer"], usage="pay @user cash", no_pm=True)
     @tools.has_perm()
     async def pay(self, ctx, user: discord.Member, money: int):
-        pre_balance = await self.get_bank(ctx.author.id)
+        if ctx.guild is None:
+            await ctx.send("Command cannot be used in dms")
+            return
+        if money < 0:
+            await ctx.send("Amount must be greater than 0")
+            return
+        pre_balance = await self.get_bank(ctx.author.id, ctx.guild.id)
         if pre_balance < money:
             return await ctx.send("Not enough bank balance to send this amount!")
 
@@ -396,21 +459,56 @@ class Economy(commands.Cog):
         if await self.database.bot.economy.count_documents({"user_id": toSendId}) == 0:
             return await ctx.send("Cannot pay the user !")
 
-        await self.send_money(ctx.author.id, toSendId, money)
+        await self.send_money(ctx.author.id, toSendId, money, ctx.guild.id)
 
         db = self.database.bot
         posts = db.economy
         data = await posts.find_one({"user_id": ctx.author.id})
 
-        embed = Embed(color=0x36a39f, title=f"Sent ${money} to {user.name}#{user.discriminator}", description=f"✅ {user.mention} has received the money!")
+        embed = Embed(color=0x36a39f, title=f"Sent ${money} to {user}", description=f"✅ {user.mention} has received the cash!")
         embed.set_footer(text="Ploxy | Economy system")
         await ctx.send(embed=embed)
 
         data = await posts.find_one({"user_id": user.id})
 
-        embed = Embed(color=0x36a39f, title=f"You got Money from {ctx.author.name}#{ctx.author.discriminator}!")
-        embed.add_field(name="📧Money received:", value=f"${money}", inline=True)
-        embed.add_field(name="💰Total Balance:", value=f"${data['balance']}", inline=True)
+        embed = Embed(color=0x36a39f, title=f"You got Cash from {ctx.author}!")
+        embed.add_field(name="📧Cash received:", value=f"${money}", inline=True)
+        embed.add_field(name="💰Total Balance:", value=f"${data['balances'][str(ctx.guild.id)]}", inline=True)
+        embed.add_field(name="Link to channel:", value=f"{ctx.channel.mention}", inline=True)
+        embed.set_footer(text=f"Ploxy | Economy system | {ctx.guild.name}")
+        await user.send(embed=embed)
+
+    @commands.command(name="bank", usage="bank transfer @user <amount>", no_pm=True)
+    @tools.has_perm()
+    async def bank_transfer(self, ctx, a, user: discord.Member, money):
+        if a != 'transfer':
+            return
+        pre_balance = await self.get_bank(ctx.author.id, ctx.guild.id)
+        money = int(money)
+        if pre_balance < money:
+            return await ctx.send("Not enough bank balance to send this amount!")
+
+        toSendId = user if type(user) is int else user.id
+
+        if await self.database.bot.economy.count_documents({"user_id": toSendId}) == 0:
+            return await ctx.send("Cannot pay the user !")
+
+        await self.send_global_money(ctx.author.id, toSendId, money)
+
+        db = self.database.bot
+        posts = db.economy
+        data = await posts.find_one({"user_id": ctx.author.id})
+
+        embed = Embed(color=0x36a39f, title=f"Sent ${money} to {user}",
+                      description=f"✅ {user.mention} has received the cash!")
+        embed.set_footer(text="Ploxy | Economy system")
+        await ctx.send(embed=embed)
+
+        data = await posts.find_one({"user_id": user.id})
+
+        embed = Embed(color=0x36a39f, title=f"You got Cash from {ctx.author.name}#{ctx.author.discriminator}!")
+        embed.add_field(name="📧Cash received:", value=f"${money}", inline=True)
+        embed.add_field(name="🏦Global Balance:", value=f"${data['balance']}", inline=True)
         embed.add_field(name="Link to channel:", value=f"{ctx.channel.mention}", inline=True)
         embed.set_footer(text=f"Ploxy | Economy system | {ctx.guild.name}")
         await user.send(embed=embed)
@@ -421,20 +519,25 @@ class Economy(commands.Cog):
         db = self.database.bot
         posts = db.economy
         if amount[0] == "-" or amount == "0":
-            return await ctx.send("Cannot withdraw amounts less than or equal to 0")
+            return await ctx.send("Cannot deposit amounts less than or equal to 0")
         if amount == "all":
             db_amount = await posts.find_one({"user_id": ctx.author.id})
             amount = db_amount['cash'][str(ctx.guild.id)]
+            if amount <= 0:
+                return await ctx.send("You do not have any cash to deposit")
+
+        amount = round(int(amount), 2)
+
         if await self.get_money(ctx.author.id, ctx.guild.id) < int(amount):
             return await ctx.send("Not enough cash to deposit this amount!")
 
         await self.take_money(ctx.author.id, ctx.guild.id, int(amount))
-        await self.add_balance(ctx.author.id, int(amount))
+        await self.add_balances(ctx.author.id, ctx.guild.id, int(amount))
         data = await posts.find_one({"user_id": ctx.author.id})
         embed = Embed(color=0x36a39f,
                       title=f"Deposited ${amount} in bank account of {ctx.author.name}#{ctx.author.discriminator}")
-        embed.add_field(name="💰Total Balance:", value=f"${data['balance']}", inline=True)
-        embed.add_field(name="💸Total Cash:", value=f"${data['cash'][str(ctx.guild.id)]}", inline=True)
+        embed.add_field(name="💰Total Balance:", value=f"${round(data['balances'][str(ctx.guild.id)], 2)}", inline=True)
+        embed.add_field(name="💸Total Cash:", value=f"${round(data['cash'][str(ctx.guild.id)], 2)}", inline=True)
         embed.set_footer(text="Ploxy | Economy system")
         await ctx.send(embed=embed)
 
@@ -445,8 +548,12 @@ class Economy(commands.Cog):
         if amount[0] == "-" or amount == "0":
             return await ctx.send("Cannot withdraw amounts less than or equal to 0")
         if amount == "all":
-            amount = await self.get_bank(ctx.author.id)
-        if await self.get_bank(ctx.author.id) < int(amount):
+            amount = await self.get_bank(ctx.author.id, ctx.guild.id)
+            if amount <= 0:
+                return await ctx.send("You do not have any cash to deposit")
+
+        amount = round(int(amount), 2)
+        if await self.get_bank(ctx.author.id, ctx.guild.id) < float(amount):
             return await ctx.send("Not enough cash to withdraw this amount!")
 
         db = self.database.bot
@@ -455,13 +562,13 @@ class Economy(commands.Cog):
         if amount == "all":
             amount = await posts.find_one({"user_id": ctx.author.id})['balance']
 
-        await self.take_balance(ctx.author.id, int(amount))
+        await self.take_balances(ctx.author.id, ctx.guild.id, int(amount))
         await self.add_money(ctx.author.id, ctx.guild.id, int(amount))
         data = await posts.find_one({"user_id": ctx.author.id})
         embed = Embed(color=0x36a39f,
                       title=f"Withdrawn ${amount} from bank account of {ctx.author.name}#{ctx.author.discriminator}")
-        embed.add_field(name="💰Total Balance:", value=f"${data['balance']}", inline=True)
-        embed.add_field(name="💸Total Cash:", value=f"${data['cash'][str(ctx.guild.id)]}", inline=True)
+        embed.add_field(name="💰Total Balance:", value=f"${round(data['balances'][str(ctx.guild.id)], 2)}", inline=True)
+        embed.add_field(name="💸Total Cash:", value=f"${round(data['cash'][str(ctx.guild.id)], 2)}", inline=True)
         embed.set_footer(text="Ploxy | Economy system")
         await ctx.send(embed=embed)
 
@@ -472,7 +579,7 @@ class Economy(commands.Cog):
         chance = random.randint(1, 100)
 
         if chance <= 70:
-            amount = random.randint(1, 100)
+            amount = round(random.randint(1, 100), 2)
             end_total = await self.add_money(ctx.author.id, ctx.guild.id, amount)
             embed = Embed(color=0x36a39f, title="You got paid!")
             embed.add_field(name="You earned", value=f"${amount}", inline=True)
@@ -491,7 +598,7 @@ class Economy(commands.Cog):
             seconds = error.retry_after
             timeVar = "minutes" if seconds > 120 else "seconds"
             timeLeft = round(seconds / 60, 1) if timeVar == "minutes" else round(seconds, 1)
-            message = ", the alarm still hasn't gone off yet." if timeVar == "minutes" else "seconds for the light to turn green."
+            message = ", the alarm still hasn't gone off yet." if timeVar == "minutes" else ", for the light to turn green."
 
             embed.add_field(name="You can't work that soon",
                             value=f"You must wait {timeLeft} {timeVar}{message}",
@@ -515,7 +622,7 @@ class Economy(commands.Cog):
 
     async def addField(self, embed, Info, Name):
         fieldDescription = ", \u0020".join(
-            f"{card % 13 if not str(card % 13) in self.Names else self.Names[str(card % 13)]} {self.Emotes[self.Types[card // 13]]}"
+            f"{card % 13 if not str(card % 13) in self.Names else self.Names[str(card % 13)]} {self.Emotes[self.Types[card // 13 if not card == 52 else 3]]}"
             for card in Info[0]
         )
 
@@ -564,15 +671,15 @@ class Economy(commands.Cog):
             return await ctx.channel.send("A valid amount must be specified")
 
         if await self.get_money(ctx.author.id, ctx.guild.id) < amount:
-            return await ctx.channel.send("Not enough money to bet that much")
+            return await ctx.channel.send("Not enough cash to bet that much")
 
         if str(ctx.author.id) not in self.Storage.keys():
             await self.take_money(ctx.author.id, ctx.guild.id, amount)
             User = await self.BlackjackGather(str(ctx.author.id), amount)
             House = await self.BlackjackGather(str(ctx.author.id) + "H", amount)
 
-            User = await GiveNewCard(User)
-            House = await GiveNewCard(House)
+            User = await GiveNewCard(User, House)
+            House = await GiveNewCard(House, User)
 
             await self.displayBlackjackEmbed(ctx, User, House, "")
 
@@ -588,7 +695,7 @@ class Economy(commands.Cog):
             User = await self.BlackjackGather(str(message.author.id))
             House = await self.BlackjackGather(str(message.author.id) + "H")
 
-            User = await GiveNewCard(User)
+            User = await GiveNewCard(User, House)
 
             if await self.checkSum(User) > 21:
                 await self.displayBlackjackEmbed(message, User, House, "lost")
@@ -609,7 +716,7 @@ class Economy(commands.Cog):
             House = await self.BlackjackGather(str(message.author.id) + "H")
 
             while not await self.checkSum(House) >= 17:
-                House = await GiveNewCard(House)
+                House = await GiveNewCard(House, User)
 
             if await self.checkSum(House) > 21 or (await self.checkSum(User) > await self.checkSum(House)):
                 await self.add_money(message.author.id, message.guild.id, int(User[1]) * 2)
@@ -623,6 +730,49 @@ class Economy(commands.Cog):
         if End:
             del self.Storage[str(message.author.id)]
             del self.Storage[str(message.author.id) + "H"]
+
+    @commands.command(name="fraud", usage="fraud <option> <amount>", no_pm=True)
+    @tools.has_perm()
+    async def fraud(self, ctx, option, amount):
+        if ctx.guild is None:
+            return
+        if amount[0] == "-" or amount == "0":
+            await ctx.send("The specified amount must be greater than 0")
+            return
+        try:
+            amount = float(amount)
+        except ValueError:
+            await ctx.send("Must be a number")
+            return
+        ServerData = await self.database.bot.servereconomy.find_one({"guild_id": ctx.guild.id})
+        TaxRate = ServerData["tax_rate"]
+        TaxRate = amount * (TaxRate / 100)
+        DayTaxRate = self.DayTaxRates[str(datetime.datetime.utcnow().isoweekday())] * (amount - TaxRate)
+
+        if option in ["withdraw"]:
+            if await self.get_global(ctx.author.id) < amount:
+                await ctx.send("Not enough cash in global balance")
+                return
+            await self.take_balance(ctx.author.id, amount)
+            await self.add_balances(ctx.author.id, ctx.guild.id, amount - TaxRate - DayTaxRate)
+        elif option in ["deposit"]:
+            if await self.get_bank(ctx.author.id, ctx.guild.id) < amount:
+                await ctx.send("Not enough cash in your wallet")
+                return
+            await self.take_balances(ctx.author.id, ctx.guild.id, amount)
+            await self.add_balance(ctx.author.id, amount - TaxRate - DayTaxRate)
+        else:
+            await ctx.send("Invalid action selected ( Deposit | Withdraw )")
+            return
+        await self.add_server_balance(ctx.guild.id, TaxRate)
+
+        data = await self.database.bot.economy.find_one({"user_id": ctx.author.id})
+        embed = Embed(color=0x36a39f,
+                      title=f"{option}{'ed' if option[0] == 'd' else 'n'} ${amount} from the account of {ctx.author}")
+        embed.add_field(name="💰Local Balance:", value=f"${data['balances'][str(ctx.guild.id)]}", inline=True)
+        embed.add_field(name="💸Global balance:", value=f"${data['balance']}", inline=True)
+        embed.set_footer(text="Ploxy | Economy system")
+        await ctx.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_message(self, message):

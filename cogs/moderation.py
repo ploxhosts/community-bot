@@ -377,10 +377,10 @@ class Mod(commands.Cog):
     async def role(self, ctx, member: discord.Member, role_asked: discord.Role):
         if role_asked in member.roles:
             await member.remove_roles(role_asked, reason='Removed role')
-            await ctx.send(f"{ctx.message.author.mention} has removed the role '{role_asked}' from {member.mention}")
+            await ctx.send(f"{ctx.message.author.mention} has removed the role '{role_asked.name}' from {member.mention}")
         else:
             await member.add_roles(role_asked, reason='Added role')
-            await ctx.send(f"{ctx.message.author.mention} has added role to {member.mention}")
+            await ctx.send(f"{ctx.message.author.mention} has added '{role_asked.name}' to {member.mention}")
 
 
 def setup(bot):

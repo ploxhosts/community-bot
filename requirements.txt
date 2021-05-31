@@ -5,9 +5,10 @@ aiohttp>=3.7.4
 beautifulsoup4~=4.9.3
 discord.py
 lxml
-motor
+motor~=2.3.1
 discord-py-slash-command
 dnspython
-opencv-python
-pytesseract
+opencv-python~=4.5.1.48
+pytesseract~=0.3.7
 aiosqlite==0.17.0
+PyYAML>=5.4

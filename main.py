@@ -24,6 +24,67 @@ import discord
 load_dotenv()
 
 # Runs database connections and env
+from prepare import database
+
+token = os.getenv('bot_token')
+prod_org = os.getenv('prod')
+prod = os.getenv('prod')
+try:
+    if int(prod_org) == 1:  # main branch
+        prod = "https://github.com/PloxHost-LLC/community-bot/archive/refs/heads/main.zip"
+    elif int(prod_org) == 2:  # test branch
+        prod = "https://github.com/PloxHost-LLC/community-bot/archive/refs/heads/test.zip"
+    elif int(prod_org) == 3:
+        prod = os.getenv('prod_string')
+except Exception as e:
+    print(e)
+    if prod_org is None:
+        prod_org = 1
+        prod = "https://github.com/PloxHost-LLC/community-bot/archive/refs/heads/main.zip"
+    else:
+        prod_org = 0
+        prod = 0
+
+# logger = logging.getLogger('discord')
+# logger.setLevel(logging.DEBUG)
+# handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+# handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+# logger.addHandler(handler)
+
+
+with open('jokes.json', "r+", encoding="utf-8") as json_file:
+    joke_list = json.load(json_file)
+    jokes = []
+    for joke in joke_list:
+        jokes.append(joke_list[str(joke)])
+
+
+# noinspection PyShadowingNames
+async def get_prefix(bot, message):
+    prefix = os.getenv("prefix") or "?"  # Default prefix specified in the env file or ? as default
+
+    if not message.guild:
+        return commands.when_mentioned_or(prefix)(bot, message)
+    db = database.bot
+    collection = db.serversettings
+
+    result = await collection.find_one({"guild_id": message.guild.id})
+    if result is not None:
+        prefix = result["prefix"]
+    return commands.when_mentioned_or(prefix)(bot, message)
+
+
+intents = discord.Intents.all()  # Allow the use of custom intents
+
+bot = commands.Bot(command_prefix=get_prefix, case_insensitive=True, intents=intents)
+slash = SlashCommand(bot, sync_commands=True, override_type=True)
+
+bot.remove_command('help')  # Get rid of the default help command as there is no use for it
+
+bot.database = database  # for use else where
+
+
+# Runs database connections and env
 from config import Global, Ids, Prod  # noqa
 import tools  # noqa
 
@@ -86,7 +147,7 @@ bot = commands.Bot(
 
 
 @bot.event
-async def on_message(message):
+async def on_message(message: discord.Message):
     # Maybe some logic here
     await bot.process_commands(message)
 
@@ -103,7 +164,7 @@ def overwrite_files():
     elif Global.prod == 2:
         start_path = "new_code/community-bot-test"
     else:
-        return
+        return False
     # Normal files
     for new_code_file in os.listdir(start_path):
         if new_code_file not in ["main.py", "prepare.py", ".env"]:
@@ -114,26 +175,28 @@ def overwrite_files():
                     Path(file).rename(new_code_file)
                 except FileExistsError:
                     Path(file).replace(new_code_file)
-
     # Cogs
     for new_code_file in os.listdir(f"{start_path}/cogs"):
         existing_file = Path("cogs/" + new_code_file)
-        file = f"/cogs/{new_code_file}"
-        item = os.path.join(file)
-        if os.path.isfile(item):
+        file = new_code_file
+        item = os.path.join("cogs", file)
+        if os.path.isfile(item) or not os.path.exists(item):
             try:
-                Path(file).rename(existing_file)
+                Path(item).rename(existing_file)
             except FileExistsError:
-                Path(file).replace(existing_file)
+                Path(item).replace(existing_file)
+            except FileNotFoundError:
+                shutil.move(f"{start_path}/cogs/{new_code_file}", existing_file)
+
+    return start_path
 
 
 def get_new_files() -> None:
-    if prod == 0 or prod is None:
+    if prod == 0 or prod is None or str(prod) == "0":
         rootLogger.critical(
             "Not fetching new files. Because prod is 0 or not set"
         )
         return
-
     urllib.request.urlretrieve(prod, "code.zip")
 
     zip_file = 'code.zip'
@@ -142,7 +205,7 @@ def get_new_files() -> None:
 
     shutil.unpack_archive(zip_file, new_code)
 
-    overwrite_files()
+    return overwrite_files()
 
 
 @bot.command()
@@ -170,19 +233,9 @@ async def reload(ctx, cog_name):
 @bot.command()
 @commands.check(is_owner)
 async def update(ctx):
-    for cog in os.listdir("cogs"):
-        if cog.endswith(".py"):
-            try:
-                cog = f"cogs.{cog.replace('.py', '')}"
-                bot.unload_extension(cog)
-                bot.load_extension(cog)
-            except Exception as e:
-                rootLogger.critical(f"{cog} can not be loaded:")
-                await ctx.send(f"{cog} can not be loaded:")
-                raise e
-    await ctx.send("Updated!")
+    output = None
     try:
-        get_new_files()
+        output = get_new_files()
     except urllib.error.HTTPError as e:
         return await ctx.send("Cannot load files!")
     for cog in os.listdir("cogs"):
@@ -195,7 +248,7 @@ async def update(ctx):
                 rootLogger.critical(f"{cog} can not be loaded:")
                 await ctx.send(f"{cog} can not be loaded:")
                 raise e
-    await ctx.send("Updated!")
+    await ctx.send(f"Updated! {output}")
 
 
 @bot.command()
