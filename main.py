@@ -26,12 +26,14 @@ try:
         prod = "https://github.com/PloxHost-LLC/community-bot/archive/refs/heads/test.zip"
     elif int(prod_org) == 3:
         prod = os.getenv('prod_string')
-    elif prod_org is None:
-        prod = "https://github.com/PloxHost-LLC/community-bot/archive/refs/heads/main.zip"
 except Exception as e:
     print(e)
-    prod_org = 0
-    prod = 0
+    if prod_org is None:
+        prod_org = 1
+        prod = "https://github.com/PloxHost-LLC/community-bot/archive/refs/heads/main.zip"
+    else:
+        prod_org = 0
+        prod = 0
 
 # logger = logging.getLogger('discord')
 # logger.setLevel(logging.DEBUG)
@@ -126,7 +128,7 @@ async def on_ready():
 
 
 @bot.event
-async def on_message(message:discord.Message):
+async def on_message(message: discord.Message):
     # Maybe some logic here
     await bot.process_commands(message)
 
@@ -166,7 +168,7 @@ def overwrite_files():
     elif prod_org == 2:
         start_path = "new_code/community-bot-test"
     else:
-        return
+        return False
     # Normal files
     for new_code_file in os.listdir(start_path):
         if new_code_file not in ["main.py", "prepare.py", ".env"]:
@@ -177,23 +179,26 @@ def overwrite_files():
                     Path(file).rename(new_code_file)
                 except FileExistsError:
                     Path(file).replace(new_code_file)
-
     # Cogs
     for new_code_file in os.listdir(f"{start_path}/cogs"):
         existing_file = Path("cogs/" + new_code_file)
-        file = f"/cogs/{new_code_file}"
-        item = os.path.join(file)
-        if os.path.isfile(item):
+        file = new_code_file
+        item = os.path.join("cogs", file)
+        if os.path.isfile(item) or not os.path.exists(item):
             try:
-                Path(file).rename(existing_file)
+                Path(item).rename(existing_file)
             except FileExistsError:
-                Path(file).replace(existing_file)
+                Path(item).replace(existing_file)
+            except FileNotFoundError:
+                shutil.move(f"{start_path}/cogs/{new_code_file}", existing_file)
+
+    return start_path
 
 
 def get_new_files():
     global prod, prod_org
-    if prod == 0:
-        return
+    if str(prod) == "0":
+        return "Prod is 0"
     urllib.request.urlretrieve(prod, "code.zip")
 
     zip_file = 'code.zip'
@@ -202,14 +207,15 @@ def get_new_files():
 
     shutil.unpack_archive(zip_file, new_code)
 
-    overwrite_files()
+    return overwrite_files()
 
 
 @bot.command()
 @commands.check(is_owner)
 async def update(ctx):
+    output = None
     try:
-        get_new_files()
+        output = get_new_files()
     except urllib.error.HTTPError as e:
         return await ctx.send("Cannot load files!")
     for cog in os.listdir("cogs"):
@@ -222,7 +228,7 @@ async def update(ctx):
                 rootLogger.critical(f"{cog} can not be loaded:")
                 await ctx.send(f"{cog} can not be loaded:")
                 raise e
-    await ctx.send("Updated!")
+    await ctx.send(f"Updated! {output}")
 
 
 @bot.command()
