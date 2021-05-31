@@ -186,7 +186,7 @@ def overwrite_files():
         item = os.path.join("cogs", file)
         if os.path.isfile(item) or not os.path.exists(item):
             try:
-                Path(item).rename(existing_file)
+                shutil.move(f"{start_path}/cogs/{new_code_file}", existing_file)
             except FileExistsError:
                 Path(item).replace(existing_file)
             except FileNotFoundError:
