@@ -406,7 +406,8 @@ class Economy(commands.Cog):
     @commands.group(invoke_without_command=True, case_sensitive=False, name="lottery", usage="lottery", no_pm=True)
     @tools.has_perm()
     async def lotterycmd(self, ctx):
-        embed = Embed(color=0x36a39f, title="Lottery system", description=f"To use do `{ctx.prefix}lottery buy <daily|weekly|monthly> <amount>`")
+        embed = Embed(color=0x36a39f, title="Lottery system",
+                      description=f"To use do `{ctx.prefix}lottery buy <daily|weekly|monthly> <amount>`")
         embed.add_field(name="Daily lottery",
                         value=f"\n$20 per ticket, chosen at midnight. Maximum 1 winner with 4 players.", inline=True)
         embed.add_field(name="Weekly lottery",
@@ -630,7 +631,7 @@ class Economy(commands.Cog):
         embed.set_footer(text="Ploxy")
         await ctx.send(embed=embed)
 
-    @commands.command(name="ecototalreset", usage="ecoreset")
+    @commands.command(name="ecototalreset", usage="ecototalreset")
     async def eco_total_reset(self, ctx):
         if ctx.author.id not in self.owner_list:
             return
@@ -639,6 +640,38 @@ class Economy(commands.Cog):
         await EcoPost.delete_many({})
 
         await ctx.send("The economy has successfully been reset")
+
+    @commands.command(name="ecoresetuser", usage="ecoresetuser <@user>")
+    async def eco_reset_user(self, ctx, user: discord.User):
+        if ctx.author.id not in self.owner_list:
+            return
+
+        EcoPost = self.database.bot.economy
+        await EcoPost.delete_many({"user_id": user.id})
+
+        await ctx.send("The user has successfully been reset")
+
+    @commands.command(name="ecosetuser", usage="ecosetuser <@user> <global|bank|cash> <money>")
+    async def eco_set_user(self, ctx, user: discord.User, choice: str, money: float):
+        if ctx.author.id not in self.owner_list:
+            return
+
+        EcoPost = self.database.bot.economy
+        if choice == "cash":
+            await EcoPost.update_one({"user_id": user.id},
+                                 {"$set": {"cash": money}})
+        elif choice == "global":
+            await EcoPost.update_one({"user_id": user.id},
+                                     {"$set": {"balance": money}})
+        elif choice == "bank":
+            user = await EcoPost.find_one({"user_id": user.id})
+            money_total = user["balances"]
+            money_total[str(user.id)] = money_total[str(ctx.guild.id)] = money
+            await EcoPost.update_one({"user_id": user.id},
+                                   {"$set": {"balances": money_total}})
+        else:
+            return
+        await ctx.send("The user's balance has been set")
 
     async def checkSum(self, Info):
         return sum(
