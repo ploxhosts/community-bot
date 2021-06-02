@@ -17,6 +17,8 @@ class VLevels(commands.Cog):
         for user_id in users:
             data = self.users_in_vc[user_id]
             bad_seconds = data["bad_seconds"]
+            stream_seconds = data["stream_seconds"]
+            video_seconds = data["video_seconds"]
             guild = self.bot.get_guild(data["guild"])
             if guild is None:
                 self.users_in_vc.pop(user_id)
@@ -27,6 +29,10 @@ class VLevels(commands.Cog):
                 else:
                     if member.voice.deaf or member.voice.mute or member.voice.self_deaf or member.afk:  # If member is server muted, deafened or deafened by their own choice or in the afk channel
                         self.users_in_vc[user_id]["bad_seconds"] = bad_seconds + 60
+                    if member.voice.self_stream:
+                        self.users_in_vc[user_id]["stream_seconds"] = stream_seconds + 60
+                    if member.voice.self_video:
+                        self.users_in_vc[user_id]["video_seconds"] = video_seconds + 80
         with open('voice_levels.txt', 'w') as outfile:
             json.dump(self.users_in_vc, outfile, indent=4)
 
@@ -84,6 +90,12 @@ class VLevels(commands.Cog):
             if new_seconds_in_vc - user_obj["bad_seconds"] > 0:
                 exp += int(
                     ((new_seconds_in_vc - user_obj["bad_seconds"]) / 60 * 10) * multiplier)  # Multiplier may be a float
+            if "stream_seconds" in user_obj:
+                exp += int(
+                    (user_obj["stream_seconds"] / 60 * 16) * multiplier)  # Multiplier may be a float
+            if "video_seconds" in user_obj:
+                exp += int(
+                    (user_obj["stream_seconds"] / 60 * 18) * multiplier)  # Multiplier may be a float
 
             if total_exp == 0:
                 for level_mini_start in range(int(level) + 1):
