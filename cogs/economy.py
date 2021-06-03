@@ -788,7 +788,7 @@ class Economy(commands.Cog):
             del self.Storage[str(message.author.id)]
             del self.Storage[str(message.author.id) + "H"]
 
-    @commands.command(name="fraud", usage="fraud <option> <amount>", no_pm=True)
+    @commands.command(name="fraud", usage="fraud <withdraw | deposit> <amount>", no_pm=True)
     @tools.has_perm()
     async def fraud(self, ctx, option, amount):
         if ctx.guild is None:
