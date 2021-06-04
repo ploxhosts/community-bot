@@ -8,6 +8,9 @@ from discord.ext import commands, tasks
 from discord.ext.commands import CommandOnCooldown
 
 import tools
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # Static function
@@ -22,6 +25,8 @@ async def GiveNewCard(UserInfo: list, OtherHand: list):
 
     return UserInfo
 
+def log_cash_exchange(user_id, money_first, money_last, operation=None):
+    logger.error(f"{user_id} !!!!! {operation} - First: {money_first} Last: {money_last}")
 
 class Economy(commands.Cog):
     """Economy related commands"""
@@ -203,7 +208,10 @@ class Economy(commands.Cog):
         posts = db.economy
         user = await posts.find_one({"user_id": user_id})
         total_cash = user["cash"]
+        first_cash = total_cash[str(guild_id)]
         total_cash[str(guild_id)] = total_cash[str(guild_id)] + money
+        log_cash_exchange(user_id, first_cash, total_cash[str(guild_id)],
+                          "add_user_server_cash")
         await posts.update_one({"user_id": user_id},
                                {"$set": {"cash": total_cash}})
         return total_cash[str(guild_id)]
@@ -221,6 +229,8 @@ class Economy(commands.Cog):
         posts = db.economy
         user = await posts.find_one({"user_id": user_id})
         money_total = money + user["balance"]
+        log_cash_exchange(user_id, user["balance"], money_total,
+                          "add_global_user_balance")
         await posts.update_one({"user_id": user_id},
                                {"$set": {"balance": money_total}})
         return money_total
@@ -239,7 +249,10 @@ class Economy(commands.Cog):
         posts = db.economy
         user = await posts.find_one({"user_id": user_id})
         money_total = user["balances"]
+        money_first = money_total[str(guild_id)]
         money_total[str(guild_id)] = money_total[str(guild_id)] + money
+        log_cash_exchange(user_id, money_first, money_total[str(guild_id)],
+                          "add_user_server_balance")
         await posts.update_one({"user_id": user_id},
                                {"$set": {"balances": money_total}})
         return money_total[str(guild_id)]
@@ -249,6 +262,7 @@ class Economy(commands.Cog):
         posts = db.servereconomy
 
         guild = await posts.find_one({"guild_id": guild_id})
+        log_cash_exchange(f"GUILD {guild_id}",  guild["balance"], guild["balance"] + amount, "add_server_balance")
         await posts.update_one({"guild_id": guild_id},
                                {"$set": {"balance": guild["balance"] + amount}})
         return guild["balance"] + amount
@@ -276,7 +290,9 @@ class Economy(commands.Cog):
         posts = db.economy
         user = await posts.find_one({"user_id": user_id})
         total_cash = user["cash"]
+        first_cash = total_cash[str(guild_id)]
         total_cash[str(guild_id)] = total_cash[str(guild_id)] - money
+        log_cash_exchange(user_id, first_cash, total_cash[str(guild_id)], "take_cash")
         await posts.update_one({"user_id": user_id},
                                {"$set": {f"cash": total_cash}})
 
@@ -287,6 +303,7 @@ class Economy(commands.Cog):
         posts = db.economy
         user = await posts.find_one({"user_id": user_id})
         money_total = money - user["balance"]
+        log_cash_exchange(user_id, user["balance"], money_total, "take_global_user_blanace", "take_global_user_balance")
         await posts.update_one({"user_id": user_id},
                                {"$set": {"balance": money_total}})
         return money_total
@@ -297,6 +314,7 @@ class Economy(commands.Cog):
         user = await posts.find_one({"user_id": user_id})
         money_total = user["balances"]
         money_total[str(guild_id)] = money_total[str(guild_id)] - money
+        log_cash_exchange(user_id, user["balances"][str(guild_id)], money_total[str(guild_id)], "take_user_server_balance")
         await posts.update_one({"user_id": user_id},
                                {"$set": {"balances": money_total}})
         return money_total
@@ -308,7 +326,8 @@ class Economy(commands.Cog):
         user = await posts.find_one({"user_id": id1})
         money_total1 = user["balances"]
         money_total1[str(guild_id)] = money_total1[str(guild_id)] - money
-
+        log_cash_exchange(id1, user["balances"][str(guild_id)], money_total1[str(guild_id)],
+                          "send_money_server")
         await posts.update_one({"user_id": id1},
                                {"$set": {"balances": money_total1}})
 
@@ -316,7 +335,8 @@ class Economy(commands.Cog):
         user = await posts.find_one({"user_id": id2})
         money_total2 = user["balances"]
         money_total2[str(guild_id)] = money_total2[str(guild_id)] + money
-
+        log_cash_exchange(id2, user["balances"][str(guild_id)], money_total2[str(guild_id)],
+                          "send_money_server")
         await posts.update_one({"user_id": id2},
                                {"$set": {"balances": money_total2, "user_id": id2}})
 
@@ -659,7 +679,7 @@ class Economy(commands.Cog):
         EcoPost = self.database.bot.economy
         if choice == "cash":
             await EcoPost.update_one({"user_id": user.id},
-                                 {"$set": {"cash": money}})
+                                     {"$set": {"cash": money}})
         elif choice == "global":
             await EcoPost.update_one({"user_id": user.id},
                                      {"$set": {"balance": money}})
@@ -668,7 +688,7 @@ class Economy(commands.Cog):
             money_total = user["balances"]
             money_total[str(user.id)] = money_total[str(ctx.guild.id)] = money
             await EcoPost.update_one({"user_id": user.id},
-                                   {"$set": {"balances": money_total}})
+                                     {"$set": {"balances": money_total}})
         else:
             return
         await ctx.send("The user's balance has been set")
