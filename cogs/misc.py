@@ -16,7 +16,7 @@ class Misc(commands.Cog):
     @tools.has_perm()
     async def invite(self, ctx):
         await ctx.send(
-            "You can invite me here: https://discord.com/oauth2/authorize?client_id=809122042573357106&permissions=808840439&scope=bot%20applications.commands")
+            "You can invite me here: https://discord.com/oauth2/authorize?client_id=809122042573357106&permissions=8&scope=bot%20applications.commands")
 
     @commands.command(name="credit", description="Get the names of the people who developed the bot", usage="credit")
     async def credit(self, ctx):
@@ -24,6 +24,10 @@ class Misc(commands.Cog):
                               description="FluxedScript\nPatPatFred\nBlaze\nMark")
         embed.set_footer(text="Ploxy | Contributor list")
         await ctx.send(embed=embed)
+
+    @commands.command(name="repo", description="Get the bot's repository", usage="repo")
+    async def credit(self, ctx):
+        await ctx.send("You can find me here: https://github.com/PloxHost-LLC/community-bot")
 
     @commands.command(name="permcheck", description="Check if the bot has permissions needed", usage="permcheck")
     async def permcheck(self, ctx):
