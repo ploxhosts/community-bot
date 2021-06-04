@@ -17,6 +17,9 @@ class VLevels(commands.Cog):
         for user_id in users:
             data = self.users_in_vc[user_id]
             bad_seconds = data["bad_seconds"]
+            stream_seconds = data["stream_seconds"]
+            video_seconds = data["video_seconds"]
+            minus_seconds = data["minus_seconds"]
             guild = self.bot.get_guild(data["guild"])
             if guild is None:
                 self.users_in_vc.pop(user_id)
@@ -25,8 +28,14 @@ class VLevels(commands.Cog):
                 if member is None or member.voice.channel is None:
                     self.users_in_vc.pop(user_id)
                 else:
-                    if member.voice.deaf or member.voice.mute or member.voice.self_deaf or member.afk:  # If member is server muted, deafened or deafened by their own choice or in the afk channel
+                    if member.voice.deaf or member.voice.mute or member.voice.self_deaf or member.voice.afk:  # If member is server muted, deafened or deafened by their own choice or in the afk channel
                         self.users_in_vc[user_id]["bad_seconds"] = bad_seconds + 60
+                    if member.voice.self_mute:
+                        self.users_in_vc[user_id]["minus_seconds"] = minus_seconds + 60
+                    if member.voice.self_stream:
+                        self.users_in_vc[user_id]["stream_seconds"] = stream_seconds + 60
+                    if member.voice.self_video:
+                        self.users_in_vc[user_id]["video_seconds"] = video_seconds + 80
         with open('voice_levels.txt', 'w') as outfile:
             json.dump(self.users_in_vc, outfile, indent=4)
 
@@ -73,7 +82,8 @@ class VLevels(commands.Cog):
                                    }})
             self.users_in_vc[str(member.id)] = {"guild": member.guild.id, "latest_vc_channel": after.channel.id,
                                                 "time_since_join_vc": datetime.datetime.now().timestamp(),
-                                                "bad_seconds": 0}
+                                                "bad_seconds": 0, "stream_seconds": 0, "video_seconds": 0,
+                                                "minus_seconds": 0}
 
         elif after.channel is None:  # When a user is leaving a vc
             user_obj = self.users_in_vc.get(str(member.id))
@@ -82,8 +92,21 @@ class VLevels(commands.Cog):
             new_seconds_in_vc = datetime.datetime.now().timestamp() - time_since_join_vc.timestamp()
 
             if new_seconds_in_vc - user_obj["bad_seconds"] > 0:
+                if "minus_seconds" in user_obj:
+                    exp += int(
+                        ((new_seconds_in_vc - (user_obj[
+                                                   "bad_seconds"] + (user_obj[
+                                                                         "minus_seconds"] / 4)) / 60 * 10) * multiplier))  # Multiplier may be a float
+                else:
+                    exp += int(
+                        ((new_seconds_in_vc - user_obj[
+                            "bad_seconds"]) / 60 * 10) * multiplier)  # Multiplier may be a float
+            if "stream_seconds" in user_obj:
                 exp += int(
-                    ((new_seconds_in_vc - user_obj["bad_seconds"]) / 60 * 10) * multiplier)  # Multiplier may be a float
+                    (user_obj["stream_seconds"] / 60 * 6) * multiplier)  # Multiplier may be a float
+            if "video_seconds" in user_obj:
+                exp += int(
+                    (user_obj["stream_seconds"] / 60 * 8) * multiplier)  # Multiplier may be a float
 
             if total_exp == 0:
                 for level_mini_start in range(int(level) + 1):

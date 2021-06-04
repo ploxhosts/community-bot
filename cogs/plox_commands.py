@@ -508,7 +508,7 @@ class Support(commands.Cog):
             },
             "lagfix": {
                 "triggers": ["lagging alot", "laggin alot", "vanilla"],
-                "prevents": ["vps", "-s"],
+                "prevents": ["vps", "js", "css", "-s"],
                 "response": "The time has come, for you to learn. You should be using Paper or a fork of it such as Purpur.\nYes this does enable you to use plugins but comes with performance benefits.\n\nYou can select this by using the jar selection on the main multicraft panel of your server.Make sure you click save at the bottom and restart. **Make sure you install the correction version**, Minecraft will only let you install a version higher or the same version to avoid world corruption unless you want your world to be deleted.\n\nFor optimised configuration files please visit: https://discord.com/channels/346715007469355009/476634353808441344/831237483278237707"
             },
             "needticket": {
@@ -541,11 +541,11 @@ class Support(commands.Cog):
 
         await self.analyze_timings(message)
 
-        if message.guild.id == 346715007469355009 and (
-                trigger or prevent):  # Log the output to a channel if in the main server
-            fluxed_logs = message.guild.get_channel(824417561735200838)
-            await fluxed_logs.send(
-                f"**Category**: {category}\n**Trigger:** {trigger}\n**Message that prevented it:** {prevent}\nMessage that generated it: \n```\n{message.content}\n```\n**Output:**\n{response}\n**Attachments:** {message.attachments}")
+        if message.guild.id == 346715007469355009:  # Log the output to a channel if in the main server
+            if trigger or prevent:
+                fluxed_logs = message.guild.get_channel(824417561735200838)
+                await fluxed_logs.send(
+                    f"**Category**: {category}\n**Trigger:** {trigger}\n**Message that prevented it:** {prevent}\nMessage that generated it: \n```\n{message.content}\n```\n**Output:**\n{response}\n**Attachments:** {message.attachments}")
 
     @commands.command(name='book', aliases=["rtfm"], usage="book How to delete server files",
                       description="search the knowledge base")

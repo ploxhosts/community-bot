@@ -71,6 +71,10 @@ plugins:
       prefix: "❌"
       value: |-
         Stacking mobs causes more lag.
+    RoseStacker:
+      prefix: "❌"
+      value: |-
+        Stacking mobs causes more lag.
     FastAsyncWorldEdit:
       prefix: "❌"
       value: |-
