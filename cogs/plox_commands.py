@@ -541,11 +541,11 @@ class Support(commands.Cog):
 
         await self.analyze_timings(message)
 
-        if message.guild.id == 346715007469355009 and (
-                trigger or prevent):  # Log the output to a channel if in the main server
-            fluxed_logs = message.guild.get_channel(824417561735200838)
-            await fluxed_logs.send(
-                f"**Category**: {category}\n**Trigger:** {trigger}\n**Message that prevented it:** {prevent}\nMessage that generated it: \n```\n{message.content}\n```\n**Output:**\n{response}\n**Attachments:** {message.attachments}")
+        if message.guild.id == 346715007469355009:  # Log the output to a channel if in the main server
+            if trigger or prevent:
+                fluxed_logs = message.guild.get_channel(824417561735200838)
+                await fluxed_logs.send(
+                    f"**Category**: {category}\n**Trigger:** {trigger}\n**Message that prevented it:** {prevent}\nMessage that generated it: \n```\n{message.content}\n```\n**Output:**\n{response}\n**Attachments:** {message.attachments}")
 
     @commands.command(name='book', aliases=["rtfm"], usage="book How to delete server files",
                       description="search the knowledge base")
