@@ -3,15 +3,18 @@ import json
 import logging
 import os
 import random
+import shutil
+import subprocess
+import sys
 import time
+import urllib.error
+import urllib.request
+from pathlib import Path
+
 import discord
 from discord.ext import commands, tasks
-import urllib.request
-import urllib.error
-import shutil
-from pathlib import Path
-from discord_slash.utils import manage_commands
 from discord_slash import SlashCommand
+from discord_slash.utils import manage_commands
 
 # Runs database connections and env
 from prepare import database
@@ -212,12 +215,21 @@ def get_new_files():
 
 @bot.command()
 @commands.check(is_owner)
-async def update(ctx):
+async def update(ctx, do_pip = 0):
     output = None
     try:
         output = get_new_files()
     except urllib.error.HTTPError as e:
         return await ctx.send("Cannot load files!")
+    if do_pip != 0:
+        with open("requirements.txt", "r") as requirements_file:
+            requirements = requirements_file.readlines()
+        for package in requirements:
+            if do_pip == 1:
+                subprocess.Popen(f"pip install {package}", shell=True)
+            elif do_pip == 2:
+                subprocess.check_call([sys.executable, "-m", "pip", "install", package.replace("\n", "").replace(" ", "")])
+
     for cog in os.listdir("cogs"):
         if cog.endswith(".py"):
             try:
@@ -265,6 +277,7 @@ async def change_status():
                 "Do I have friends?",
                 f"{unique_joke}",
                 "Some random joke failed to be rendered",
+                "Pineapple on pizza? Personally I like it, so does Fluxed.",
                 "HTML is a programming language no cap"]
     status = random.choice(statuses)
     await bot.change_presence(status=discord.Status.online, activity=discord.Game(status))
