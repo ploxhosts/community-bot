@@ -57,6 +57,7 @@ class Levels(commands.Cog):
                 message_time = x["message_time"]
                 messages_counted = x["messages_counted"]
 
+
             new_message_time = datetime.datetime.utcnow()
             time_difference = round((new_message_time - message_time).total_seconds() / 60)
 
@@ -114,6 +115,7 @@ class Levels(commands.Cog):
                 member = ctx.guild.get_member(user_id)
                 if member is not None:
                     top.append(f"{count}. {member.name}#{member.discriminator} | Level {level} - {exp} XP")
+                    logger.error(x)
                     count += 1
                 if count % 11 == 0:  # 11, 22, 33, 44, 55
                     if (page * 11) == count:
