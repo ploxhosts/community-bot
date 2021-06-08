@@ -78,11 +78,11 @@ class Commands(commands.Cog):
     @commands.command(name="ping", aliases=["rolelist"], usage="ping")
     @tools.has_perm()
     async def ping(self, ctx):
-        times = random.randint(1, 10)
-        if times in (1, 5, 10):
-            await ctx.send(f"Ding Dong!`{round(self.bot.latency * 1000)} ms`")
-        else:
-            await ctx.send(f"Pong!`{round(self.bot.latency * 1000)} ms`")
+        embed = discord.Embed(colour=0x36a39f, description=f"💓 {round(self.bot.latency * 1000)}")
+        message = await ctx.send(embed=embed)
+        time_diff = round((message.created_at - ctx.message.created_at).total_seconds() * 1000)
+        embed = discord.Embed(colour=0x36a39f, description=f"⌛ {time_diff} ms\n\n💓 {round(self.bot.latency * 1000)} ms")
+        await message.edit(embed=embed)
 
     @commands.command(name="users", aliases=["userlist"], usage="users")
     @tools.has_perm()
