@@ -482,34 +482,64 @@ class Support(commands.Cog):
                 "triggers": ["modulenotfoundrror: no module named", "modulenotfoundrror", "no module named",
                              "cannot be found"],
                 "prevents": ["you get this", "get this", "-s"],
-                "response": "Oh no, sorry to hear that you are having issues with your discord bot hosting.\nThis is quite easy to fix with a `requirements.txt` file. Make sure your file is in the main folder/directory.\n\nYou will need to insert the module/thing you normally install with pip. For example discord.py you could use a `requirements.txt` file with the content of \n```\ndiscord.py\ndnspython\nmotor\n```\nDo note some modules are installed into python by default such as `random` and `os` so if it says `No matching distribution found for...` then likely this is preinstalled into python.\n**Hope this helps you!**"
+                "response": "Oh no, sorry to hear that you are having issues with your discord bot hosting.\nThis is "
+                            "quite easy to fix with a `requirements.txt` file. Make sure your file is in the main "
+                            "folder/directory.\n\nYou will need to insert the module/thing you normally install with "
+                            "pip. For example discord.py you could use a `requirements.txt` file with the content of "
+                            "\n```\ndiscord.py\ndnspython\nmotor\n```\nDo note some modules are installed into python "
+                            "by default such as `random` and `os` so if it says `No matching distribution found "
+                            "for...` then likely this is preinstalled into python.\n**Hope this helps you!** "
             },
             "requirements.txt": {
                 "triggers": ["no such file or directory", "requirements.txt",
                              "defaulting to user installation because normal site-packages is not writeable"],
                 "prevents": ["make sure", "include", "put", "keep", "-s"],
-                "response": "Oh no, sorry to hear that you are having issues with your discord bot hosting.\nThis is quite easy to fix with a `requirements.txt` file. Make sure your file is in the main folder/directory.\n\nYou will need to insert the module/thing you normally install with pip. For example discord.py you could use a `requirements.txt` file with the content of \n```\ndiscord.py\ndnspython\nmotor\n```\nDo note some modules are installed into python by default such as `random` and `os` so if it says `No matching distribution found for...` then likely this is preinstalled into python.\n**Hope this helps you!**"
+                "response": "Oh no, sorry to hear that you are having issues with your discord bot hosting.\nThis is "
+                            "quite easy to fix with a `requirements.txt` file. Make sure your file is in the main "
+                            "folder/directory.\n\nYou will need to insert the module/thing you normally install with "
+                            "pip. For example discord.py you could use a `requirements.txt` file with the content of "
+                            "\n```\ndiscord.py\ndnspython\nmotor\n```\nDo note some modules are installed into python "
+                            "by default such as `random` and `os` so if it says `No matching distribution found "
+                            "for...` then likely this is preinstalled into python.\n**Hope this helps you!** "
             },
             "ipbanned": {
                 "triggers": ["ip has been banned", "ip banned",
                              "banned from support", "i got ip banned"],
                 "prevents": ["how to", "minecraft", "-s"],
-                "response": "You have been banned by the looks of it. This usually happens when you input the wrong email/password multiple times. You can try to login from https://billing.plox.host and login with your billing account details(the ones you used to purchase the service/server). You can create a ticket there or access the support panel from there.\n**Hope this helps you!**"
+                "response": "You have been banned by the looks of it. This usually happens when you input the wrong "
+                            "email/password multiple times. You can try to login from https://billing.plox.host and "
+                            "login with your billing account details(the ones you used to purchase the "
+                            "service/server). You can create a ticket there or access the support panel from "
+                            "there.\n**Hope this helps you!** "
             },
             "jarfileaccess": {
                 "triggers": ["Unable to access jarfile"],
                 "prevents": ["how to", "-s"],
-                "response": "Ah yes the famous jarfile issues, make sure the file jar file is in the main/root folder and execute it. It won't work otherwise. \n If using minecraft hosting, if you are using a custom jar then refer to this guide: https://support.plox.host/en/knowledgebase/article/how-to-use-a-custom-jar.\n**Hope this helps!**"
+                "response": "Ah yes the famous jarfile issues, make sure the file jar file is in the main/root folder "
+                            "and execute it. It won't work otherwise. \n If using minecraft hosting, if you are using "
+                            "a custom jar then refer to this guide: "
+                            "https://support.plox.host/en/knowledgebase/article/how-to-use-a-custom-jar.\n**Hope this "
+                            "helps!** "
             },
             "npminstall": {
                 "triggers": ["npm package", "packages", "install an npm package", "npm's", "npms", "npm install"],
                 "prevents": ["minecraft", "python", "pip", "-s"],
-                "response": "Pst, pst. You. The solution is within this article https://support.plox.host/en/knowledgebase/article/how-to-setup-your-nodejs-discord-bot. It may be recommended to install this on your own computer using `npm install` then transfer the `package.json` over."
+                "response": "Pst, pst. You. The solution is within this article "
+                            "https://support.plox.host/en/knowledgebase/article/how-to-setup-your-nodejs-discord-bot. "
+                            "It may be recommended to install this on your own computer using `npm install` then "
+                            "transfer the `package.json` over. "
             },
             "lagfix": {
                 "triggers": ["lagging alot", "laggin alot", "vanilla"],
                 "prevents": ["vps", "js", "css", "-s"],
-                "response": "The time has come, for you to learn. You should be using Paper or a fork of it such as Purpur.\nYes this does enable you to use plugins but comes with performance benefits.\n\nYou can select this by using the jar selection on the main multicraft panel of your server.Make sure you click save at the bottom and restart. **Make sure you install the correction version**, Minecraft will only let you install a version higher or the same version to avoid world corruption unless you want your world to be deleted.\n\nFor optimised configuration files please visit: https://discord.com/channels/346715007469355009/476634353808441344/831237483278237707"
+                "response": "The time has come, for you to learn. You should be using Paper or a fork of it such as "
+                            "Purpur.\nYes this does enable you to use plugins but comes with performance "
+                            "benefits.\n\nYou can select this by using the jar selection on the main multicraft panel "
+                            "of your server.Make sure you click save at the bottom and restart. **Make sure you "
+                            "install the correction version**, Minecraft will only let you install a version higher "
+                            "or the same version to avoid world corruption unless you want your world to be "
+                            "deleted.\n\nFor optimised configuration files please visit: "
+                            "https://discord.com/channels/346715007469355009/476634353808441344/831237483278237707 "
             },
             "needticket": {
                 "triggers": ["how to create a ticket", "the ticket link", "ticket link", "create a ticket"],
@@ -519,7 +549,9 @@ class Support(commands.Cog):
             "nodecmds": {
                 "triggers": ["command terminal", "run npm commands", "npm audit"],
                 "prevents": ["you can", "you should", "-s"],
-                "response": "You can create a ticket at https://support.plox.host/ to have commands ran on your discrd bot hosting service.\nThis is because Pterodactyl does not support the use of such commands in the terminal."
+                "response": "You can create a ticket at https://support.plox.host/ to have commands ran on your "
+                            "discord bot hosting service.\nThis is because Pterodactyl does not support the use of "
+                            "such commands in the terminal. "
             }
         }
 
