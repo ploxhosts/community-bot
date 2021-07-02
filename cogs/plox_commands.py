@@ -550,7 +550,7 @@ class Support(commands.Cog):
                 "triggers": ["command terminal", "run npm commands", "npm audit"],
                 "prevents": ["you can", "you should", "-s"],
                 "response": "You can create a ticket at https://support.plox.host/ to have commands ran on your "
-                            "discrd bot hosting service.\nThis is because Pterodactyl does not support the use of "
+                            "discord bot hosting service.\nThis is because Pterodactyl does not support the use of "
                             "such commands in the terminal. "
             }
         }
