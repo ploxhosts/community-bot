@@ -161,7 +161,8 @@ def has_perm(**perms):
             return True
 
         for role in ctx.author.roles:  # Get each role
-            if role.id == 476614251096571920:  # Only works in the main PloxHost server so other servers are not affected basically allowing management to use everything
+            if role.id == 476614251096571920:  # Only works in the main PloxHost server so other servers are not
+                # affected basically allowing management to use everything
                 return True
 
         raise MissingAddedPerms(ctx.command.name.lower(), ctx.command.cog.qualified_name)
