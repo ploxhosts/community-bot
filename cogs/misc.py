@@ -1,6 +1,7 @@
 from discord.ext import commands
 import discord
-
+import importlib.util
+import sys
 import tools
 
 
@@ -36,6 +37,19 @@ class Misc(commands.Cog):
         lines = file.readlines()
         file.close()
         await ctx.send(lines)
+
+    @commands.command(name="verifydependency")
+    async def verifydepend(self, ctx, name):
+        if name in sys.modules:
+            await ctx.send(f"{name!r} already in sys.modules")
+        elif (spec := importlib.util.find_spec(name)) is not None:
+            # If you choose to perform the actual import ...
+            module = importlib.util.module_from_spec(spec)
+            sys.modules[name] = module
+            spec.loader.exec_module(module)
+            await ctx.send(f"{name!r} has been imported")
+        else:
+            await ctx.send(f"can't find the {name!r} module")
 
     @commands.command(name="permcheck", description="Check if the bot has permissions needed", usage="permcheck")
     async def permcheck(self, ctx):
