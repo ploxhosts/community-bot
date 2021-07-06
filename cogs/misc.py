@@ -29,6 +29,14 @@ class Misc(commands.Cog):
     async def credit(self, ctx):
         await ctx.send("You can find me here: https://github.com/PloxHost-LLC/community-bot")
 
+
+    @commands.command(name="requirements")
+    async def requirements(self, ctx):
+        file = open("requirements.txt", "r")
+        lines = file.readlines()
+        file.close()
+        await ctx.send(lines)
+
     @commands.command(name="permcheck", description="Check if the bot has permissions needed", usage="permcheck")
     async def permcheck(self, ctx):
         bot_user: discord.Member
