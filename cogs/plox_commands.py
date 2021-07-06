@@ -579,12 +579,6 @@ class Support(commands.Cog):
                 await fluxed_logs.send(
                     f"**Category**: {category}\n**Trigger:** {trigger}\n**Message that prevented it:** {prevent}\nMessage that generated it: \n```\n{message.content}\n```\n**Output:**\n{response}\n**Attachments:** {message.attachments}")
 
-    @commands.command(name="requirements")
-    async def requirements(self, ctx):
-        file = open("requirements.txt", "r")
-        lines = file.readlines()
-        file.close()
-        await ctx.send(lines)
 
     @commands.command(name='book', aliases=["rtfm"], usage="book How to delete server files",
                       description="search the knowledge base")
