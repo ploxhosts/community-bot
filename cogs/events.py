@@ -261,8 +261,8 @@ class Events(commands.Cog):
         posts = db.globalusers
         await check_if_update({"user_id": message.author.id}, global_user_profile(message.author.id), posts)
 
-        # posts = db.permissions
-        # await check_if_update({"guild_id": message.guild.id}, get_permissions_info(message.guild), posts)
+        posts = db.permissions
+        await check_if_update({"guild_id": message.guild.id}, get_permissions_info(message.guild), posts)
 
         # PLAYER LEVELING
 
