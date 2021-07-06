@@ -1,3 +1,4 @@
+import logging
 import random
 import time
 from discord.ext import commands
@@ -7,6 +8,7 @@ from prepare import database
 import discord
 import datetime
 
+logger = logging.getLogger(__name__)
 
 def generate_flake():
     return (
@@ -102,22 +104,27 @@ def has_perm(**perms):
 
     db = database.bot
     collection = db.permissions
+    logger.error("1")
 
     async def predicate(ctx):
         def has_default_perms():
+            logger.error("2")
             ch = ctx.channel
             permissions = ch.permissions_for(ctx.author)
 
             missing = []
             for perm, value in perms.items():
                 if perm == "required":
+                    logger.error("21")
                     raise MissingAddedPerms(ctx.command.name.lower(), ctx.command.cog.qualified_name)
                 if getattr(permissions, perm) != value:
+                    logger.error("21 missing perm")
                     missing.append(perm)
 
             if not missing:
+                logger.error("22")
                 return True
-
+            logger.error("23")
             raise MissingPermissions(missing)
 
         db_obj = await collection.find_one({"guild_id": ctx.guild.id})
@@ -126,6 +133,7 @@ def has_perm(**perms):
             return True
         if "required" in perms:
             if not perms["required"]:
+                logger.error("24")
                 return True
         perm_nodes = db_obj["perm_nodes"]
         bad_perm_nodes = db_obj["bad_perm_nodes"]
@@ -142,20 +150,25 @@ def has_perm(**perms):
                         raise RevokedAddedPerms(ctx.command.name, cog.qualified_name, role.name)
                     if "command" in bad_perm:
                         if ctx.command.name.lower() == bad_perm.replace("command:", "").strip().lower():
+                            logger.error("25")
                             raise RevokedAddedPerms(ctx.command.name, cog.qualified_name, role.name)
                     else:
                         if ctx.cog.qualified_name.lower() == bad_perm.lower():
+                            logger.error("26")
                             raise RevokedAddedPerms(ctx.command.name, cog.qualified_name, role.name)
             # If the perm is allowed to that role
             if str(role.id) in perm_nodes:
                 for good_perm in perm_nodes[f"{role.id}"]:
                     if good_perm == "*":
+                        logger.error("27")
                         return True
                     if "command" not in good_perm:
                         if ctx.cog.qualified_name.lower() == good_perm.lower():
+                            logger.error("28")
                             return True
                     else:
                         if ctx.command.name.lower() == good_perm.replace("command:", "").strip().lower():
+                            logger.error("29")
                             return True
         if has_default_perms():
             return True
@@ -163,8 +176,9 @@ def has_perm(**perms):
         for role in ctx.author.roles:  # Get each role
             if role.id == 476614251096571920:  # Only works in the main PloxHost server so other servers are not
                 # affected basically allowing management to use everything
+                logger.error("30")
                 return True
-
+        logger.error("31")
         raise MissingAddedPerms(ctx.command.name.lower(), ctx.command.cog.qualified_name)
 
     return commands.check(predicate)
