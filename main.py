@@ -15,9 +15,21 @@ import discord
 from discord.ext import commands, tasks
 from discord_slash import SlashCommand
 from discord_slash.utils import manage_commands
+from motor.motor_asyncio import AsyncIOMotorClient
 
-# Runs database connections and env
-from prepare import database
+database = None
+
+try:
+    # Runs database connections and env
+    from prepare import database
+except:
+    # preventative measure incase of failure
+    from dotenv import load_dotenv
+
+    load_dotenv()
+    connection_string = os.getenv("connection_string")
+
+    database = AsyncIOMotorClient(connection_string)
 
 token = os.getenv('bot_token')
 prod_org = os.getenv('prod')
@@ -215,7 +227,7 @@ def get_new_files():
 
 @bot.command()
 @commands.check(is_owner)
-async def update(ctx, do_pip = 0):
+async def update(ctx, do_pip=0):
     output = None
     try:
         output = get_new_files()
@@ -228,7 +240,8 @@ async def update(ctx, do_pip = 0):
             if do_pip == 1:
                 subprocess.Popen(f"pip install {package}", shell=True)
             elif do_pip == 2:
-                subprocess.check_call([sys.executable, "-m", "pip", "install", package.replace("\n", "").replace(" ", "")])
+                subprocess.check_call(
+                    [sys.executable, "-m", "pip", "install", package.replace("\n", "").replace(" ", "")])
 
     for cog in os.listdir("cogs"):
         if cog.endswith(".py"):
