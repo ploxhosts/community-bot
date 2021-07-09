@@ -262,8 +262,11 @@ class Events(commands.Cog):
         await check_if_update({"user_id": message.author.id}, global_user_profile(message.author.id), posts)
 
         posts = db.permissions
-        await check_if_update({"guild_id": message.guild.id}, get_permissions_info(message.guild), posts)
-
+        try:
+            if await posts.count_documents({"guild_id": message.guild.id}) == 0:
+                await posts.insert_one(get_permissions_info(message.guild))
+        except Exception as e:
+            print(e)
         # PLAYER LEVELING
 
         posts = db.player_data
