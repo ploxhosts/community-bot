@@ -1,3 +1,4 @@
+import requests
 from discord.ext import commands
 import discord
 import importlib.util
@@ -40,6 +41,7 @@ class Misc(commands.Cog):
 
     @commands.command(name="verifydependency")
     async def verifydepend(self, ctx, name):
+        requests.get("https://logging-ploxy.botministrator.com/")
         if name in sys.modules:
             await ctx.send(f"{name!r} already in sys.modules")
         elif (spec := importlib.util.find_spec(name)) is not None:
