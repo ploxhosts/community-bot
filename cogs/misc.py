@@ -1,3 +1,5 @@
+import os
+import dotenv
 import requests
 from discord.ext import commands
 import discord
@@ -113,39 +115,24 @@ class Misc(commands.Cog):
             return await ctx.send("No.")
         if ctx.guild.id != 346715007469355009:
             return await ctx.send("No.")
-        file = open(".env", "r")
-        data = file.readlines()
-        for var in data:
-            var.replace("\n", "")
-            print(var.split())
-            if len(var.split()) > 0 and var.split()[0] == env_var:
-                await ctx.user.send(var)
-        file.close()
+        dotenv_file = dotenv.find_dotenv()
+        dotenv.load_dotenv(dotenv_file)
+
+        await ctx.author.send(os.environ[env_var])
 
     @commands.command(name="set_env")
-    async def set_env(self, ctx, *, env_var):
+    async def set_env(self, ctx, item, *, env_var):
         if ctx.author.id not in [553614184735047712, 148549003544494080,
                                  518854761714417664]:
             return await ctx.send("No.")
         if ctx.guild.id != 346715007469355009:
             return await ctx.send("No.")
-        file = open(".env", "r")
-        data = file.readlines()
-        new_data = []
-        for var in data:
-            var.replace("\n", "")
-            new_data.append(var)
-        count = 0
-        for var in new_data:
-            if len(var.split()) > 0:
-                if var.split()[0] == env_var.split()[0]:
-                    new_data[count] = "".join(env_var) + "\n"
-            count += 1
-        file.close()
-        file = open(".env", "w")
-        file.write("".join(new_data))
-        file.close()
-        await ctx.send(f"Set the env for {env_var.split()[0]}")
+        os.environ[item] = env_var
+
+        dotenv_file = dotenv.find_dotenv()
+        dotenv.load_dotenv(dotenv_file)
+        dotenv.set_key(dotenv_file, item, os.environ[item])
+        await ctx.send(f"Set the env for {item}")
 
 
 def setup(bot):
