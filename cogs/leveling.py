@@ -50,16 +50,19 @@ class Levels(commands.Cog):
             if len(message.content) >= 30:
                 up = random.randint(6, 10)
 
-            message_time = datetime.datetime(2019, 8, 20, 11, 14, 22, 453209)
+            message_time = datetime.datetime(2019, 8, 20, 11, 14, 22, 453209).timestamp()
             async for x in posts.find({"user_id": message.author.id, "guild_id": message.guild.id}):
                 level = x["level"]
                 total_exp = x["total_exp"]
                 exp = x["exp"]
-                message_time = x["message_time"]
+                try:
+                    message_time = int(x["message_time"])
+                except:
+                    pass
                 messages_counted = x["messages_counted"]
 
             new_message_time = datetime.datetime.utcnow()
-            time_difference = round((new_message_time - message_time).total_seconds() / 60)
+            time_difference = round((new_message_time - datetime.datetime.fromtimestamp(message_time)).total_seconds() / 60)
 
             if time_difference < 1:  # if it's a minute or less
                 return
@@ -75,7 +78,7 @@ class Levels(commands.Cog):
             messages_counted += 1
 
             await posts.update_one({"user_id": message.author.id, "guild_id": message.guild.id},
-                                   {"$set": {"exp": exp, "total_exp": total_exp, "message_time": new_message_time,
+                                   {"$set": {"exp": exp, "total_exp": total_exp, "message_time": new_message_time.timestamp(),
                                              "messages_counted": messages_counted}})
 
             # Do I increase the level?

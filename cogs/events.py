@@ -79,7 +79,7 @@ def get_user_stats(member_id, guild_id):
         "seconds_in_vc": 0,  # Total time spent in vc
         "time_since_join_vc": 0,  # Temporary value for saving vc time
         "latest_vc_channel": 0,  # Check their last channel they were in normally temp
-        "message_time": datetime.datetime.utcnow(),  # When they last sent a message, helpful for checking when they were last active and the level system.
+        "message_time": datetime.datetime.utcnow().timestamp(),  # When they last sent a message, helpful for checking when they were last active and the level system.
         "mod_logs": [],  # If the user has any mod logs inside that guild
         "latest_update": datetime.datetime.utcnow()  # When the document was last updated with this check.
     }
