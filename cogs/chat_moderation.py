@@ -380,66 +380,69 @@ class Chat(commands.Cog):
         log_channel = 0
         ignore_roles = []
         ignore_channels_mod = []
-        async for x in posts.find({"guild_id": message.guild.id}):
-            chat_moderation = x["auto_mod"]["chat_moderation"]
-            blacklisted_domains = x["auto_mod"]["blacklisted_domains"]
-            anti_invite = x["auto_mod"]["anti_invite"]
-            allowed_invites = x["auto_mod"]["allowed_invites"]
-            log_channel = x["log_channel"]
-            ignore_roles = x["auto_mod"]["ignore_roles"]
-            ignore_channels_mod = x["auto_mod"]["mod_ignore_channels"]
-        if message.channel.id in ignore_channels_mod:
-            return
-        for x in ignore_roles:
-            role = message.guild.get_role(x)
-            if role in message.author.roles:
+        try:
+            async for x in posts.find({"guild_id": message.guild.id}):
+                chat_moderation = x["auto_mod"]["chat_moderation"]
+                blacklisted_domains = x["auto_mod"]["blacklisted_domains"]
+                anti_invite = x["auto_mod"]["anti_invite"]
+                allowed_invites = x["auto_mod"]["allowed_invites"]
+                log_channel = x["log_channel"]
+                ignore_roles = x["auto_mod"]["ignore_roles"]
+                ignore_channels_mod = x["auto_mod"]["mod_ignore_channels"]
+            if message.channel.id in ignore_channels_mod:
                 return
-        if anti_invite == 1:
-            def find_url(message_content):
-                regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
-                url2 = re.findall(regex, message_content)
-                return [url2m[0] for url2m in url2]
+            for x in ignore_roles:
+                role = message.guild.get_role(x)
+                if role in message.author.roles:
+                    return
+            if anti_invite == 1:
+                def find_url(message_content):
+                    regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
+                    url2 = re.findall(regex, message_content)
+                    return [url2m[0] for url2m in url2]
 
-            if len(find_url(message.content)) == 0:
-                pass
-            else:
-                felony_message = False
-                bad_links = []
-                for url in find_url(message.content):
-                    if "discord.gg" in url.lower() and url in allowed_invites:
-                        pass
-                    elif "discord.gg" in url.lower():
-                        bad_links.append(url)
-                        felony_message = True
-                    parsed_url = urlparse(url)
-                    if parsed_url.hostname in blacklisted_domains:
-                        bad_links.append(url)
-                        felony_message = True
-                if felony_message:
-                    await self.delete_message(message)
-                    if log_channel == 0:
-                        return
-                    embed = discord.Embed(colour=0x36a39f, title="Chat moderation")
-                    embed.add_field(name="Author:", value=f"\n{message.author}", inline=False)
-                    embed.add_field(name="Author ID:", value=f"\n{message.author.id}", inline=False)
-                    embed.add_field(name="Message:", value=f"\n{message.content}", inline=False)
-                    embed.add_field(name="Message ID:", value=f"\n{message.id}", inline=False)
-                    embed.add_field(name="Links:", value=f"\n{','.join(bad_links)}", inline=False)
-                    embed.set_footer(text="Ploxy | Chat filter")
-                    log_channel = self.bot.get_channel(log_channel)
-                    await log_channel.send(embed=embed)
-                    await message.author.send("Dm advertisement isn't allowed!")
-        if chat_moderation == 1:
-            def check(message2):
-                return message2.author == message.author and message2.channel == message.channel
+                if len(find_url(message.content)) == 0:
+                    pass
+                else:
+                    felony_message = False
+                    bad_links = []
+                    for url in find_url(message.content):
+                        if "discord.gg" in url.lower() and url in allowed_invites:
+                            pass
+                        elif "discord.gg" in url.lower():
+                            bad_links.append(url)
+                            felony_message = True
+                        parsed_url = urlparse(url)
+                        if parsed_url.hostname in blacklisted_domains:
+                            bad_links.append(url)
+                            felony_message = True
+                    if felony_message:
+                        await self.delete_message(message)
+                        if log_channel == 0:
+                            return
+                        embed = discord.Embed(colour=0x36a39f, title="Chat moderation")
+                        embed.add_field(name="Author:", value=f"\n{message.author}", inline=False)
+                        embed.add_field(name="Author ID:", value=f"\n{message.author.id}", inline=False)
+                        embed.add_field(name="Message:", value=f"\n{message.content}", inline=False)
+                        embed.add_field(name="Message ID:", value=f"\n{message.id}", inline=False)
+                        embed.add_field(name="Links:", value=f"\n{','.join(bad_links)}", inline=False)
+                        embed.set_footer(text="Ploxy | Chat filter")
+                        log_channel = self.bot.get_channel(log_channel)
+                        await log_channel.send(embed=embed)
+                        await message.author.send("Dm advertisement isn't allowed!")
+            if chat_moderation == 1:
+                def check(message2):
+                    return message2.author == message.author and message2.channel == message.channel
 
-            timeout_time = random.randint(10, 30)
-            try:
-                msg = await self.bot.wait_for('message', check=check, timeout=timeout_time)
-            except asyncio.TimeoutError:
-                return
-            await self.check_contents_once(msg)
-            await self.check_contents_both(message, msg)
+                timeout_time = random.randint(10, 30)
+                try:
+                    msg = await self.bot.wait_for('message', check=check, timeout=timeout_time)
+                except asyncio.TimeoutError:
+                    return
+                await self.check_contents_once(msg)
+                await self.check_contents_both(message, msg)
+        except Exception as e:
+            print(e)
 
     @commands.group(invoke_without_command=True, case_sensitive=False, name="chat", aliases=["chatsettings"],
                     usage="chat")

@@ -19,9 +19,11 @@ class Error_handling(commands.Cog):
         db = self.database.bot
         posts = db.serversettings
         prefix = os.getenv('prefix')
-        async for x in posts.find({"guild_id": ctx.guild.id}):
-            prefix = x['prefix']
-
+        try:
+            async for x in posts.find({"guild_id": ctx.guild.id}):
+                prefix = x['prefix']
+        except Exception as e:
+            print(e)
         def get_listed(start_list: list):
             end_list = []
             for role in start_list:

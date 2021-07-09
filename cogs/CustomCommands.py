@@ -33,7 +33,7 @@ class CustomCommands(commands.Cog):
             if response != "":
                 await message.delete()
                 await message.channel.send(response)
-        except IndexError:
+        except:
             pass
 
     @commands.group(invoke_without_command=True, case_sensitive=False, name="customcommand", aliases=["cc"], usage="cc")

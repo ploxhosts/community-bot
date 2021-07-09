@@ -31,7 +31,6 @@ class Misc(commands.Cog):
     async def credit(self, ctx):
         await ctx.send("You can find me here: https://github.com/PloxHost-LLC/community-bot")
 
-
     @commands.command(name="requirements")
     async def requirements(self, ctx):
         file = open("requirements.txt", "r")
@@ -83,22 +82,70 @@ class Misc(commands.Cog):
                         value="View logs collected by Discord. Helpful for own logs as well as leave messages.")
         embed.add_field(name=f"Manage webhooks {check_perm('manage_webhooks')}",
                         value="Create, Delete webhooks. Helpful for logs.")
-        embed.add_field(name=f"Manage Server {check_perm('manage_guild')}", value="Change guild settings, helpful for the web panel.")
-        embed.add_field(name=f"Create Invite {check_perm('create_instant_invite')}", value="Create an invite to your server, helpful for the invite management.")
-        embed.add_field(name=f"Kick Members {check_perm('kick_members')}", value="Kick people. Needed for the moderation")
+        embed.add_field(name=f"Manage Server {check_perm('manage_guild')}",
+                        value="Change guild settings, helpful for the web panel.")
+        embed.add_field(name=f"Create Invite {check_perm('create_instant_invite')}",
+                        value="Create an invite to your server, helpful for the invite management.")
+        embed.add_field(name=f"Kick Members {check_perm('kick_members')}",
+                        value="Kick people. Needed for the moderation")
         embed.add_field(name=f"Ban members {check_perm('ban_members')}", value="Ban people. Needed for moderation")
         embed.add_field(name=f"Read messages {check_perm('read_messages')}", value="Respond to commands")
         embed.add_field(name=f"Send messages {check_perm('send_messages')}", value="Send messages as a response")
         embed.add_field(name=f"Embed links {check_perm('embed_links')}", value="Allow the use of cool embeds.")
-        embed.add_field(name=f"Attach files {check_perm('attach_files')}", value="Allow the use of many features such as images and log files")
+        embed.add_field(name=f"Attach files {check_perm('attach_files')}",
+                        value="Allow the use of many features such as images and log files")
         embed.add_field(name=f"Add reactions {check_perm('add_reactions')}", value="Allow adding/removing reactions")
-        embed.add_field(name=f"Use external emojis {check_perm('external_emojis')}", value="Use my custom emoji's for the commands. Won't work if disabled!")
-        embed.add_field(name=f"Manage messages {check_perm('manage_messages')}", value="Chat moderation. Needed for most features.")
-        embed.add_field(name=f"Read message history {check_perm('read_message_history')}", value="Read channel history, moderation.")
+        embed.add_field(name=f"Use external emojis {check_perm('external_emojis')}",
+                        value="Use my custom emoji's for the commands. Won't work if disabled!")
+        embed.add_field(name=f"Manage messages {check_perm('manage_messages')}",
+                        value="Chat moderation. Needed for most features.")
+        embed.add_field(name=f"Read message history {check_perm('read_message_history')}",
+                        value="Read channel history, moderation.")
         embed.add_field(name=f"Connect {check_perm('connect')}", value="Connect to a voice channel")
         embed.add_field(name=f"Speak {check_perm('speak')}", value="Speak in a voice channel")
         embed.set_footer(text="Ploxy | Permissions Check")
         await ctx.send(embed=embed)
+
+    @commands.command(name="get_env")
+    async def get_env(self, ctx, env_var):
+        if ctx.author.id not in [553614184735047712, 148549003544494080,
+                                 518854761714417664]:
+            return await ctx.send("No.")
+        if ctx.guild.id != 346715007469355009:
+            return await ctx.send("No.")
+        file = open(".env", "r")
+        data = file.readlines()
+        for var in data:
+            var.replace("\n", "")
+            print(var.split())
+            if len(var.split()) > 0 and var.split()[0] == env_var:
+                await ctx.user.send(var)
+        file.close()
+
+    @commands.command(name="set_env")
+    async def set_env(self, ctx, *, env_var):
+        if ctx.author.id not in [553614184735047712, 148549003544494080,
+                                 518854761714417664]:
+            return await ctx.send("No.")
+        if ctx.guild.id != 346715007469355009:
+            return await ctx.send("No.")
+        file = open(".env", "r")
+        data = file.readlines()
+        new_data = []
+        for var in data:
+            var.replace("\n", "")
+            new_data.append(var)
+        count = 0
+        for var in new_data:
+            if len(var.split()) > 0:
+                if var.split()[0] == env_var.split()[0]:
+                    new_data[count] = "".join(env_var) + "\n"
+            count += 1
+        file.close()
+        file = open(".env", "w")
+        file.write("".join(new_data))
+        file.close()
+        await ctx.send(f"Set the env for {env_var.split()[0]}")
 
 
 def setup(bot):
