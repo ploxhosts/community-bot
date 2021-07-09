@@ -273,32 +273,35 @@ class Events(commands.Cog):
         # ECONOMY
 
         posts = db.economy
-        if await posts.count_documents(
-                {"user_id": message.author.id}) > 0:  # Adds a user to the database in case of any downtime
-            cash = {}
-            guilds = []
-            async for user in posts.find({"user_id": message.author.id}):
-                cash = user["cash"]
-                guilds = user["guilds"]
-            if cash:
-                if str(message.guild.id) not in cash.keys():
-                    cash[str(message.guild.id)] = 10
+        try:
+            if await posts.count_documents(
+                    {"user_id": message.author.id}) > 0:  # Adds a user to the database in case of any downtime
+                cash = {}
+                guilds = []
+                async for user in posts.find({"user_id": message.author.id}):
+                    cash = user["cash"]
+                    guilds = user["guilds"]
+                if cash:
+                    if str(message.guild.id) not in cash.keys():
+                        cash[str(message.guild.id)] = 10
+                        await posts.update_one({"user_id": message.author.id},
+                                               {"$set": {"cash": cash}})
+                else:
                     await posts.update_one({"user_id": message.author.id},
-                                           {"$set": {"cash": cash}})
+                                           {"$set": {"cash": {str(message.guild.id): 10}}})
+                if message.guild.id not in guilds:
+                    guilds.append(message.guild.id)
+                    await posts.update_one({"user_id": message.author.id},
+                                           {"$set": {"guilds": guilds}})
+
+                await check_if_update({"user_id": message.author.id},
+                                      get_economy_user(message.author.id, message.guild.id),
+                                      posts)
+
             else:
-                await posts.update_one({"user_id": message.author.id},
-                                       {"$set": {"cash": {str(message.guild.id): 10}}})
-            if message.guild.id not in guilds:
-                guilds.append(message.guild.id)
-                await posts.update_one({"user_id": message.author.id},
-                                       {"$set": {"guilds": guilds}})
-
-            await check_if_update({"user_id": message.author.id},
-                                  get_economy_user(message.author.id, message.guild.id),
-                                  posts)
-
-        else:
-            await posts.insert_one(get_economy_user(message.author.id, message.guild.id))
+                await posts.insert_one(get_economy_user(message.author.id, message.guild.id))
+        except Exception as e:
+            print(e)
 
 
 def setup(bot):

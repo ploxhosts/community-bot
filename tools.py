@@ -17,44 +17,47 @@ def generate_flake():
 
 
 async def check_if_update(find, main_document, collection):
-    if await collection.count_documents(find) > 0:
-        fields = {}
-        async for x in collection.find(find):
-            fields = x
-        if "latest_update" in fields:
-            last_time = fields["latest_update"]
-            time_diff = datetime.datetime.utcnow() - last_time
-            if time_diff.total_seconds() < 3600:
-                return
-        db_dict = main_document
-        db_dict["_id"] = 0
-        if db_dict.keys() != fields:
-            for key, value in db_dict.items():
-                if key not in fields.keys():
-                    await collection.update_one(find, {"$set": {key: value}})
-                else:
-                    try:
-                        sub_dict = dict(value)
-                        for key2, value2 in sub_dict.items():
-                            if key2 not in fields[key].keys():
-                                new_value = value
-                                new_value[key2] = value2
-                                await collection.update_one(find,
-                                                            {"$set": {key: new_value}})
-                        for key2, value2 in fields[key].items():
-                            if key2 not in sub_dict.keys():
-                                new_dict = {}
-                                for item in sub_dict:
-                                    if item != key2:
-                                        new_dict[item] = sub_dict.get(item)
-                                await collection.update_one(find, {"$set": {key: new_dict}})
-                    except:
-                        pass
-            for key2, value2 in fields.items():
-                if key2 not in db_dict:
-                    await collection.update_one(find, {"$unset": {key2: 1}})
-    else:
-        await collection.insert_one(main_document)
+    try:
+        if await collection.count_documents(find) > 0:
+            fields = {}
+            async for x in collection.find(find):
+                fields = x
+            if "latest_update" in fields:
+                last_time = fields["latest_update"]
+                time_diff = datetime.datetime.utcnow() - last_time
+                if time_diff.total_seconds() < 3600:
+                    return
+            db_dict = main_document
+            db_dict["_id"] = 0
+            if db_dict.keys() != fields:
+                for key, value in db_dict.items():
+                    if key not in fields.keys():
+                        await collection.update_one(find, {"$set": {key: value}})
+                    else:
+                        try:
+                            sub_dict = dict(value)
+                            for key2, value2 in sub_dict.items():
+                                if key2 not in fields[key].keys():
+                                    new_value = value
+                                    new_value[key2] = value2
+                                    await collection.update_one(find,
+                                                                {"$set": {key: new_value}})
+                            for key2, value2 in fields[key].items():
+                                if key2 not in sub_dict.keys():
+                                    new_dict = {}
+                                    for item in sub_dict:
+                                        if item != key2:
+                                            new_dict[item] = sub_dict.get(item)
+                                    await collection.update_one(find, {"$set": {key: new_dict}})
+                        except:
+                            pass
+                for key2, value2 in fields.items():
+                    if key2 not in db_dict:
+                        await collection.update_one(find, {"$unset": {key2: 1}})
+        else:
+            await collection.insert_one(main_document)
+    except Exception:
+        pass
 
 
 def get_time(word):

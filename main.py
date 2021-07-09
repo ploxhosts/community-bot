@@ -72,10 +72,26 @@ async def get_prefix(bot, message):
         return commands.when_mentioned_or(prefix)(bot, message)
     db = database.bot
     collection = db.serversettings
-
-    result = await collection.find_one({"guild_id": message.guild.id})
-    if result is not None:
-        prefix = result["prefix"]
+    try:
+        result = await collection.find_one({"guild_id": message.guild.id})
+        if result is not None:
+            prefix = result["prefix"]
+    except Exception as e:
+        print(e)
+        print("DB ACCESS IS DISALLOWED")
+        print("DB ACCESS IS DISALLOWED")
+        print("DB ACCESS IS DISALLOWED")
+        print("DB ACCESS IS DISALLOWED")
+        rootLogger.critical("DB ACCESS IS DISALLOWED")
+        rootLogger.critical("DB ACCESS IS DISALLOWED")
+        rootLogger.critical("DB ACCESS IS DISALLOWED")
+        rootLogger.critical("DB ACCESS IS DISALLOWED")
+        rootLogger.critical("DB ACCESS IS DISALLOWED")
+        rootLogger.critical("DB ACCESS IS DISALLOWED")
+        rootLogger.critical("DB ACCESS IS DISALLOWED")
+        rootLogger.critical("DB ACCESS IS DISALLOWED")
+        rootLogger.critical("DB ACCESS IS DISALLOWED")
+        rootLogger.critical("DB ACCESS IS DISALLOWED")
     return commands.when_mentioned_or(prefix)(bot, message)
 
 

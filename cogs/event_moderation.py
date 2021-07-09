@@ -85,18 +85,21 @@ class EventsMod(commands.Cog):
 
         db = self.database.bot
         posts = db.message_logs
-        await posts.insert_one({
-            "message": message.content,  # See the message content
-            "json": JSON,  # Get contents of a self bot message
-            "edits": [],  # See a nice summary of total changes
-            "author_id": message.author.id,  # Identify the author
-            "message_id": message.id,  # Identify the message
-            "guild_id": message.guild.id,  # Used to delete an entire server/guild from database when removed
-            "deleted": False,  # Used for checking if a message has been deleted after it's been reported
-            "reported": False,  # Be able to report specific messages
-            "mentions": [x.id for x in message.mentions],
-            "time_sent": datetime.datetime.utcnow()  # Get a date of time sent was: int(round(time.time() * 1000))
-        })
+        try:
+            await posts.insert_one({
+                "message": message.content,  # See the message content
+                "json": JSON,  # Get contents of a self bot message
+                "edits": [],  # See a nice summary of total changes
+                "author_id": message.author.id,  # Identify the author
+                "message_id": message.id,  # Identify the message
+                "guild_id": message.guild.id,  # Used to delete an entire server/guild from database when removed
+                "deleted": False,  # Used for checking if a message has been deleted after it's been reported
+                "reported": False,  # Be able to report specific messages
+                "mentions": [x.id for x in message.mentions],
+                "time_sent": datetime.datetime.utcnow()  # Get a date of time sent was: int(round(time.time() * 1000))
+            })
+        except Exception as e:
+            print(e)
 
     @commands.Cog.listener()
     async def on_raw_message_delete(self, message):
