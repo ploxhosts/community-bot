@@ -1,18 +1,17 @@
 import asyncio
-import json
 import logging
+import os
 import re
 
-import yaml
-from discord.ext import commands
-import discord
-import tools
-from bs4 import BeautifulSoup
 import aiohttp
 import cv2
+import discord
 import pytesseract
-import os
-import mimetypes
+import yaml
+from bs4 import BeautifulSoup
+from discord.ext import commands
+
+import tools
 
 if os.name == 'nt':
     # noinspection SpellCheckingInspection
@@ -234,7 +233,8 @@ class Support(commands.Cog):
                                 max_mem = max_mem.replace("m", "")
                         if int(max_mem) < 5400:
                             embed_var.add_field(name="❌ Low Memory",
-                                                value="Allocate at least 6-10GB of ram to your server if you can afford it. Use the code `MEGAMC` to save 33%.")
+                                                value="Allocate at least 6-10GB of ram to your server if you can "
+                                                      "afford it. Use the code `MEGAMC` to save 33%.")
                         max_online_players = 0
                         for index in range(len(request["timingsMaster"]["data"])):
                             timed_ticks = request["timingsMaster"]["data"][index]["minuteReports"][0]["ticks"][
@@ -246,25 +246,14 @@ class Support(commands.Cog):
                         if 1000 * max_online_players / int(max_mem) > 6 and int(max_mem) < 10000:
                             embed_var.add_field(name="❌ Low memory",
                                                 value="You should be using more RAM with this many players.")
-                        if "-Xms" in flags:
-                            min_mem = 0
-                            flag_list = flags.split(" ")
-                            for flag in flag_list:
-                                if flag.startswith("-Xms"):
-                                    min_mem = flag.split("-Xms")[1]
-                                    min_mem = min_mem.replace("G", "000")
-                                    min_mem = min_mem.replace("M", "")
-                                    min_mem = min_mem.replace("g", "000")
-                                    min_mem = min_mem.replace("m", "")
-                            if min_mem != max_mem:
-                                embed_var.add_field(name="❌ Aikar's Flags",
-                                                    value="Your Xmx and Xms values should be equal when using Aikar's flags.")
                 elif "-Dusing.aikars.flags=mcflags.emc.gs" in flags:
                     embed_var.add_field(name="❌ Outdated Flags",
-                                        value="Update [Aikar's flags](https://support.plox.host/en/knowledgebase/article/enabling-aikars-flagsjvm-modifications).")
+                                        value="Update [Aikar's flags](https://support.plox.host/en/knowledgebase"
+                                              "/article/enabling-aikars-flagsjvm-modifications).")
                 else:
                     embed_var.add_field(name="❌ Aikar's Flags",
-                                        value="Use [Aikar's flags](https://support.plox.host/en/knowledgebase/article/enabling-aikars-flagsjvm-modifications).")
+                                        value="Use [Aikar's flags](https://support.plox.host/en/knowledgebase/article"
+                                              "/enabling-aikars-flagsjvm-modifications).")
             except KeyError as key:
                 logging.info("Missing: " + str(key))
 
@@ -272,10 +261,12 @@ class Support(commands.Cog):
                 cpu = int(request["timingsMaster"]["system"]["cpu"])
                 if cpu == 1:
                     embed_var.add_field(name="❌ Threads",
-                                        value=f"You have only {cpu} thread. Try an [extreme plan](https://plox.host/extreme-hosting).")
+                                        value=f"You have only {cpu} thread. Try an [extreme plan]("
+                                              f"https://plox.host/extreme-hosting).")
                 elif cpu == 2:
                     embed_var.add_field(name="❌ Threads",
-                                        value=f"You have only {cpu} threads. Try an [extreme plan](https://plox.host/extreme-hosting).")
+                                        value=f"You have only {cpu} threads. Try an [extreme plan]("
+                                              f"https://plox.host/extreme-hosting).")
             except KeyError as key:
                 logging.info("Missing: " + str(key))
 
@@ -336,14 +327,19 @@ class Support(commands.Cog):
                         "authors"].casefold():
                         if plugin == "EpicHeads":
                             embed_var.add_field(name="❌ EpicHeads",
-                                                value="This plugin was made by Songoda. Songoda is sketchy. You should find an alternative such as [HeadsPlus](https://spigotmc.org/resources/headsplus-»-1-8-1-16-4.40265/) or [HeadDatabase](https://www.spigotmc.org/resources/head-database.14280/).")
+                                                value="This plugin was made by Songoda. Songoda is sketchy. You "
+                                                      "should find an alternative such as [HeadsPlus]("
+                                                      "https://spigotmc.org/resources/headsplus-»-1-8-1-16-4.40265/) "
+                                                      "or [HeadDatabase]("
+                                                      "https://www.spigotmc.org/resources/head-database.14280/).")
                         elif plugin == "UltimateStacker":
                             embed_var.add_field(name="❌ UltimateStacker",
                                                 value="Stacking plugins actually causes more lag. "
                                                       "Remove UltimateStacker.")
                         else:
                             embed_var.add_field(name="❌ " + plugin,
-                                                value="This plugin was made by Songoda. Songoda is sketchy. You should find an alternative.")
+                                                value="This plugin was made by Songoda. Songoda is sketchy. You "
+                                                      "should find an alternative.")
             except KeyError as key:
                 logging.info("Missing: " + str(key))
 
@@ -358,11 +354,13 @@ class Support(commands.Cog):
                             if spigot["world-settings"]["default"]["view-distance"] == "default":
                                 embed_var.add_field(name="❌ no-tick-view-distance",
                                                     value=f"Set in paper.yml. Recommended: {tvd}. "
-                                                          f"And reduce view-distance from default ({tvd}) in spigot.yml. Recommended: 4.")
+                                                          f"And reduce view-distance from default ({tvd}) in "
+                                                          f"spigot.yml. Recommended: 4.")
                             else:
                                 embed_var.add_field(name="❌ no-tick-view-distance",
                                                     value=f"Set in paper.yml. Recommended: {tvd}. "
-                                                          f"And reduce view-distance from {tvd} in spigot.yml. Recommended: 4.")
+                                                          f"And reduce view-distance from {tvd} in spigot.yml. "
+                                                          f"Recommended: 4.")
                             break
             except KeyError as key:
                 logging.info("Missing: " + str(key))
@@ -376,7 +374,8 @@ class Support(commands.Cog):
                         high_mec = True
                 if high_mec:
                     embed_var.add_field(name="❌ maxEntityCramming",
-                                        value=f"Decrease this by running the /gamerule command in each world. Recommended: 8. ")
+                                        value=f"Decrease this by running the /gamerule command in each world. "
+                                              f"Recommended: 8. ")
             except KeyError as key:
                 logging.info("Missing: " + str(key))
 
@@ -418,11 +417,13 @@ class Support(commands.Cog):
         field_at_index = 24
         if issue_count >= 25:
             embed_var.insert_field_at(index=24, name=f"Plus {issue_count - 24} more recommendations",
-                                      value="Create a new timings report after resolving some of the above issues to see more.")
+                                      value="Create a new timings report after resolving some of the above issues to "
+                                            "see more.")
         while len(embed_var) > 6000:
             embed_var.insert_field_at(index=field_at_index,
                                       name=f"Plus {issue_count - field_at_index} more recommendations",
-                                      value="Create a new timings report after resolving some of the above issues to see more.")
+                                      value="Create a new timings report after resolving some of the above issues to "
+                                            "see more.")
             del embed_var._fields[(field_at_index + 1):]
             field_at_index -= 1
         await message.reply(embed=embed_var)
@@ -434,7 +435,8 @@ class Support(commands.Cog):
         pass
 
     @support.command(name='allow', aliases=["enable"], usage="support allow",
-                     description="Allows the use of support commands and features such as auto support and knowledge base search")
+                     description="Allows the use of support commands and features such as auto support and knowledge "
+                                 "base search")
     @tools.has_perm(manage_messages=True)
     async def allow(self, ctx):
         db = self.database
@@ -444,7 +446,8 @@ class Support(commands.Cog):
         await ctx.send("Allowed the use of support services in this server.")
 
     @support.command(name='deny', aliases=["disable"], usage="support deny",
-                     description="Denies the use of support commands and features such as auto support and knowledge base search")
+                     description="Denies the use of support commands and features such as auto support and knowledge "
+                                 "base search")
     @tools.has_perm(manage_messages=True)
     async def deny(self, ctx):
         db = self.database
