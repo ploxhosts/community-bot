@@ -160,6 +160,7 @@ async def on_ready():
 
 @bot.event
 async def on_message(message: discord.Message):
+
     # Maybe some logic here
     await bot.process_commands(message)
 

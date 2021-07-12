@@ -94,9 +94,9 @@ class VLevels(commands.Cog):
             if new_seconds_in_vc - user_obj["bad_seconds"] > 0:
                 if "minus_seconds" in user_obj:
                     exp += int(
-                        ((new_seconds_in_vc - (user_obj[
-                                                   "bad_seconds"] + (user_obj[
-                                                                         "minus_seconds"] / 4)) / 60 * 10) * multiplier))  # Multiplier may be a float
+                        ((new_seconds_in_vc -
+                          (user_obj["bad_seconds"] +
+                           (user_obj["minus_seconds"] / 4)) / 60 * 10) * multiplier))  # Multiplier may be a float
                 else:
                     exp += int(
                         ((new_seconds_in_vc - user_obj[
@@ -112,7 +112,7 @@ class VLevels(commands.Cog):
                 for level_mini_start in range(int(level) + 1):
                     total_exp += math.floor(5 * (level_mini_start ^ 2) + 50 * level_mini_start + 100)
 
-            total_exp += int(((new_seconds_in_vc - user_obj["bad_seconds"]) / 60 * 10) * multiplier)
+            total_exp += exp
             seconds_in_vc += new_seconds_in_vc - user_obj["bad_seconds"]
             # formula for level up
 
