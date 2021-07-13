@@ -95,18 +95,17 @@ class VLevels(commands.Cog):
                 if "minus_seconds" in user_obj:
                     exp += int(
                         ((new_seconds_in_vc -
-                          (user_obj["bad_seconds"] +
-                           (user_obj["minus_seconds"] / 4)) / 60 * 10) * multiplier))  # Multiplier may be a float
+                          (user_obj["bad_seconds"] + (user_obj["minus_seconds"] / 4)) / 60 * 5) * multiplier))  # Multiplier may be a float
                 else:
                     exp += int(
                         ((new_seconds_in_vc - user_obj[
-                            "bad_seconds"]) / 60 * 10) * multiplier)  # Multiplier may be a float
+                            "bad_seconds"]) / 60 * 5) * multiplier)  # Multiplier may be a float
             if "stream_seconds" in user_obj:
                 exp += int(
-                    (user_obj["stream_seconds"] / 60 * 6) * multiplier)  # Multiplier may be a float
+                    (user_obj["stream_seconds"] / 60 * 3) * multiplier)  # Multiplier may be a float
             if "video_seconds" in user_obj:
                 exp += int(
-                    (user_obj["stream_seconds"] / 60 * 8) * multiplier)  # Multiplier may be a float
+                    (user_obj["stream_seconds"] / 60 * 4) * multiplier)  # Multiplier may be a float
 
             if total_exp == 0:
                 for level_mini_start in range(int(level) + 1):
