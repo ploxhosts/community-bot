@@ -6,20 +6,16 @@ from tools import check_if_update
 
 default_prefix = os.getenv('prefix')
 
-
-def get_economy_user(member_id, guild_id):
+# Global economy user
+def get_economy_user(member_id):
     return {
         "user_id": member_id,  # Get the user
-        "balance": 100,  # Global balance, 1-20% tax per transaction to this, used to transfer funds to other guilds
-        "balances": {str(guild_id): 0},  # Balance per guild, starts off with $0
-        "cash": {str(guild_id): 10},  # Cash per guild, starts off with $10 per guild
+        "global_balance": 100,  # Global balance, 1-20% tax per transaction to this, used to transfer funds to other
+        # guilds
         "stocks": {},
-        # Stocks they have bought, other guilds used to buy with the normal balance and determined on activity of that guild. Larger servers have larger stock prices.
+        # Stocks they have bought, other guilds used to buy with the normal balance and determined on activity of
+        # that guild. Larger servers have larger stock prices.
         "guilds": [],  # List of guilds they are in
-        "multiplier": 0,  # If they bought a multiplier
-        "d_lottery_tickets": 0,  # Daily tickets they have
-        "w_lottery_tickets": 0,  # Weekly tickets they have
-        "m_lottery_tickets": 0,  # Yearly tickets they have
         "latest_update": datetime.datetime.utcnow()  # When the document was last updated with this check.
     }
 
@@ -38,13 +34,16 @@ def get_server_economy(guild):
     return {
         "guild_id": guild.id,  # The guild id to find the document
         "level": 0,
-        # Upgrade a guild, a guild can upgrade this using the guild balance field, stocks increased, max level of upgrades and tax rate increased
+        # Upgrade a guild, a guild can upgrade this using the guild balance field, stocks increased, max level of
+        # upgrades and tax rate increased
         "balance": 1000,  # Balance can be used for advertisement or buy things for the economy using it
         "tax_rate": 5,
-        # 5 % by default of transferring funds to their own account away from the server. For example $90 from the server gets converted to personal balance, They end up with $85.5 and the server gets the rest.
-
+        # 5 % by default of transferring funds to their own account away from the server. For example $90 from the
+        # server gets converted to personal/global balance, They end up with $85.5 and the server gets the rest.
+        "multiplier": 1,  # Used for server economy increases if enough people use the shop
         "computer": {
-            # The guild's computer system, other guilds can hack another guilds computer system to extract money or to decrease taxes or destroy some weapons
+            # The guild's computer system, other guilds can hack another guilds computer system to extract money or
+            # to decrease taxes or destroy some weapons
             "firewall": 1,  # How secure it is to attack, higher the more secure
             "antivirus": 1,  # Stops viruses, higher the more secure
             "sdk": 1,  # Breach a firewall, higher the more powerful
@@ -52,16 +51,22 @@ def get_server_economy(guild):
 
         },
 
-        # Weapons used if a guild starts a war with another guild, for example if a country with only sticks and stones was to start a fight with a country with nukes,
-        # they would lose all the attackers and some balance. However, upon winning balance from that country gets awarded.
-        # A war takes 24 hours to end, the guilds have 12 hours to counter the attack either by a warning or by getting allies.
-        # Guilds can ally with other guilds meaning that they can help defend/attack another country. The ally can either set an automatic protection status for all guilds or just a specific one.
-        # If not set automatic they have within 24 hours hours to accept a request. Ally's can send troops/weapons to each other
+        # Weapons used if a guild starts a war with another guild, for example if a country with only sticks and
+        # stones was to start a fight with a country with nukes, they would lose all the attackers and some balance.
+        # However, upon winning balance from that country gets awarded. A war takes 24 hours to end, the guilds have
+        # 12 hours to counter the attack either by a warning or by getting allies. Guilds can ally with other guilds
+        # meaning that they can help defend/attack another country. The ally can either set an automatic protection
+        # status for all guilds or just a specific one. If not set automatic they have within 24 hours hours to
+        # accept a request. Ally's can send troops/weapons to each other
         "weapons": {
-            # Here goes any weapons they have and the multiplier. For example having "nukes": 100 will mean 100 * damage of a nuke and a nuke aims to destroy level ups of a guild and so on by reducing money, messing up taxes, lowering levels of power and such.
+            # Here goes any weapons they have and the multiplier. For example having "nukes": 100 will mean 100 *
+            # damage of a nuke and a nuke aims to destroy level ups of a guild and so on by reducing money,
+            # messing up taxes, lowering levels of power and such.
             "sns": 10  # default sticks and stones for weapons
         },
-        "worth": guild.member_count / 100,  # Stock price of the server, to be made more complex in the future. Example 1000 members, would make $10 stock price.
+        "worth": guild.member_count / 100,
+        # Stock price of the server, to be made more complex in the future. Example 1000 members, would make $10
+        # stock price.
         "latest_update": datetime.datetime.utcnow()  # When the document was last updated with this check.
 
     }
@@ -73,18 +78,25 @@ def get_user_stats(member_id, guild_id):
         "guild_id": guild_id,  # guild id
         "level": 0,  # the main level
         "exp": 0,  # the exp
+        "cash": 30,
+        "balance": 0,
+        "d_lottery_tickets": 0,  # Daily tickets they have
+        "w_lottery_tickets": 0,  # Weekly tickets they have
+        "m_lottery_tickets": 0,  # Yearly tickets they have
         "messages_counted": 0,
-        "total_exp": 0,   # calculated based on level and exp and helps determine the level leaderboard
-        "multiplier": 1,  # For any boost they buy from the economy system
+        "total_exp": 0,  # calculated based on level and exp and helps determine the level leaderboard
+        "level_multiplier": 1,  # For any boost they buy from the economy system
+        "eco_multiplier": 1,  # For any boost they buy from the economy system
         "seconds_in_vc": 0,  # Total time spent in vc
         "time_since_join_vc": 0,  # Temporary value for saving vc time
         "latest_vc_channel": 0,  # Check their last channel they were in normally temp
-        "message_time": datetime.datetime.utcnow().timestamp(),  # When they last sent a message, helpful for checking when they were last active and the level system.
+        "message_time": datetime.datetime.utcnow().timestamp(),  # When they last sent a message, helpful for
         "mod_logs": [],  # If the user has any mod logs inside that guild
         "latest_update": datetime.datetime.utcnow()  # When the document was last updated with this check.
     }
 
 
+# Website and administration data - not meant for public consumption
 def global_user_profile(member_id):
     return {
         "user_id": member_id,  # user id
@@ -118,6 +130,7 @@ def get_server_settings(guild_id):
         "prefix": default_prefix,  # Default prefix from env
         "users": {},  # A user_id with an object of permissions they can use
         "level": 0,
+        "multiplier": 1,  # Level multiplier for chat levels
         "levels": {
             "enabled": 1,  # Boolean value to allow leveling system to work, default yes
             "voice_enabled": 1,  # Boolean value to allow voice leveling to work, default yes
@@ -220,18 +233,16 @@ class Events(commands.Cog):
 
         if await posts.count_documents(
                 {"user_id": member.id}) > 0:  # Adds a user to the database in case of any downtime
-            cash = {}
+
             guilds = []
             async for user in posts.find({"user_id": member.id}):
-                cash = user["cash"]
                 guilds = user["guilds"]
-            cash[str(member.guild.id)] = 10
             guilds.append(member.guild.id)
             await posts.update_one({"user_id": member.id},
-                                   {"$set": {"cash": cash, "guilds": guilds}})
-            await check_if_update({"user_id": member.id}, get_economy_user(member.id, member.guild.id), posts)
+                                   {"$set": {"guilds": guilds}})
+            await check_if_update({"user_id": member.id}, get_economy_user(member.id), posts)
         else:
-            await posts.insert_one(get_economy_user(member.id, member.guild.id))
+            await posts.insert_one(get_economy_user(member.id))
 
         posts = db.pending_mutes
         if await posts.find_one({"guild_id": member.guild.id, "user_id": member.id}):
@@ -279,30 +290,21 @@ class Events(commands.Cog):
         try:
             if await posts.count_documents(
                     {"user_id": message.author.id}) > 0:  # Adds a user to the database in case of any downtime
-                cash = {}
                 guilds = []
                 async for user in posts.find({"user_id": message.author.id}):
-                    cash = user["cash"]
                     guilds = user["guilds"]
-                if cash:
-                    if str(message.guild.id) not in cash.keys():
-                        cash[str(message.guild.id)] = 10
-                        await posts.update_one({"user_id": message.author.id},
-                                               {"$set": {"cash": cash}})
-                else:
-                    await posts.update_one({"user_id": message.author.id},
-                                           {"$set": {"cash": {str(message.guild.id): 10}}})
+
                 if message.guild.id not in guilds:
                     guilds.append(message.guild.id)
                     await posts.update_one({"user_id": message.author.id},
                                            {"$set": {"guilds": guilds}})
 
                 await check_if_update({"user_id": message.author.id},
-                                      get_economy_user(message.author.id, message.guild.id),
+                                      get_economy_user(message.author.id),
                                       posts)
 
             else:
-                await posts.insert_one(get_economy_user(message.author.id, message.guild.id))
+                await posts.insert_one(get_economy_user(message.author.id))
         except Exception as e:
             print(e)
 

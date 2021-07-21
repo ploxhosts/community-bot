@@ -25,9 +25,12 @@ async def GiveNewCard(UserInfo: list, OtherHand: list):
 
     return UserInfo
 
+
 def log_cash_exchange(user_id, money_first, money_last, operation=None):
     logger.error(f"{user_id} !!!!! {operation} - First: {money_first} Last: {money_last}")
 
+
+# noinspection SpellCheckingInspection
 class Economy(commands.Cog):
     """Economy related commands"""
 
@@ -50,81 +53,114 @@ class Economy(commands.Cog):
 
         self.DayTaxRates = {"1": 0.1, "2": 0.08, "3": 0.06, "4": 0.08, "5": 0.1, "6": 0.15, "7": 0.12}
 
+    # noinspection DuplicatedCode
     @tasks.loop(seconds=60.0)
     async def lottery(self):
         db = self.database.bot
-        posts = db.economy
+        posts = db.player_data
         time = datetime.datetime.now()
 
         if time.hour == 4:
             self.executed = False
             return
         if self.executed or time.hour != 00 and time.minute not in [0,
-                                                                    2]:  # Prevent it running when it's not midnight and when it's not within the first few minutes of that hour
+                                                                    2]:  # Prevent it running when it's not midnight
+            # and when it's not within the first few minutes of that hour
             return
 
         self.executed = True
 
         # Store the total tickets to get the amount that should be paid out
-        total_daily, total_weekly, total_monthly = 0, 0, 0
+        total_daily, total_weekly, total_monthly = {}, {}, {}
 
-        daily_winners, weekly_winners, monthly_winners = [], [], []
+        daily_winners, weekly_winners, monthly_winners = {}, {}, {}
 
         async for user in posts.find({}):
             daily = user["d_lottery_tickets"]
             weekly = user["w_lottery_tickets"]
             monthly = user["m_lottery_tickets"]
 
+            if user["guild_id"] not in daily_winners:
+                daily_winners[user["guild_id"]] = []
+            if user["guild_id"] not in weekly_winners:
+                weekly_winners[user["guild_id"]] = []
+            if user["guild_id"] not in monthly_winners:
+                monthly_winners[user["guild_id"]] = []
             if daily > 0:
-                total_daily += daily
-                daily_winners.append(user["user_id"])
+                total_daily[user["guild_id"]] += daily
+                daily_winners[user["guild_id"]].append(user["user_id"])
             elif weekly > 0:
-                total_weekly += weekly
-                weekly_winners.append(user["user_id"])
+                total_weekly[user["guild_id"]] += weekly
+                weekly_winners[user["guild_id"]].append(user["user_id"])
             elif monthly > 0:
-                total_monthly += monthly
-                monthly_winners.append(user["user_id"])
+                total_monthly[user["guild_id"]] += monthly
+                monthly_winners[user["guild_id"]].append(user["user_id"])
+        total_daily_money, total_weekly_money, total_monthly_money = {}, {}, {}
+        for key, value in total_daily.items():
+            total_daily_money[key] = value * 20
 
-        total_daily_money = total_daily * 20
-        total_weekly_money = total_weekly * 40
-        total_monthly_money = total_monthly * 100
+        for key, value in total_weekly.items():
+            total_weekly_money[key] = value * 40
 
-        end_daily_winners = None
-        end_weekly_winners = []
-        end_monthly_winners = []
+        for key, value in total_monthly.items():
+            total_monthly_money[key] = value * 100
 
-        daily_money = total_daily * 20
+        end_daily_winners = {}
+        end_weekly_winners = {}
+        end_monthly_winners = {}
+
+        for key, value in daily_winners.items():
+            if len(daily_winners[key]) > 4:  # Needs 4 or more players
+                end_daily_winners[key] = random.choice(daily_winners[key])
+
+        for key, value in weekly_winners.items():
+            if len(weekly_winners[key]) > 8:  # Needs 8 or more players
+
+                choice1 = random.choice(weekly_winners[key])
+                choice2 = random.choice(weekly_winners[key])
+
+                while choice2 == choice1:  # Infinite loop can't be possible with 8+ players
+                    choice2 = random.choice(weekly_winners[key])
+
+                end_weekly_winners[key] = []
+                end_weekly_winners[key].append(choice1)
+                end_weekly_winners[key].append(choice2)
+        for key, value in monthly_winners.items():
+            if len(monthly_winners[key]) > 12:  # Needs 12 or more players
+                choice1 = random.choice(monthly_winners[key])
+                choice2 = random.choice(monthly_winners[key])
+                choice3 = random.choice(monthly_winners[key])
+
+                while choice2 == choice1:  # Infinite loop can't be possible with 12+ players
+                    choice2 = random.choice(monthly_winners)[key]
+
+                while choice3 == choice2 or choice3 == choice1:  # Infinite loop can't be possible with 12+ players
+                    choice3 = random.choice(monthly_winners[key])
+
+                end_monthly_winners[key] = []
+                end_monthly_winners[key].append(choice1)
+                end_monthly_winners[key].append(choice2)
+                end_monthly_winners[key].append(choice3)
+
+        daily_money = {}
+        weekly_money = {}
+        monthly_money = {}
+        for key, value in total_daily.items():
+            daily_money[key] = value * 20
 
         # The variable will first be assigned, then the check will be performed,
         # So the check would be useless if the else part divides by 0 and is part of the 'if' statement
-        weekly_money = 0 if len(end_weekly_winners) == 0 else int((total_weekly * 40) / len(end_weekly_winners))
-        monthly_money = 0 if len(end_monthly_winners) == 0 else int((total_monthly * 100) / len(end_monthly_winners))
+        for key, value in total_weekly.items():
+            if len(end_weekly_winners[key]) == 0:
+                weekly_money[key] = 0
+            else:
+                weekly_money[key] = int((total_weekly[key] * 40) / len(end_weekly_winners[key]))
 
-        if len(daily_winners) > 4:  # Needs 4 or more players
-            end_daily_winners = random.choice(daily_winners)
-        if len(weekly_winners) > 8:  # Needs 8 or more players
-
-            choice1 = random.choice(weekly_winners)
-            choice2 = random.choice(weekly_winners)
-
-            while choice2 == choice1:
-                choice2 = random.choice(weekly_winners)
-
-            end_weekly_winners.append(choice1)
-            end_weekly_winners.append(choice2)
-
-        if len(weekly_winners) > 12:  # Needs 12 or more players
-            choice1 = random.choice(monthly_winners)
-            choice2 = random.choice(monthly_winners)
-            choice3 = random.choice(monthly_winners)
-            while choice2 == choice1:
-                choice2 = random.choice(monthly_winners)
-            while choice3 == choice2 or choice3 == choice1:
-                choice2 = random.choice(monthly_winners)
-
-            end_monthly_winners.append(choice1)
-            end_monthly_winners.append(choice2)
-            end_monthly_winners.append(choice3)
+        for key, value in total_monthly.items():
+            if len(end_monthly_winners) == 0:
+                monthly_money[key] = 0
+            else:
+                monthly_money[key] = int((total_monthly[key] * 100) / len(end_monthly_winners[key]))
 
         async for user in posts.find({}):
             daily = user["d_lottery_tickets"]
@@ -134,34 +170,40 @@ class Economy(commands.Cog):
             if daily > 0 or weekly > 0 or monthly > 0:
                 member = self.bot.get_user(user["user_id"])
 
-                if end_daily_winners:  # Daily
-                    if user["user_id"] == end_daily_winners:
-                        end_balance = await self.add_global_user_balance(user["user_id"], daily_money)
-                        embed = Embed(colour=0xac6f8f, description=f"You won the daily lottery!")
+                # Daily
+                if end_daily_winners[user["guild_id"]] and user["user_id"] == end_daily_winners[user["guild_id"]]:
+
+                    end_balance = await self.add_user_server_balance(user["user_id"], user["guild_id"], daily_money)
+                    embed = Embed(colour=0xac6f8f, description=f"You won the daily lottery!")
+                    embed.add_field(name="Current balance:", value=f"{end_balance}", inline=False)
+                    embed.add_field(name="Cash earned:", value=f"{daily_money}", inline=False)
+                    embed.set_footer(text="Ploxy | Lottery system")
+                    await member.send(embed=embed)
+
+                # weekly
+                if time.weekday() + 1 == 7:
+                    if end_daily_winners[user["guild_id"]] and user["user_id"] in end_weekly_winners[user["guild_id"]]:
+                        end_balance = await self.add_user_server_balance(user["user_id"], user["guild_id"],
+                                                                         weekly_money)
+                        embed = Embed(colour=0xac6f8f, description=f"You won the weekly lottery!")
                         embed.add_field(name="Current balance:", value=f"{end_balance}", inline=False)
-                        embed.add_field(name="Cash earned:", value=f"{daily_money}", inline=False)
+                        embed.add_field(name="Cash earned:", value=f"{weekly_money}", inline=False)
                         embed.set_footer(text="Ploxy | Lottery system")
                         await member.send(embed=embed)
-                if time.weekday() + 1 == 7:
-                    if end_daily_winners:
-                        if user["user_id"] in end_weekly_winners:  # weekly
-                            end_balance = await self.add_global_user_balance(user["user_id"], weekly_money)
-                            embed = Embed(colour=0xac6f8f, description=f"You won the weekly lottery!")
-                            embed.add_field(name="Current balance:", value=f"{end_balance}", inline=False)
-                            embed.add_field(name="Cash earned:", value=f"{weekly_money}", inline=False)
-                            embed.set_footer(text="Ploxy | Lottery system")
-                            await member.send(embed=embed)
-                if calendar.monthrange(time.year, time.month)[1] == time.day:  # Monthly
-                    if end_monthly_winners:
-                        if user["user_id"] in end_monthly_winners:
-                            end_balance = await self.add_global_user_balance(user["user_id"], monthly_money)
-                            embed = Embed(colour=0xac6f8f, description=f"You won the monthly lottery!")
-                            embed.add_field(name="Current balance:", value=f"{end_balance}", inline=False)
-                            embed.add_field(name="Cash earned:", value=f"{monthly_money}", inline=False)
-                            embed.set_footer(text="Ploxy | Lottery system")
-                            await member.send(embed=embed)
 
-            await posts.update_one({"user_id": user["user_id"]},
+                # Monthly
+                if calendar.monthrange(time.year, time.month)[1] == time.day:
+                    if not end_monthly_winners[user["guild_id"]] or user["user_id"] \
+                            not in end_monthly_winners[user["guild_id"]]:
+                        continue
+                    end_balance = await self.add_user_server_balance(user["user_id"], user["guild_id"], monthly_money)
+                    embed = Embed(colour=0xac6f8f, description=f"You won the monthly lottery!")
+                    embed.add_field(name="Current balance:", value=f"{end_balance}", inline=False)
+                    embed.add_field(name="Cash earned:", value=f"{monthly_money}", inline=False)
+                    embed.set_footer(text="Ploxy | Lottery system")
+                    await member.send(embed=embed)
+
+            await posts.update_one({"user_id": user["user_id"], "guild_id": user["guild_id"]},
                                    {"$set": {"d_lottery_tickets": 0, "w_lottery_tickets": 0, "m_lottery_tickets": 0}})
 
     @lottery.before_loop
@@ -180,12 +222,13 @@ class Economy(commands.Cog):
         if self.interested:
             return
         if time.hour != 00 and time.minute not in [0,
-                                                   2]:  # Prevent it running when it's not midnight and when it's not within the first few minutes of that hour
+                                                   2]:  # Prevent it running when it's not midnight and when it's not
+            # within the first few minutes of that hour
             return
         if calendar.monthrange(time.year, time.month)[1] != time.day:  # If not the end of the month
             return
         async for user in posts.find({}):
-            balance = user["balance"]  # Global balance only just not to affect server economies.
+            balance = user["global_balance"]  # Global balance only just not to affect server economies.
             interest_money = balance * 0.05
             await self.add_global_user_balance(user["user_id"], round(interest_money, 2))
         self.interested = True
@@ -205,16 +248,17 @@ class Economy(commands.Cog):
         :return: Total cash for that user in that guild.
         """
         db = self.database.bot
-        posts = db.economy
-        user = await posts.find_one({"user_id": user_id})
-        total_cash = user["cash"]
-        first_cash = total_cash[str(guild_id)]
-        total_cash[str(guild_id)] = total_cash[str(guild_id)] + money
-        log_cash_exchange(user_id, first_cash, total_cash[str(guild_id)],
+
+        posts = db.player_data
+        user = await posts.find_one({"user_id": user_id, "guild_id": guild_id})
+        end_cash = user["cash"] + money
+
+        log_cash_exchange(user_id, user["cash"], end_cash,
                           "add_user_server_cash")
-        await posts.update_one({"user_id": user_id},
-                               {"$set": {"cash": total_cash}})
-        return total_cash[str(guild_id)]
+
+        await posts.update_one({"user_id": user_id, "guild_id": guild_id},
+                               {"$set": {"cash": end_cash}})
+        return end_cash
 
     async def add_global_user_balance(self, user_id, money):
         """
@@ -228,11 +272,11 @@ class Economy(commands.Cog):
         db = self.database.bot
         posts = db.economy
         user = await posts.find_one({"user_id": user_id})
-        money_total = money + user["balance"]
-        log_cash_exchange(user_id, user["balance"], money_total,
+        money_total = money + user["global_balance"]
+        log_cash_exchange(user_id, user["global_balance"], money_total,
                           "add_global_user_balance")
         await posts.update_one({"user_id": user_id},
-                               {"$set": {"balance": money_total}})
+                               {"$set": {"global_balance": money_total}})
         return money_total
 
     async def add_user_server_balance(self, user_id, guild_id, money):
@@ -246,116 +290,114 @@ class Economy(commands.Cog):
         :return: Returns the guild's bank balance
         """
         db = self.database.bot
-        posts = db.economy
-        user = await posts.find_one({"user_id": user_id})
-        money_total = user["balances"]
-        money_first = money_total[str(guild_id)]
-        money_total[str(guild_id)] = money_total[str(guild_id)] + money
-        log_cash_exchange(user_id, money_first, money_total[str(guild_id)],
+        posts = db.player_data
+        user = await posts.find_one({"user_id": user_id, "guild_id": guild_id})
+
+        end_balance = user["balance"] + money
+
+        log_cash_exchange(user_id, user["balance"], end_balance,
                           "add_user_server_balance")
-        await posts.update_one({"user_id": user_id},
-                               {"$set": {"balances": money_total}})
-        return money_total[str(guild_id)]
+        await posts.update_one({"user_id": user_id, "guild_id": guild_id},
+                               {"$set": {"balance": end_balance}})
+        return end_balance
 
     async def add_server_balance(self, guild_id, amount):
         db = self.database.bot
         posts = db.servereconomy
 
         guild = await posts.find_one({"guild_id": guild_id})
-        log_cash_exchange(f"GUILD {guild_id}",  guild["balance"], guild["balance"] + amount, "add_server_balance")
+        log_cash_exchange(f"GUILD {guild_id}", guild["balance"], guild["balance"] + amount, "add_server_balance")
         await posts.update_one({"guild_id": guild_id},
                                {"$set": {"balance": guild["balance"] + amount}})
         return guild["balance"] + amount
 
     async def get_user_server_cash(self, user_id, guild_id):
         db = self.database.bot
-        posts = db.economy
-        user = await posts.find_one({"user_id": user_id})
-        return user["cash"][str(guild_id)]
+        posts = db.player_data
+        user = await posts.find_one({"user_id": user_id, "guild_id": guild_id})
+        return user["cash"]
 
     async def get_global_user_balance(self, user_id):
         db = self.database.bot
         posts = db.economy
         user = await posts.find_one({"user_id": user_id})
-        return user["balance"]
+        return user["global_balance"]
 
     async def get_user_server_balance(self, user_id, guild_id):
         db = self.database.bot
-        posts = db.economy
-        user = await posts.find_one({"user_id": user_id})
-        return user["balances"][str(guild_id)]
+        posts = db.player_data
+        user = await posts.find_one({"user_id": user_id, "guild_id": guild_id})
+        return user["balance"]
 
     async def take_cash(self, user_id, guild_id, money):
         db = self.database.bot
-        posts = db.economy
-        user = await posts.find_one({"user_id": user_id})
-        total_cash = user["cash"]
-        first_cash = total_cash[str(guild_id)]
-        total_cash[str(guild_id)] = total_cash[str(guild_id)] - money
-        log_cash_exchange(user_id, first_cash, total_cash[str(guild_id)], "take_cash")
-        await posts.update_one({"user_id": user_id},
-                               {"$set": {f"cash": total_cash}})
+        posts = db.player_data
+        user = await posts.find_one({"user_id": user_id, "guild_id": guild_id})
+        total_cash = user["cash"] - money
+        log_cash_exchange(user_id, user["cash"], total_cash, "take_cash")
+        await posts.update_one({"user_id": user_id, "guild_id": guild_id},
+                               {"$set": {"cash": total_cash}})
 
-        return total_cash[str(guild_id)]
+        return total_cash
 
     async def take_global_user_balance(self, user_id, money):
         db = self.database.bot
         posts = db.economy
         user = await posts.find_one({"user_id": user_id})
-        money_total = money - user["balance"]
-        log_cash_exchange(user_id, user["balance"], money_total, "take_global_user_blanace", "take_global_user_balance")
+        money_total = money - user["global_balance"]
+        log_cash_exchange(user_id, user["global_balance"], money_total, "take_global_user_balance")
         await posts.update_one({"user_id": user_id},
                                {"$set": {"balance": money_total}})
         return money_total
 
     async def take_user_server_balance(self, user_id, guild_id, money):
         db = self.database.bot
-        posts = db.economy
-        user = await posts.find_one({"user_id": user_id})
-        money_total = user["balances"]
-        money_total[str(guild_id)] = money_total[str(guild_id)] - money
-        log_cash_exchange(user_id, user["balances"][str(guild_id)], money_total[str(guild_id)], "take_user_server_balance")
-        await posts.update_one({"user_id": user_id},
-                               {"$set": {"balances": money_total}})
+        posts = db.player_data
+        user = await posts.find_one({"user_id": user_id, "guild_id": guild_id})
+        money_total = user["balance"] - money
+        log_cash_exchange(user_id, user["balance"], money_total,
+                          "take_user_server_balance")
+        await posts.update_one({"user_id": user_id, "guild_id": guild_id},
+                               {"$set": {"balance": money_total}})
         return money_total
 
     async def send_money_server(self, id1, id2, money, guild_id):
         db = self.database.bot
-        posts = db.economy
+        posts = db.player_data
 
-        user = await posts.find_one({"user_id": id1})
-        money_total1 = user["balances"]
-        money_total1[str(guild_id)] = money_total1[str(guild_id)] - money
-        log_cash_exchange(id1, user["balances"][str(guild_id)], money_total1[str(guild_id)],
-                          "send_money_server")
-        await posts.update_one({"user_id": id1},
-                               {"$set": {"balances": money_total1}})
+        # Sender
+        user = await posts.find_one({"user_id": id1, "guild_id": guild_id})
+        money_total1 = user["balance"] - money
+        log_cash_exchange(id1, user["balance"], money_total1,
+                          "send_money_server_sender")
+        await posts.update_one({"user_id": id1, "guild_id": guild_id},
+                               {"$set": {"balance": money_total1}})
 
-        # receiver
-        user = await posts.find_one({"user_id": id2})
-        money_total2 = user["balances"]
-        money_total2[str(guild_id)] = money_total2[str(guild_id)] + money
-        log_cash_exchange(id2, user["balances"][str(guild_id)], money_total2[str(guild_id)],
-                          "send_money_server")
-        await posts.update_one({"user_id": id2},
-                               {"$set": {"balances": money_total2, "user_id": id2}})
+        # Receiver
+        user = await posts.find_one({"user_id": id2, "guild_id": guild_id})
+        money_total2 = user["balance"] + money
+        log_cash_exchange(id2, user["balance"], money_total2,
+                          "send_money_server_receiver")
+        await posts.update_one({"user_id": id2, "guild_id": guild_id},
+                               {"$set": {"balance": money_total2}})
 
     async def send_global_money(self, id1, id2, money):
         db = self.database.bot
         posts = db.economy
 
+        # Sender
         user = await posts.find_one({"user_id": id1})
-        money_total1 = user["balance"] - money
+        money_total1 = user["global_balance"] - money
 
         await posts.update_one({"user_id": id1},
-                               {"$set": {"balance": money_total1}})
+                               {"$set": {"global_balance": money_total1}})
 
-        # receiver
+        # Receiver
         user = await posts.find_one({"user_id": id2})
-        money_total2 = user["balance"] + money
+        money_total2 = user["global_balance"] + money
 
         await posts.update_one({"user_id": id2},
-                               {"$set": {"balance": money_total2, "user_id": id2}})
+                               {"$set": {"global_balance": money_total2}})
 
     @commands.group(name="economy", aliases=["eco"], usage="economy", no_pm=True)
     async def economy(self, ctx):
@@ -474,13 +516,15 @@ class Economy(commands.Cog):
             user = ctx.author
 
         db = self.database.bot
-        posts = db.economy
-        data = await posts.find_one({"user_id": user.id})
+        posts = db.player_data
+        posts2 = db.economy
+        data = await posts.find_one({"user_id": user.id, "guild_id": ctx.guild.id})
+        data2 = await posts2.find_one({"user_id": user.id})
 
         embed = Embed(color=0x36a39f, title=f"Balance of {user.name}#{user.discriminator}")
-        embed.add_field(name="🏦Global Balance:", value=f"${round(data['balance'])}", inline=True)
-        embed.add_field(name="💰Total Balance:", value=f"${round(data['balances'][str(ctx.guild.id)])}", inline=True)
-        embed.add_field(name="💸Total Cash:", value=f"${round(data['cash'][str(ctx.guild.id)])}", inline=True)
+        embed.add_field(name="🏦Global Balance:", value=f"${round(data2['global_balance'])}", inline=True)
+        embed.add_field(name="💰Total Balance:", value=f"${round(data['balance'])}", inline=True)
+        embed.add_field(name="💸Total Cash:", value=f"${round(data['cash'])}", inline=True)
         embed.set_footer(text="Ploxy | Economy system")
         await ctx.send(embed=embed)
 
@@ -505,7 +549,7 @@ class Economy(commands.Cog):
         await self.send_money_server(ctx.author.id, toSendId, money, ctx.guild.id)
 
         db = self.database.bot
-        posts = db.economy
+        posts = db.player_data
         data = await posts.find_one({"user_id": ctx.author.id})
 
         embed = Embed(color=0x36a39f, title=f"Sent ${money} to {user}",
@@ -517,7 +561,7 @@ class Economy(commands.Cog):
 
         embed = Embed(color=0x36a39f, title=f"You got Cash from {ctx.author}!")
         embed.add_field(name="📧Cash received:", value=f"${money}", inline=True)
-        embed.add_field(name="💰Total Balance:", value=f"${data['balances'][str(ctx.guild.id)]}", inline=True)
+        embed.add_field(name="💰Total Balance:", value=f"${data['balance']}", inline=True)
         embed.add_field(name="Link to channel:", value=f"{ctx.channel.mention}", inline=True)
         embed.set_footer(text=f"Ploxy | Economy system | {ctx.guild.name}")
         await user.send(embed=embed)
@@ -552,7 +596,7 @@ class Economy(commands.Cog):
 
         embed = Embed(color=0x36a39f, title=f"You got Cash from {ctx.author.name}#{ctx.author.discriminator}!")
         embed.add_field(name="📧Cash received:", value=f"${money}", inline=True)
-        embed.add_field(name="🏦Global Balance:", value=f"${data['balance']}", inline=True)
+        embed.add_field(name="🏦Global Balance:", value=f"${data['global_balance']}", inline=True)
         embed.add_field(name="Link to channel:", value=f"{ctx.channel.mention}", inline=True)
         embed.set_footer(text=f"Ploxy | Economy system | {ctx.guild.name}")
         await user.send(embed=embed)
@@ -561,12 +605,12 @@ class Economy(commands.Cog):
     @tools.has_perm()
     async def deposit(self, ctx, amount):
         db = self.database.bot
-        posts = db.economy
+        posts = db.player_data
         if amount[0] == "-" or amount == "0":
             return await ctx.send("Cannot deposit amounts less than or equal to 0")
         if amount == "all":
             db_amount = await posts.find_one({"user_id": ctx.author.id})
-            amount = db_amount['cash'][str(ctx.guild.id)]
+            amount = db_amount['cash']
             if amount <= 0:
                 return await ctx.send("You do not have any cash to deposit")
 
@@ -577,11 +621,11 @@ class Economy(commands.Cog):
 
         await self.take_cash(ctx.author.id, ctx.guild.id, int(amount))
         await self.add_user_server_balance(ctx.author.id, ctx.guild.id, int(amount))
-        data = await posts.find_one({"user_id": ctx.author.id})
+        data = await posts.find_one({"user_id": ctx.author.id, "guild_id": ctx.guild.id})
         embed = Embed(color=0x36a39f,
                       title=f"Deposited ${amount} in bank account of {ctx.author.name}#{ctx.author.discriminator}")
-        embed.add_field(name="💰Total Balance:", value=f"${round(data['balances'][str(ctx.guild.id)], 2)}", inline=True)
-        embed.add_field(name="💸Total Cash:", value=f"${round(data['cash'][str(ctx.guild.id)], 2)}", inline=True)
+        embed.add_field(name="💰Total Balance:", value=f"${round(data['balance'], 2)}", inline=True)
+        embed.add_field(name="💸Total Cash:", value=f"${round(data['cash'], 2)}", inline=True)
         embed.set_footer(text="Ploxy | Economy system")
         await ctx.send(embed=embed)
 
@@ -601,18 +645,18 @@ class Economy(commands.Cog):
             return await ctx.send("Not enough cash to withdraw this amount!")
 
         db = self.database.bot
-        posts = db.economy
+        posts = db.player_data
 
         if amount == "all":
-            amount = await posts.find_one({"user_id": ctx.author.id})['balance']
+            amount = await posts.find_one({"user_id": ctx.author.id, "guild_id": ctx.guild.id})['balance']
 
         await self.take_user_server_balance(ctx.author.id, ctx.guild.id, int(amount))
         await self.add_user_server_cash(ctx.author.id, ctx.guild.id, int(amount))
-        data = await posts.find_one({"user_id": ctx.author.id})
+        data = await posts.find_one({"user_id": ctx.author.id, "guild_id": ctx.guild.id})
         embed = Embed(color=0x36a39f,
                       title=f"Withdrawn ${amount} from bank account of {ctx.author.name}#{ctx.author.discriminator}")
-        embed.add_field(name="💰Total Balance:", value=f"${round(data['balances'][str(ctx.guild.id)], 2)}", inline=True)
-        embed.add_field(name="💸Total Cash:", value=f"${round(data['cash'][str(ctx.guild.id)], 2)}", inline=True)
+        embed.add_field(name="💰Total Balance:", value=f"${round(data['balance'], 2)}", inline=True)
+        embed.add_field(name="💸Total Cash:", value=f"${round(data['cash'], 2)}", inline=True)
         embed.set_footer(text="Ploxy | Economy system")
         await ctx.send(embed=embed)
 
@@ -636,6 +680,7 @@ class Economy(commands.Cog):
 
     @work.error
     async def on_work_error(self, ctx, exception):
+        raise exception
         error = getattr(exception, "original", exception)
         embed = discord.Embed(colour=0xac6f8f)
         if isinstance(error, CommandOnCooldown):
@@ -659,6 +704,11 @@ class Economy(commands.Cog):
         EcoPost = self.database.bot.economy
         await EcoPost.delete_many({})
 
+        EcoPost = self.database.bot.player_data
+        for user in EcoPost:
+            EcoPost.update_one({"user_id": user["user_id"], "guild_id": user["guild_id"]},
+                             {"$set": {"balance": 0, "cash": 50}})
+
         await ctx.send("The economy has successfully been reset")
 
     @commands.command(name="ecoresetuser", usage="ecoresetuser <@user>")
@@ -669,6 +719,9 @@ class Economy(commands.Cog):
         EcoPost = self.database.bot.economy
         await EcoPost.delete_many({"user_id": user.id})
 
+        EcoPost = self.database.bot.player_Data
+        await EcoPost.update_many({"user_id": user.id},
+                             {"$set": {"balance": 0, "cash": 50}})
         await ctx.send("The user has successfully been reset")
 
     @commands.command(name="ecosetuser", usage="ecosetuser <@user> <global|bank|cash> <money>")
@@ -676,19 +729,16 @@ class Economy(commands.Cog):
         if ctx.author.id not in self.owner_list:
             return
 
-        EcoPost = self.database.bot.economy
+        EcoPost = self.database.bot.player_data
         if choice == "cash":
             await EcoPost.update_one({"user_id": user.id},
                                      {"$set": {"cash": money}})
         elif choice == "global":
             await EcoPost.update_one({"user_id": user.id},
-                                     {"$set": {"balance": money}})
+                                     {"$set": {"global_balance": money}})
         elif choice == "bank":
-            user = await EcoPost.find_one({"user_id": user.id})
-            money_total = user["balances"]
-            money_total[str(user.id)] = money_total[str(ctx.guild.id)] = money
             await EcoPost.update_one({"user_id": user.id},
-                                     {"$set": {"balances": money_total}})
+                                     {"$set": {"balance": money}})
         else:
             return
         await ctx.send("The user's balance has been set")
@@ -843,11 +893,12 @@ class Economy(commands.Cog):
             return
         await self.add_server_balance(ctx.guild.id, TaxRate)
 
-        data = await self.database.bot.economy.find_one({"user_id": ctx.author.id})
+        data = await self.database.bot.player_data.find_one({"user_id": ctx.author.id, "guild_id": ctx.guild.id})
+        data2 = await self.database.bot.economy.find_one({"user_id": ctx.author.id})
         embed = Embed(color=0x36a39f,
                       title=f"{option}{'ed' if option[0] == 'd' else 'n'} ${amount} from the account of {ctx.author}")
-        embed.add_field(name="💰Local Balance:", value=f"${data['balances'][str(ctx.guild.id)]}", inline=True)
-        embed.add_field(name="💸Global balance:", value=f"${data['balance']}", inline=True)
+        embed.add_field(name="💰Local Balance:", value=f"${data['balance']}", inline=True)
+        embed.add_field(name="💸Global balance:", value=f"${data2['balance']}", inline=True)
         embed.set_footer(text="Ploxy | Economy system")
         await ctx.send(embed=embed)
 
