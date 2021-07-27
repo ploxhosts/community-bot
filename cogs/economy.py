@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 # Static function
-async def GiveNewCard(UserInfo: list, OtherHand: list):
+def GiveNewCard(UserInfo: list, OtherHand: list):
     NewCard = random.randint(1, 52)
 
     # Yes, this could be improved by having a centralised counter / storage for both hands, but i'm lazy
@@ -805,8 +805,8 @@ class Economy(commands.Cog):
             User = await self.BlackjackGather(str(ctx.author.id), amount)
             House = await self.BlackjackGather(str(ctx.author.id) + "H", amount)
 
-            User = await GiveNewCard(User, House)
-            House = await GiveNewCard(House, User)
+            User = GiveNewCard(User, House)
+            House = GiveNewCard(House, User)
 
             await self.displayBlackjackEmbed(ctx, User, House, "")
 
@@ -822,7 +822,7 @@ class Economy(commands.Cog):
             User = await self.BlackjackGather(str(message.author.id))
             House = await self.BlackjackGather(str(message.author.id) + "H")
 
-            User = await GiveNewCard(User, House)
+            User = GiveNewCard(User, House)
 
             if await self.checkSum(User) > 21:
                 await self.displayBlackjackEmbed(message, User, House, "lost")
@@ -843,7 +843,7 @@ class Economy(commands.Cog):
             House = await self.BlackjackGather(str(message.author.id) + "H")
 
             while not await self.checkSum(House) >= 17:
-                House = await GiveNewCard(House, User)
+                House = GiveNewCard(House, User)
 
             if await self.checkSum(House) > 21 or (await self.checkSum(User) > await self.checkSum(House)):
                 await self.add_user_server_cash(message.author.id, message.guild.id, int(User[1]) * 2)
