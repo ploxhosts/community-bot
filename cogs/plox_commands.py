@@ -533,7 +533,7 @@ class Support(commands.Cog):
                             "transfer the `package.json` over. "
             },
             "lagfix": {
-                "triggers": ["lagging alot", "laggin alot", "vanilla"],
+                "triggers": ["lagging alot", "laggin alot", "lags alot"],
                 "prevents": ["vps", "js", "css", "-s"],
                 "response": "The time has come, for you to learn. You should be using Paper or a fork of it such as "
                             "Purpur.\nYes this does enable you to use plugins but comes with performance "
