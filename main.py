@@ -346,7 +346,7 @@ for cog_new in os.listdir("cogs"):
             rootLogger.critical(f"{cog_new} can not be loaded: {e}")
 if str(prod) != "0":
     try:
-        get_new_files()
+        get_new_files(overwrite=False)
         print("Pulled new updates")
     except urllib.error.HTTPError as e:
         rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
