@@ -10,6 +10,8 @@ import time
 import urllib.error
 import urllib.request
 from pathlib import Path
+import glob
+import hashlib
 
 import discord
 from discord.ext import commands, tasks
@@ -30,6 +32,32 @@ except:
     connection_string = os.getenv("connection_string")
 
     database = AsyncIOMotorClient(connection_string)
+
+filenames = glob.glob("*.py")
+filenames2 = glob.glob("cogs/*.py")
+
+hashes = []
+
+
+def md5(fname):
+    hash_md5 = hashlib.md5()
+    with open(fname, "rb") as f:
+        for chunk in iter(lambda: f.read(2 ** 20), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()
+
+
+for filename in filenames:
+    hashes.append(md5(filename))
+    print(filename, md5(filename))
+
+for filename in filenames2:
+    hashes.append(md5(filename))
+    print(filename, md5(filename))
+
+checksum = hashlib.md5(json.dumps(hashes, sort_keys=True).encode('utf-8')).hexdigest()
+
+readme_checksum = md5("COMMIT.md")
 
 token = os.getenv('bot_token')
 prod_org = os.getenv('prod')
@@ -77,20 +105,7 @@ async def get_prefix(bot, message):
         if result is not None:
             prefix = result["prefix"]
     except Exception as e:
-        print(e)
         print("DB ACCESS IS DISALLOWED")
-        print("DB ACCESS IS DISALLOWED")
-        print("DB ACCESS IS DISALLOWED")
-        print("DB ACCESS IS DISALLOWED")
-        rootLogger.critical("DB ACCESS IS DISALLOWED")
-        rootLogger.critical("DB ACCESS IS DISALLOWED")
-        rootLogger.critical("DB ACCESS IS DISALLOWED")
-        rootLogger.critical("DB ACCESS IS DISALLOWED")
-        rootLogger.critical("DB ACCESS IS DISALLOWED")
-        rootLogger.critical("DB ACCESS IS DISALLOWED")
-        rootLogger.critical("DB ACCESS IS DISALLOWED")
-        rootLogger.critical("DB ACCESS IS DISALLOWED")
-        rootLogger.critical("DB ACCESS IS DISALLOWED")
         rootLogger.critical("DB ACCESS IS DISALLOWED")
     return commands.when_mentioned_or(prefix)(bot, message)
 
@@ -160,7 +175,10 @@ async def on_ready():
 
 @bot.event
 async def on_message(message: discord.Message):
-
+    global readme_checksum, checksum
+    if message.content == "?checksum" and message.author.id in [553614184735047712, 148549003544494080,
+                                                                518854761714417664]:
+        await message.channel.send(f"README: {readme_checksum}\nProject Files:{checksum}")
     # Maybe some logic here
     await bot.process_commands(message)
 
@@ -178,7 +196,7 @@ async def shutdown(ctx):
     try:
         await ctx.bot.logout()
     except EnvironmentError as error:
-        rootLogger.error(error)
+        # rootLogger.error(error)
         ctx.bot.clear()
 
 
@@ -194,16 +212,20 @@ async def reload(ctx, cog_name):
         raise exception
 
 
-def overwrite_files():
+def overwrite_files(overwrite):
     if prod_org == 1:
         start_path = "new_code/community-bot-main"
     elif prod_org == 2:
         start_path = "new_code/community-bot-test"
     else:
-        return False
+        if overwrite:
+            start_path = "new_code/community-bot-main"
+        else:
+            return False
     # Normal files
     for new_code_file in os.listdir(start_path):
-        if new_code_file not in ["main.py", "prepare.py", ".env"]:
+        if new_code_file not in ["main.py", "prepare.py", ".env", "COMMIT.md"]:  # Prevent main, prepare and the .env
+            # being overwritten and the COMMIT.md to only be done at docker container build time
             file = f"{start_path}/{new_code_file}"
             item = os.path.join(file)
             if os.path.isfile(item):
@@ -227,7 +249,7 @@ def overwrite_files():
     return start_path
 
 
-def get_new_files():
+def get_new_files(overwrite):
     global prod, prod_org
     if str(prod) == "0":
         return "Prod is 0"
@@ -239,15 +261,15 @@ def get_new_files():
 
     shutil.unpack_archive(zip_file, new_code)
 
-    return overwrite_files()
+    return overwrite_files(overwrite)
 
 
 @bot.command()
 @commands.check(is_owner)
-async def update(ctx, do_pip=0):
+async def update(ctx, do_pip=0, overwrite=False):
     output = None
     try:
-        output = get_new_files()
+        output = get_new_files(overwrite)
     except urllib.error.HTTPError as e:
         return await ctx.send("Cannot load files!")
     if do_pip != 0:
@@ -327,7 +349,6 @@ if str(prod) != "0":
         get_new_files()
         print("Pulled new updates")
     except urllib.error.HTTPError as e:
-        rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
         rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
         print("--------------------------------------------------------------------------------")
         print(f"CANNOT UPDATE CODE: {e}")
