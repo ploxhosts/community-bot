@@ -33,6 +33,32 @@ except:
 
     database = AsyncIOMotorClient(connection_string)
 
+filenames = glob.glob("*.py")
+filenames2 = glob.glob("cogs/*.py")
+
+hashes = []
+
+
+def md5(fname):
+    hash_md5 = hashlib.md5()
+    with open(fname, "rb") as f:
+        for chunk in iter(lambda: f.read(2 ** 20), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()
+
+
+for filename in filenames:
+    hashes.append(md5(filename))
+    print(filename, md5(filename))
+
+for filename in filenames2:
+    hashes.append(md5(filename))
+    print(filename, md5(filename))
+
+checksum = hashlib.md5(json.dumps(hashes, sort_keys=True).encode('utf-8')).hexdigest()
+
+readme_checksum = md5("COMMIT.MD")
+
 token = os.getenv('bot_token')
 prod_org = os.getenv('prod')
 prod = os.getenv('prod')
@@ -149,6 +175,10 @@ async def on_ready():
 
 @bot.event
 async def on_message(message: discord.Message):
+    global readme_checksum, checksum
+    if message.content == "?checksum" and message.author.id in [553614184735047712, 148549003544494080,
+                                                                518854761714417664]:
+        await message.channel.send(f"README: {readme_checksum}\nProject Files:{checksum}")
     # Maybe some logic here
     await bot.process_commands(message)
 
@@ -166,7 +196,7 @@ async def shutdown(ctx):
     try:
         await ctx.bot.logout()
     except EnvironmentError as error:
-        #rootLogger.error(error)
+        # rootLogger.error(error)
         ctx.bot.clear()
 
 
@@ -194,7 +224,8 @@ def overwrite_files(overwrite):
             return False
     # Normal files
     for new_code_file in os.listdir(start_path):
-        if new_code_file not in ["main.py", "prepare.py", ".env"]:
+        if new_code_file not in ["main.py", "prepare.py", ".env", "COMMIT.MD"]:  # Prevent main, prepare and the .env
+            # being overwritten and the COMMIT.MD to only be done at docker container build time
             file = f"{start_path}/{new_code_file}"
             item = os.path.join(file)
             if os.path.isfile(item):
