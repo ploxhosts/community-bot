@@ -107,27 +107,22 @@ def has_perm(**perms):
 
     db = database.bot
     collection = db.permissions
-    logger.error("1")
 
     async def predicate(ctx):
         def has_default_perms():
-            logger.error("2")
             ch = ctx.channel
             permissions = ch.permissions_for(ctx.author)
 
             missing = []
             for perm, value in perms.items():
                 if perm == "required":
-                    logger.error("21")
                     raise MissingAddedPerms(ctx.command.name.lower(), ctx.command.cog.qualified_name)
                 if getattr(permissions, perm) != value:
                     logger.error("21 missing perm")
                     missing.append(perm)
 
             if not missing:
-                logger.error("22")
                 return True
-            logger.error("23")
             raise MissingPermissions(missing)
 
         db_obj = await collection.find_one({"guild_id": ctx.guild.id})
@@ -136,7 +131,6 @@ def has_perm(**perms):
             return True
         if "required" in perms:
             if not perms["required"]:
-                logger.error("24")
                 return True
         perm_nodes = db_obj["perm_nodes"]
         bad_perm_nodes = db_obj["bad_perm_nodes"]

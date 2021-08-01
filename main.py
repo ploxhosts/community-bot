@@ -79,20 +79,7 @@ async def get_prefix(bot, message):
         if result is not None:
             prefix = result["prefix"]
     except Exception as e:
-        print(e)
         print("DB ACCESS IS DISALLOWED")
-        print("DB ACCESS IS DISALLOWED")
-        print("DB ACCESS IS DISALLOWED")
-        print("DB ACCESS IS DISALLOWED")
-        rootLogger.critical("DB ACCESS IS DISALLOWED")
-        rootLogger.critical("DB ACCESS IS DISALLOWED")
-        rootLogger.critical("DB ACCESS IS DISALLOWED")
-        rootLogger.critical("DB ACCESS IS DISALLOWED")
-        rootLogger.critical("DB ACCESS IS DISALLOWED")
-        rootLogger.critical("DB ACCESS IS DISALLOWED")
-        rootLogger.critical("DB ACCESS IS DISALLOWED")
-        rootLogger.critical("DB ACCESS IS DISALLOWED")
-        rootLogger.critical("DB ACCESS IS DISALLOWED")
         rootLogger.critical("DB ACCESS IS DISALLOWED")
     return commands.when_mentioned_or(prefix)(bot, message)
 
@@ -179,7 +166,7 @@ async def shutdown(ctx):
     try:
         await ctx.bot.logout()
     except EnvironmentError as error:
-        rootLogger.error(error)
+        #rootLogger.error(error)
         ctx.bot.clear()
 
 
@@ -331,7 +318,6 @@ if str(prod) != "0":
         get_new_files()
         print("Pulled new updates")
     except urllib.error.HTTPError as e:
-        rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
         rootLogger.critical(f"CANNOT UPDATE CODE: {e}")
         print("--------------------------------------------------------------------------------")
         print(f"CANNOT UPDATE CODE: {e}")
