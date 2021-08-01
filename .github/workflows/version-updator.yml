@@ -1,0 +1,18 @@
+name: Version updator
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+
+jobs:
+  update-file:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: Kludex/update-file@0.6.1
+        with:
+          script_file: ./.github/workflows/update_version.py
+          update_file: COMMIT.md

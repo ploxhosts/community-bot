@@ -57,7 +57,7 @@ for filename in filenames2:
 
 checksum = hashlib.md5(json.dumps(hashes, sort_keys=True).encode('utf-8')).hexdigest()
 
-readme_checksum = md5("COMMIT.MD")
+readme_checksum = md5("COMMIT.md")
 
 token = os.getenv('bot_token')
 prod_org = os.getenv('prod')
@@ -224,8 +224,8 @@ def overwrite_files(overwrite):
             return False
     # Normal files
     for new_code_file in os.listdir(start_path):
-        if new_code_file not in ["main.py", "prepare.py", ".env", "COMMIT.MD"]:  # Prevent main, prepare and the .env
-            # being overwritten and the COMMIT.MD to only be done at docker container build time
+        if new_code_file not in ["main.py", "prepare.py", ".env", "COMMIT.md"]:  # Prevent main, prepare and the .env
+            # being overwritten and the COMMIT.md to only be done at docker container build time
             file = f"{start_path}/{new_code_file}"
             item = os.path.join(file)
             if os.path.isfile(item):
