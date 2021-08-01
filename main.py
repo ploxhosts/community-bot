@@ -10,6 +10,8 @@ import time
 import urllib.error
 import urllib.request
 from pathlib import Path
+import glob
+import hashlib
 
 import discord
 from discord.ext import commands, tasks
@@ -160,7 +162,6 @@ async def on_ready():
 
 @bot.event
 async def on_message(message: discord.Message):
-
     # Maybe some logic here
     await bot.process_commands(message)
 
@@ -194,13 +195,16 @@ async def reload(ctx, cog_name):
         raise exception
 
 
-def overwrite_files():
+def overwrite_files(overwrite):
     if prod_org == 1:
         start_path = "new_code/community-bot-main"
     elif prod_org == 2:
         start_path = "new_code/community-bot-test"
     else:
-        return False
+        if overwrite:
+            start_path = "new_code/community-bot-main"
+        else:
+            return False
     # Normal files
     for new_code_file in os.listdir(start_path):
         if new_code_file not in ["main.py", "prepare.py", ".env"]:
@@ -227,7 +231,7 @@ def overwrite_files():
     return start_path
 
 
-def get_new_files():
+def get_new_files(overwrite):
     global prod, prod_org
     if str(prod) == "0":
         return "Prod is 0"
@@ -239,15 +243,15 @@ def get_new_files():
 
     shutil.unpack_archive(zip_file, new_code)
 
-    return overwrite_files()
+    return overwrite_files(overwrite)
 
 
 @bot.command()
 @commands.check(is_owner)
-async def update(ctx, do_pip=0):
+async def update(ctx, do_pip=0, overwrite=False):
     output = None
     try:
-        output = get_new_files()
+        output = get_new_files(overwrite)
     except urllib.error.HTTPError as e:
         return await ctx.send("Cannot load files!")
     if do_pip != 0:
