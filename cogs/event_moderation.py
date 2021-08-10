@@ -1,5 +1,5 @@
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 import datetime
 import json
 import os
@@ -9,6 +9,21 @@ class EventsMod(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.database = bot.database
+        self.batch_delete.start()
+
+    @tasks.loop(hours=4.0)
+    async def batch_delete(self):
+        db = self.database.bot
+        posts = db.message_logs
+        async for x in posts.find({}):
+            deleted = x["deleted"]
+            if "deleted_time" in x:
+                deleted_time = x["deleted_time"]
+                if deleted and not x["reported"]:
+                    seconds_diff = (datetime.datetime.utcnow() - datetime.datetime.utcfromtimestamp(deleted_time)).total_seconds()
+                    if seconds_diff - 2628000 >= 1: # 2628000 = 1 month
+                        await posts.delete_one({"message_id": x["message_id"]})
+
 
     async def delete_message(self, message):
         try:
@@ -29,8 +44,8 @@ class EventsMod(commands.Cog):
 
         for bad_word in BANNED_WORDS:
             if (
-                bad_word in message.data.content.lower()
-                and await self.delete_message(message) == "Deleted"
+                    bad_word in message.data.content.lower()
+                    and await self.delete_message(message) == "Deleted"
             ):
                 guild = self.bot.get_guild(message.guild["id"])
                 channel = guild.get_channel(message.channel["id"])
@@ -93,6 +108,7 @@ class EventsMod(commands.Cog):
                 "author_id": message.author.id,  # Identify the author
                 "message_id": message.id,  # Identify the message
                 "guild_id": message.guild.id,  # Used to delete an entire server/guild from database when removed
+                "deleted_time": 0,  # Time message was deleted
                 "deleted": False,  # Used for checking if a message has been deleted after it's been reported
                 "reported": False,  # Be able to report specific messages
                 "mentions": [x.id for x in message.mentions],
@@ -124,14 +140,13 @@ class EventsMod(commands.Cog):
             except:
                 pass
         if message_content != "":
-            if reported is False and JSON is None:  # Not if reported or a self bot
-                try:
-                    await posts.delete_one({"message_id", message.message_id})
-                except:
-                    pass
+            if reported is True or JSON is not None:  # Not if reported or a self bot
+                await posts.update_one({"message_id": message.message_id},
+                                       {"$set": {"deleted": True, "reported": True,
+                                                 "deleted_time": datetime.datetime.utcnow().timestamp()}})
             else:
                 await posts.update_one({"message_id": message.message_id},
-                                 {"$set": {"deleted": True}})
+                                       {"$set": {"deleted": True, "deleted_time": datetime.datetime.utcnow().timestamp()}})
             user = await self.bot.fetch_user(author_id)
             if message.message_id not in self.bot.delete_message_cache:
                 if log_channel != 0:
@@ -145,12 +160,11 @@ class EventsMod(commands.Cog):
             )
             if save_msg:
                 channel = self.bot.get_channel(message.channel_id)
-                embed = discord.Embed(colour=0xac6f8f, description=f"{user.mention} deleted a message containing a mention!")
+                embed = discord.Embed(colour=0xac6f8f,
+                                      description=f"{user.mention} deleted a message containing a mention!")
                 embed.add_field(name="Message content: ", value=f"{message_content}", inline=False)
                 embed.set_footer(text="Ploxy | Logging and monitoring")
                 await channel.send(embed=embed)
-
-
 
     @commands.Cog.listener()
     async def on_raw_message_edit(self, message):
@@ -314,10 +328,11 @@ class EventsMod(commands.Cog):
             embed.add_field(name="User id:", value=f"\n{after.id}", inline=False)
             embed.add_field(name="Role changes:", value=f"\n{diff_roles}", inline=False)
 
-        elif before.display_name != after.display_name: # nickname got changed
+        elif before.display_name != after.display_name:  # nickname got changed
             embed = discord.Embed(colour=0x36a39f, title=f"{after.name}#{after.discriminator} nickname changed")
             embed.add_field(name="User id:", value=f"\n{after.id}", inline=False)
-            embed.add_field(name="Nickname changes:", value=f"\n`{before.display_name}` changed to `{after.display_name}`", inline=False)
+            embed.add_field(name="Nickname changes:",
+                            value=f"\n`{before.display_name}` changed to `{after.display_name}`", inline=False)
         else:
             return
         embed.set_footer(text="Ploxy | Logging and monitoring")
@@ -354,10 +369,12 @@ class EventsMod(commands.Cog):
                 embed.add_field(name="Nickname changes:",
                                 value=f"\n`{before.name}` changed to `{after.name}`", inline=False)
             elif before.discriminator != after.discriminator:  # nickname got changed
-                embed = discord.Embed(colour=0x36a39f, title=f"{after.name}#{after.discriminator} discriminator changed")
+                embed = discord.Embed(colour=0x36a39f,
+                                      title=f"{after.name}#{after.discriminator} discriminator changed")
                 embed.add_field(name="User id:", value=f"\n{after.id}", inline=False)
                 embed.add_field(name="Nickname changes:",
-                                value=f"\n`{after.name}#{before.discriminator}` changed to `{after.name}#{after.discriminator}`", inline=False)
+                                value=f"\n`{after.name}#{before.discriminator}` changed to `{after.name}#{after.discriminator}`",
+                                inline=False)
             else:
                 return
             embed.set_footer(text="Ploxy | Logging and monitoring")
@@ -366,6 +383,7 @@ class EventsMod(commands.Cog):
                 return
             log_channel = self.bot.get_channel(log_channel)
             await log_channel.send(embed=embed)
+
 
 def setup(bot):
     bot.add_cog(EventsMod(bot))
