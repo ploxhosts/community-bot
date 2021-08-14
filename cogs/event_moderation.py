@@ -3,7 +3,7 @@ from discord.ext import commands, tasks
 import datetime
 import json
 import os
-
+import pymongo.errors
 
 class EventsMod(commands.Cog):
     def __init__(self, bot):
@@ -15,14 +15,17 @@ class EventsMod(commands.Cog):
     async def batch_delete(self):
         db = self.database.bot
         posts = db.message_logs
-        async for x in posts.find({}):
-            deleted = x["deleted"]
-            if "deleted_time" in x:
-                deleted_time = x["deleted_time"]
-                if deleted and not x["reported"]:
-                    seconds_diff = (datetime.datetime.utcnow() - datetime.datetime.utcfromtimestamp(deleted_time)).total_seconds()
-                    if seconds_diff - 2628000 >= 1: # 2628000 = 1 month
-                        await posts.delete_one({"message_id": x["message_id"]})
+        try:
+            async for x in posts.find({}):
+                deleted = x["deleted"]
+                if "deleted_time" in x:
+                    deleted_time = x["deleted_time"]
+                    if deleted and not x["reported"]:
+                        seconds_diff = (datetime.datetime.utcnow() - datetime.datetime.utcfromtimestamp(deleted_time)).total_seconds()
+                        if seconds_diff - 2628000 >= 1: # 2628000 = 1 month
+                            await posts.delete_one({"message_id": x["message_id"]})
+        except pymongo.errors.ServerSelectionTimeoutError:
+            print("Please make sure you are connected to a database!")
 
 
     async def delete_message(self, message):
@@ -310,10 +313,11 @@ class EventsMod(commands.Cog):
         posts = db.serversettings
 
         log_channel = 0
-
-        async for x in posts.find({"guild_id": before.guild.id}):
-            log_channel = x['log_channel']
-
+        try:
+            async for x in posts.find({"guild_id": before.guild.id}):
+                log_channel = x['log_channel']
+        except pymongo.errors.ServerSelectionTimeoutError:
+            return print("Failed to connect to database, make sure you are connected to one!")
         if before.roles != after.roles:  # role got changed
             diff_roles = ""
             role_changes = list(set(before.roles) - set(after.roles))

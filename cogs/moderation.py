@@ -1,6 +1,7 @@
 import asyncio
 import datetime
 import discord
+import pymongo.errors
 from discord.ext import commands, tasks
 
 import tools
@@ -20,52 +21,58 @@ class Mod(commands.Cog):
     async def un_mute(self):
         db = self.database.bot
         posts = db.pending_mutes
-        async for user in posts.find({}):
-            try:
-                ban_time = user["time"]
-                if ban_time is not None:
-                    iat = user["issued"]
-                    roles = user["roles"]
-                    user_id = user["user_id"]
-                    guild_id = user["guild_id"]
-                    current_time_utc = datetime.datetime.now()
-                    change = current_time_utc - iat
-                    minutes_change = change.total_seconds() / 60
-                    if ban_time - minutes_change <= 0:
-                        posts2 = db.serversettings
-                        role = await posts2.find_one({"guild_id": guild_id})
-                        role = role['muted_role_id']
-                        guild = self.bot.get_guild(guild_id)
-                        role = guild.get_role(role)
-                        member = guild.get_member(user_id)
-                        await member.remove_roles(role, reason="Muted expired")
-                        await posts.delete_one({"user_id": user_id, "guild_id": guild_id})
-                        for role in roles:
-                            try:
-                                role_f = guild.get_role(role)
-                                await member.add_roles(role_f)
-                            except AttributeError:
-                                pass
-            except AttributeError:
-                pass
+        try:
+            async for user in posts.find({}):
+                try:
+                    ban_time = user["time"]
+                    if ban_time is not None:
+                        iat = user["issued"]
+                        roles = user["roles"]
+                        user_id = user["user_id"]
+                        guild_id = user["guild_id"]
+                        current_time_utc = datetime.datetime.now()
+                        change = current_time_utc - iat
+                        minutes_change = change.total_seconds() / 60
+                        if ban_time - minutes_change <= 0:
+                            posts2 = db.serversettings
+                            role = await posts2.find_one({"guild_id": guild_id})
+                            role = role['muted_role_id']
+                            guild = self.bot.get_guild(guild_id)
+                            role = guild.get_role(role)
+                            member = guild.get_member(user_id)
+                            await member.remove_roles(role, reason="Muted expired")
+                            await posts.delete_one({"user_id": user_id, "guild_id": guild_id})
+                            for role in roles:
+                                try:
+                                    role_f = guild.get_role(role)
+                                    await member.add_roles(role_f)
+                                except AttributeError:
+                                    pass
+                except AttributeError:
+                    pass
+        except pymongo.errors.ServerSelectionTimeoutError:
+            print("Failed to connect to database, make sure you are connected to one!")
 
     @tasks.loop(seconds=30.0)
     async def un_ban(self):
         db = self.database.bot
         posts = db.pending_bans
-        async for user in posts.find({}):
-            user_id = user["user_id"]
-            guild_id = user["guild_id"]
-            ban_time = user["time"]
-            iat = user["issued"]
-            current_time_utc = datetime.datetime.now()
-            change = current_time_utc - iat
-            minutes_change = change.seconds / 60
-            if ban_time - minutes_change <= 0:
-                guild = self.bot.get_guild(guild_id)
-                user = await self.bot.fetch_user(user_id)
-                await guild.unban(user, reason="Temp ban expiry")
-                await posts.delete_one({"user_id": user_id, "guild_id": guild_id})
+        try:
+            async for user in posts.find({}):
+                user_id = user["user_id"]
+                guild_id = user["guild_id"]
+                ban_time = user["time"]
+                iat = user["issued"]
+                current_time_utc = datetime.datetime.now()
+                change = current_time_utc - iat
+                minutes_change = change.seconds / 60
+                if ban_time - minutes_change <= 0:
+                    guild = self.bot.get_guild(guild_id)
+                    user = await self.bot.fetch_user(user_id)
+                    await guild.unban(user, reason="Temp ban expiry")
+                    await posts.delete_one({"user_id": user_id, "guild_id": guild_id})
+        except pymongo.errors.ServerSelectionTimeoutError:
+            print("Failed to connect to database, make sure you are connected to one!")
 
     @un_ban.before_loop
     async def before_un_ban(self):
