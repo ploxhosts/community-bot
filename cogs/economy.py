@@ -1,6 +1,8 @@
 import calendar
 import datetime
+import logging
 import random
+from collections import OrderedDict
 
 import discord
 from discord import Embed
@@ -8,7 +10,6 @@ from discord.ext import commands, tasks
 from discord.ext.commands import CommandOnCooldown
 
 import tools
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -172,7 +173,6 @@ class Economy(commands.Cog):
 
                 # Daily
                 if end_daily_winners[user["guild_id"]] and user["user_id"] == end_daily_winners[user["guild_id"]]:
-
                     end_balance = await self.add_user_server_balance(user["user_id"], user["guild_id"], daily_money)
                     embed = Embed(colour=0xac6f8f, description=f"You won the daily lottery!")
                     embed.add_field(name="Current balance:", value=f"{end_balance}", inline=False)
@@ -402,6 +402,39 @@ class Economy(commands.Cog):
     @commands.group(name="economy", aliases=["eco"], usage="economy", no_pm=True)
     async def economy(self, ctx):
         pass
+
+    @economy.command(name="top", description="Get the richest people in a leaderboard", usage="level")
+    @tools.has_perm()
+    async def eco_top(self, ctx, page: int = 1):
+        db = self.database.bot
+        posts = db.player_data
+        top = []
+        count = 1
+        users = {}
+        async for x in posts.find({"guild_id": ctx.guild.id}):
+            user_id = x["user_id"]
+            cash = x["cash"]
+            balance = x["balance"]
+            total = float(cash) + float(balance)
+            users[user_id] = {"total": int(total), "cash": cash, "bal": balance}
+        sorted_users = OrderedDict(sorted(users.items(),
+                                          key=lambda kv: kv[1]['total'], reverse=True))
+        for user in sorted_users:
+            member = ctx.guild.get_member(user)
+            if member is not None and not member.bot:
+                top.append(f"{count}. {member.name}#{member.discriminator} | Balance {users[user]['bal']} - "
+                           f"Cash {users[user]['cash']}")
+                count += 1
+            if count % 11 == 0:  # 11, 22, 33, 44, 55
+                if (page * 11) == count:
+                    break
+                else:
+                    top.clear()
+        title_message = "Top 10 richest members"
+        if page > 1:
+            title_message = f"Top {page * 10} richest members"
+        embed = discord.Embed(color=0x36a39f, title=title_message, description="\n".join(top))
+        await ctx.send(embed=embed)
 
     @commands.command(name="beg", usage="beg", no_pm=True)
     @commands.cooldown(1, 1200, commands.BucketType.user)
@@ -680,7 +713,6 @@ class Economy(commands.Cog):
 
     @work.error
     async def on_work_error(self, ctx, exception):
-        raise exception
         error = getattr(exception, "original", exception)
         embed = discord.Embed(colour=0xac6f8f)
         if isinstance(error, CommandOnCooldown):
@@ -707,7 +739,7 @@ class Economy(commands.Cog):
         EcoPost = self.database.bot.player_data
         for user in EcoPost:
             EcoPost.update_one({"user_id": user["user_id"], "guild_id": user["guild_id"]},
-                             {"$set": {"balance": 0, "cash": 50}})
+                               {"$set": {"balance": 0, "cash": 50}})
 
         await ctx.send("The economy has successfully been reset")
 
@@ -721,7 +753,7 @@ class Economy(commands.Cog):
 
         EcoPost = self.database.bot.player_Data
         await EcoPost.update_many({"user_id": user.id},
-                             {"$set": {"balance": 0, "cash": 50}})
+                                  {"$set": {"balance": 0, "cash": 50}})
         await ctx.send("The user has successfully been reset")
 
     @commands.command(name="ecosetuser", usage="ecosetuser <@user> <global|bank|cash> <money>")
