@@ -1,3 +1,5 @@
+import traceback
+
 import discord
 from discord.ext import commands, tasks
 import datetime
@@ -317,6 +319,7 @@ class EventsMod(commands.Cog):
             async for x in posts.find({"guild_id": before.guild.id}):
                 log_channel = x['log_channel']
         except pymongo.errors.ServerSelectionTimeoutError:
+            print(traceback.print_exc())
             return print("Failed to connect to database, make sure you are connected to one!")
         if before.roles != after.roles:  # role got changed
             diff_roles = ""
