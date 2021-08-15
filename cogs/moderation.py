@@ -1,5 +1,7 @@
 import asyncio
 import datetime
+import traceback
+
 import discord
 import pymongo.errors
 from discord.ext import commands, tasks
@@ -50,7 +52,8 @@ class Mod(commands.Cog):
                                     pass
                 except AttributeError:
                     pass
-        except pymongo.errors.ServerSelectionTimeoutError:
+        except pymongo.errors.ServerSelectionTimeoutError as e:
+            print(traceback.print_exc())
             print("Failed to connect to database, make sure you are connected to one!")
 
     @tasks.loop(seconds=30.0)
@@ -72,6 +75,7 @@ class Mod(commands.Cog):
                     await guild.unban(user, reason="Temp ban expiry")
                     await posts.delete_one({"user_id": user_id, "guild_id": guild_id})
         except pymongo.errors.ServerSelectionTimeoutError:
+            print(traceback.print_exc())
             print("Failed to connect to database, make sure you are connected to one!")
 
     @un_ban.before_loop
