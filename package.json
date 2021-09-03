@@ -8,7 +8,8 @@
     "precommit": "npm run lint",
     "build": "tsc -p .",
     "start": "NODE_ENV=production node ./dist/server.js",
-    "dev": "npm run build && node ./dist/server.js"
+    "dev": "npm run build && node ./dist/server.js",
+    "rc": "npx ts-node ./src/deploy-commands.ts"
   },
   "repository": {
     "type": "git",
