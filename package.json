@@ -1,0 +1,27 @@
+{
+  "name": "community-bot",
+  "version": "1.0.0",
+  "description": "An open-sourced community projected created for our discord server.",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "precommit": "npm run lint",
+    "build": "tsc -p .",
+    "start": "NODE_ENV=production node ./dist/server.js",
+    "dev": "npm run build && node ./dist/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PloxHost-LLC/community-bot.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/PloxHost-LLC/community-bot/issues"
+  },
+  "homepage": "https://github.com/PloxHost-LLC/community-bot#readme",
+  "devDependencies": {
+    "typescript": "^4.4.2"
+  }
+}
