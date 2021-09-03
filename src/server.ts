@@ -17,9 +17,16 @@ for (const file of commandFiles) {
 	(<any>client).commands.set(command.data.name, command);
 }
 
-client.on('ready', () => {
- 	console.log(`Logged in as ${client.user?.username}!`);
-});
+const eventFiles = fs.readdirSync(__dirname + '/events').filter(file => file.endsWith('.js'));
+
+for (const file of eventFiles) {
+	const event = require(`./events/${file}`);
+	if (event.once) {
+		client.once(event.name, (...args: any) => event.execute(...args));
+	} else {
+		client.on(event.name, (...args: any) => event.execute(...args));
+	}
+}
 
 
 client.on('interactionCreate', async (interaction: any)=> {
