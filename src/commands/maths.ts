@@ -11,12 +11,14 @@ module.exports = {
 				.setDescription('Type in the maths you want to execute.')
 				.setRequired(true)),
 	async execute(interaction: any) {
+		const dangerousKeywords = ['eval', 'exec', 'system', 'shell', 'token', 'env', 'process', 'throw']
 		if (interaction.options.get('expression').value.length > 500) {
 			await interaction.reply('I can\'t do that, too long.');
 			return;
 		}
-		if (interaction.options.get('expression').value.includes('token')){
-			await interaction.reply("I am sorry I cannot do that!")
+		if (dangerousKeywords.some((word: string) => interaction.options.get('expression').value.includes(word))) {
+			await interaction.reply("I am sorry I cannot do that!");
+			return;
 		}
 		const Embed = new discord.MessageEmbed()
 			.setTitle("Calculate maths command")
