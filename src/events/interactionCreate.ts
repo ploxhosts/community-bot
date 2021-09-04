@@ -1,5 +1,3 @@
-import discord from 'discord.js';
-
 module.exports = {
 	name: 'interactionCreate',
 	execute(interaction: any) {

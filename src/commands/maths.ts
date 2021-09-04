@@ -11,6 +11,13 @@ module.exports = {
 				.setDescription('Type in the maths you want to execute.')
 				.setRequired(true)),
 	async execute(interaction: any) {
+		if (interaction.options.get('expression').value.length > 500) {
+			await interaction.reply('I can\'t do that, too long.');
+			return;
+		}
+		if (interaction.options.get('expression').value.includes('token')){
+			await interaction.reply("I am sorry I cannot do that!")
+		}
 		const Embed = new discord.MessageEmbed()
 			.setTitle("Calculate maths command")
 			.setColor(process.env.themeColor as discord.ColorResolvable)
