@@ -8,7 +8,7 @@ module.exports = {
 		.setDescription('Play rock paper scissors with the bot')
 			.addStringOption(option =>
 				option.setName('choice')
-					.setDescription('One of the users you want to compare')
+					.setDescription('Your choice to play rock paper scissors')
 					.setRequired(true)
 				.addChoice('Rock', 'rock')
 				.addChoice('Paper', 'paper')
