@@ -50,10 +50,14 @@ for (const file of commandFiles) {
 }
 
 client.on('interactionCreate', async (interaction: any)=> {
+	// Get the command from the Collection 
 	const command = (<any>client).commands.get(interaction.commandName);
+
+	// If it doesn't exist then return
 	if (!command) return;
 
 	try {
+		// Run code here to execute the command
 		await command.execute(interaction);
 	} catch (error) {
 		console.error(error);
