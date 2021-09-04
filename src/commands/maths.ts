@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import crypto from 'crypto';
+import discord from 'discord.js';
 const safeEval = require('safe-eval')
 
 module.exports = {
@@ -11,7 +11,11 @@ module.exports = {
 				.setDescription('Type in the maths you want to execute.')
 				.setRequired(true)),
 	async execute(interaction: any) {
-
-		interaction.reply('Your answer is: `'+ safeEval(interaction.options.get('expression').value) + '`');
+		const Embed = new discord.MessageEmbed()
+			.setTitle("Calculate maths command")
+			.setColor(process.env.themeColor as discord.ColorResolvable)
+			.setDescription(`:abacus:  \`${interaction.options.get('expression').value} = ${safeEval(interaction.options.get('expression').value)}\``)
+			.setFooter(`${process.env.brandName} - Commands`, interaction.client.user?.displayAvatarURL())
+		await interaction.reply({ embeds: [Embed] })
 	},
 };
