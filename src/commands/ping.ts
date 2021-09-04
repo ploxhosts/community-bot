@@ -10,6 +10,6 @@ module.exports = {
 			.setColor(process.env.themeColor as discord.ColorResolvable)
 			.setDescription(`:hourglass: ${new Date().getTime() - interaction.createdTimestamp}ms\n\n:heartbeat: ${interaction.client.ws.ping} ms`)
 			.setFooter(`${process.env.brandName} - Commands`, interaction.client.user?.displayAvatarURL())
-		await interaction.reply({ embeds: [Embed] })
+		await interaction.reply({ embeds: [Embed] });
 	},
 };

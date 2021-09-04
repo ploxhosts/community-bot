@@ -23,6 +23,6 @@ module.exports = {
 			.setColor(process.env.themeColor as discord.ColorResolvable)
 			.setDescription(`:abacus:  \`${interaction.options.get('expression').value} = ${safeEval(interaction.options.get('expression').value)}\``)
 			.setFooter(`${process.env.brandName} - Commands`, interaction.client.user?.displayAvatarURL())
-		await interaction.reply({ embeds: [Embed] })
+		await interaction.reply({ embeds: [Embed] });
 	},
 };
