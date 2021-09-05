@@ -23,7 +23,8 @@ connection.getConnection(function(err, connection) {
 			console.log("Error querying database: " + err);
 			process.exit(1);
 		} 
-		console.log("Connected to database!");
+
+		console.log("\x1b[32m"+ "Connected to database!" + "\x1b[0m");
 	});
 });
 
