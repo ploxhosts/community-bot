@@ -1,14 +1,31 @@
 import discord from 'discord.js';
 import fs from 'fs';
 import dotenv from 'dotenv';
-
 dotenv.config();
+
+import connection from './db/mysql';
+
 
 // Stop the bot from running if there is not a valid token
 if (!process.env.token) {
 	console.log("Please specify a token to connect to the Discord API!\n Please create a bot from https://discord.com/developers/applications and copy the token, make sure there are no spaces within the .env");
 	process.exit(1);
 };
+
+connection.getConnection(function(err, connection) {
+	if (err) {
+		console.log("Error connecting to database: " + err);
+		console.log("Could not connect to the database!\n Please make sure the database is running and the credentials are correct");
+		process.exit(1);
+	}
+	connection.query("SELECT * FROM `users`", function(err, rows) {
+		if (err) {
+			console.log("Error querying database: " + err);
+			process.exit(1);
+		} 
+		console.log("Connected to database!");
+	});
+});
 
 // Fill the environment variables if non existant
 
