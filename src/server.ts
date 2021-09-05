@@ -15,18 +15,24 @@ if (!process.env.token) {
 connection.getConnection(function(err, connection) {
 	if (err) {
 		console.log("Error connecting to database: " + err);
-		console.log("Could not connect to the database!\n Please make sure the database is running and the credentials are correct");
-		process.exit(1);
-	}
-	connection.query("SELECT * FROM `users`", function(err, rows) {
-		if (err) {
-			console.log("Error querying database: " + err);
-			process.exit(1);
-		} 
 
-		console.log("\x1b[32m"+ "Connected to database!" + "\x1b[0m");
-	});
-	connection.release();
+		console.log("\x1b[31m"+ "Failed to connect to database!" + "\x1b[0m" + "\nPlease make sure the database is running and the credentials are correct");
+		process.env.DB_MODE = "false";
+	}
+	if (connection) {
+
+		connection.query("SELECT * FROM `users`", function(err, rows) {
+			if (err) {
+				console.log("Error querying database: " + err);
+				process.env.DB_MODE = "false";
+				console.log("\x1b[31m"+ "Failed to connect to database!" + "\x1b[0m");
+			}  else {
+				console.log("\x1b[32m"+ "Connected to database!" + "\x1b[0m");
+			}
+		});
+		
+		connection.release();
+	}
 });
 
 // Fill the environment variables if non existant
