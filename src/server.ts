@@ -26,6 +26,7 @@ connection.getConnection(function(err, connection) {
 
 		console.log("\x1b[32m"+ "Connected to database!" + "\x1b[0m");
 	});
+	connection.release();
 });
 
 // Fill the environment variables if non existant
