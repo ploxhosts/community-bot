@@ -99,7 +99,7 @@ client.on('interactionCreate', async (interaction: discord.BaseCommandInteractio
 						console.log("Error querying database: " + err);
 					}  else {
 						if (rows.length === 0) {
-							connection.query("INSERT INTO ploxy_users (user_id, username, discriminator, user_avatar, premium, banned) VALUES (?, ?, ?, ?, false, ?)", [String(interaction.user.id), interaction.user.username, String(interaction.user.discriminator), String(interaction.user.avatar), 0], function(err, rows) {
+							connection.query("INSERT INTO ploxy_users (user_id, username, discriminator, user_avatar, premium, banned) VALUES (?, ?, ?, ?, false, 0)", [String(interaction.user.id), interaction.user.username, String(interaction.user.discriminator), String(interaction.user.avatar)], function(err, rows) {
 								if (err) {
 									console.log("Error querying database: " + err);
 								}  else {
