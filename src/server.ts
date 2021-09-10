@@ -1,10 +1,11 @@
 import discord from 'discord.js';
 import fs from 'fs';
 import dotenv from 'dotenv';
+
+// Load environment variables from .env file
 dotenv.config();
 
 import connection from './db/mysql';
-
 
 // Stop the bot from running if there is not a valid token
 if (!process.env.token) {
