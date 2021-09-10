@@ -113,6 +113,10 @@ client.on('interactionCreate', async (interaction: discord.BaseCommandInteractio
 			}
 		});
 	}
+
+	// Log the usage
+	console.log(`${interaction.user.tag} in #${(interaction as any).channel?.name} triggered an interaction.`);
+
 	try {
 		// Run code here to execute the command
 		await command.execute(interaction);
