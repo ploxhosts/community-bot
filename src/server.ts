@@ -21,13 +21,14 @@ connection.getConnection(function(err, connection) {
 	}
 	if (connection) {
 
-		connection.query("SELECT * FROM `users`", function(err, rows) {
+		connection.query("SELECT * FROM `ploxy_users`", function(err, rows) {
 			if (err) {
 				console.log("Error querying database: " + err);
 				process.env.DB_MODE = "false";
 				console.log("\x1b[31m"+ "Failed to connect to database!" + "\x1b[0m");
 			}  else {
 				console.log("\x1b[32m"+ "Connected to database!" + "\x1b[0m");
+				process.env.DB_MODE = "true";
 			}
 		});
 		
@@ -74,13 +75,43 @@ for (const file of commandFiles) {
 	(<any>client).commands.set(command.data.name, command);
 }
 
-client.on('interactionCreate', async (interaction: any)=> {
+client.on('interactionCreate', async (interaction: discord.BaseCommandInteraction) => {
 	// Get the command from the Collection 
 	const command = (<any>client).commands.get(interaction.commandName);
 
 	// If it doesn't exist then return
 	if (!command) return;
 
+	// If the command is disabled then return
+	if (command.data.disabled) return;
+
+	// insert data to database if not exists
+	if (process.env.DB_MODE === "true") {
+		connection.getConnection(function(err, connection) {
+			if (err) {
+				console.log("Error connecting to database: " + err);
+				console.log("\x1b[31m"+ "Failed to connect to database!" + "\x1b[0m");
+			}
+			if (connection) {
+				connection.query("SELECT * FROM `ploxy_users` WHERE `user_id` = " + interaction.user.id, function(err, rows) {
+					if (err) {
+						console.log("Error querying database: " + err);
+					}  else {
+						if (rows.length === 0) {
+							connection.query("INSERT INTO ploxy_users (user_id, username, discriminator, user_avatar, premium, banned) VALUES (?, ?, ?, ?, false, ?)", [String(interaction.user.id), interaction.user.username, String(interaction.user.discriminator), String(interaction.user.avatar), 0], function(err, rows) {
+								if (err) {
+									console.log("Error querying database: " + err);
+								}  else {
+									console.log("\x1b[32m"+ "Inserted user into database!" + "\x1b[0m");
+								}
+							});
+						}
+					}
+				});
+				connection.release();
+			}
+		});
+	}
 	try {
 		// Run code here to execute the command
 		await command.execute(interaction);
