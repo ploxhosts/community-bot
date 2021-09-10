@@ -93,7 +93,7 @@ client.on('interactionCreate', async (interaction: discord.BaseCommandInteractio
 				console.log("\x1b[31m"+ "Failed to connect to database!" + "\x1b[0m");
 			}
 			if (connection) {
-				connection.query("SELECT * FROM `ploxy_users` WHERE `user_id` = " + interaction.user.id, function(err, rows) {
+				connection.query("SELECT * FROM `ploxy_users` WHERE `user_id` = " + String(interaction.user.id), function(err, rows) {
 					if (err) {
 						console.log("Error querying database: " + err);
 					}  else {
