@@ -7,14 +7,14 @@ async function check(message: discord.Message) {
 	let userBadWords: string[] = [];
 	let preset_badwords = 1; // 0 = custom, 1 = regular bad words, 3 = regular bad words with custom bad words
 	let bad_word_check	= true; // Default's to true without a database
-	let on_fail_bad_word = 0; // 0 = do nothing, 1 = delete message, 2 = mute user, 3 = kick user, 4 = ban user
+	let on_fail_bad_word = 1; // 0 = do nothing, 1 = delete message, 2 = mute user, 3 = kick user, 4 = ban user
 	let on_fail_bad_word_reason = "";
 	let on_fail_bad_word_duration = 0; // increments based on how many bad words detected
 	if (!message.guild) {
 		return false;
 	}
 	if (process.env.DB_MODE === "true") {
-		connection.getConnection(function(err, connection) {
+		await connection.getConnection(async function(err, connection) {
 			if (err) {
 				console.log("Error connecting to database: " + err);
 				console.log("\x1b[31m"+ "Failed to connect to database!" + "\x1b[0m");
@@ -22,7 +22,7 @@ async function check(message: discord.Message) {
 				return null;
 			}
 			if (connection) {
-				connection.query("SELECT * FROM ploxy_automod WHERE guild_id = ?", String(message.guild?.id), function(err, row) {
+				await connection.query("SELECT * FROM ploxy_automod WHERE guild_id = ?", String(message.guild?.id), function(err, row) {
 					if (err) {
 						console.log("Error querying database: " + err);
 						console.log("\x1b[31m"+ "Failed to query database!" + "\x1b[0m");
@@ -35,7 +35,7 @@ async function check(message: discord.Message) {
 
 				});
 
-				connection.query("SELECT * FROM ploxy_badwords WHERE guild_id = ?", String(message.guild?.id), function(err, rows) {
+				await connection.query("SELECT * FROM ploxy_badwords WHERE guild_id = ?", String(message.guild?.id), function(err, rows) {
 					if (err) {
 						console.log("Error querying database: " + err);
 						console.log("\x1b[31m"+ "Failed to query database!" + "\x1b[0m");
@@ -104,50 +104,51 @@ async function check(message: discord.Message) {
 			badWords.push(userBadWords[i])
 		}
 	}
+
+	let contains_bad_word = false;
+	let badWordNum = 0;
+
 	if (bad_word_check) {
 		let badWordsCheck = new RegExp(badWords.join('|'), 'gi');
+
+		const countOccurrencesInRegex = (str: String) => {
+			return ((str || '').match(badWordsCheck) || []).length
+		}
+
 		if (badWordsCheck.test(message.content)) {
-			if (on_fail_bad_word === 1) {
-				message.delete().catch(console.error);
-				message.channel.send('**' + message.author.username + '**, your message has been removed for containing a bad word.');
-			}
-			if (on_fail_bad_word === 2) {
-				message.author.send("You have been muted for bad words.").catch(console.error);
-				// TODO: Process muting with another utility function
-			}
-			if (on_fail_bad_word === 3) {
-				message.author.send("You have been kicked for bad words.").catch(console.error);
-				(message.author as any).kick().then((member: discord.GuildMember) => {
-					message.channel.send(":wave: " + member.displayName + " has been kicked due to saying a bad word!");
-				}).catch(() => {
-					// Something went wrong
-					console.log("Something went wrong when trying to kick a user for bad words! Please make sure I am above the user's role, have kick perms");
-				});
-			}
-			if (on_fail_bad_word === 4) {
-				message.author.send("You have been banned for bad words.").catch(console.error);
-				(message.author as any).ban().then((member: discord.GuildMember) => {
-					message.channel.send(":wave: " + member.displayName + " has been banned due to saying a bad word!");
-				}).catch(() => {
-					// Something went wrong
-					console.log("Something went wrong when trying to ban a user for bad words! Please make sure I am above the user's role, have kick and ban perms");
-				});
-			}
+			contains_bad_word = true;
+			badWordNum = countOccurrencesInRegex(message.content);
 		}
-	}	
+	}
 
-
-
-
-	if (badWords.length > 0) {
-			
-		for (let i = 0; i < badWords.length; i++) {
-			if (message.content.toLowerCase().includes(badWords[i])) {
-				message.delete();
-				message.channel.send(`${message.author} you are not allowed to use that word!`);
-				return true;
-			}
+	if (contains_bad_word === true) {
+		if (on_fail_bad_word === 1) {
+			message.delete().catch(console.error);
+			message.channel.send('**' + message.author.username + '**, your message has been removed for containing a bad word.');
 		}
+		if (on_fail_bad_word === 2) {
+			message.author.send("You have been muted for bad words.").catch(console.error);
+			// TODO: Process muting with another utility function
+		}
+		if (on_fail_bad_word === 3) {
+			message.author.send("You have been kicked for bad words.").catch(console.error);
+			(message.author as any).kick().then((member: discord.GuildMember) => {
+				message.channel.send(":wave: " + member.displayName + " has been kicked due to saying a bad word!");
+			}).catch(() => {
+				// Something went wrong
+				console.log("Something went wrong when trying to kick a user for bad words! Please make sure I am above the user's role, have kick perms");
+			});
+		}
+		if (on_fail_bad_word === 4) {
+			message.author.send("You have been banned for bad words.").catch(console.error);
+			(message.author as any).ban().then((member: discord.GuildMember) => {
+				message.channel.send(":wave: " + member.displayName + " has been banned due to saying a bad word!");
+			}).catch(() => {
+				// Something went wrong
+				console.log("Something went wrong when trying to ban a user for bad words! Please make sure I am above the user's role, have kick and ban perms");
+			});
+		}
+		return true;
 	}
 	return false;
 }
