@@ -7,8 +7,8 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "precommit": "npm run lint",
     "build": "tsc -p .",
-    "start": "NODE_ENV=production node ./dist/server.js",
-    "dev": "npm run build && node ./dist/server.js",
+    "start": "NODE_ENV=production node ./dist/index.js",
+    "dev": "npm run build && node ./dist/index.js",
     "rc": "npx ts-node ./src/deploy-commands.ts"
   },
   "repository": {
