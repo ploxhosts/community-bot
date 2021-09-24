@@ -126,6 +126,24 @@ client.on('interactionCreate', async (interaction: discord.BaseCommandInteractio
 						}
 					}
 				});
+				
+				connection.query("SELECT * FROM `ploxy_automod` WHERE `guild_id` = " + String(interaction.guild?.id), function(err, rows) {
+					if (err) {
+						console.log("Error querying database: " + err);
+					}  else {
+						if (rows.length === 0) {
+							connection.query(
+								"INSERT INTO ploxy_automod (guild_id, bad_word_check, user_date_check, minimum_user_age, preset_badwords, message_spam_check, on_fail_bad_word, on_fail_spam_check, auto_ban_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+								, [String(interaction.guild?.id), 0, 0, 0, 1, 1, 1, 1, 0], function(err, rows) {
+								if (err) {
+									console.log("Error querying database: " + err);
+								}  else {
+									console.log("\x1b[32m"+ "Inserted user into database!" + "\x1b[0m");
+								}
+							});
+						}
+					}
+				});
 				connection.release();
 			}
 		});
