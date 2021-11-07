@@ -54,7 +54,7 @@ async function check(message: discord.Message) {
 	if (preset_badwords === 1 || 3) {
 		// Credit for bad words from: https://github.com/RobertJGabriel/Google-profanity-words
 		// Had the choice of making an api for this and checking but found out most people who want to break the rules won't adventure into code as they are either
-		// an art student or a child.
+		// an art/drama student or a child.
 		badWords = ['4r5e', '5h1t', '5hit', 'a55', 'anal', 'anus', 'ar5e', 'arrse', 'arse', 'ass', 'ass-fucker', 
 					'asses', 'assfucker', 'assfukka', 'asshole', 'assholes', 'asswhole', 'a_s_s', 'b!tch', 'b00bs', 
 					'b17ch', 'b1tch', 'ballbag', 'balls', 'ballsack', 'bastard', 'beastial', 'beastiality', 'bellend', 
