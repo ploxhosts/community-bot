@@ -22,7 +22,7 @@ An open-source community project created by members of our discord server, maint
 
 ## ⚙️Configuration
 
-Run `git clone --branch main https://github.com/PloxHost-LLC/community-bot` then cd `community-bot` to access your project directory. Replace main with another branch is preffered.
+Run `git clone --branch main https://github.com/PloxHost-LLC/community-bot` then cd `community-bot` to access your project directory. Replace main with another branch is preferred.
 
 Copy/rename `.env.template` to `.env` and fill out the values:
 
@@ -94,7 +94,7 @@ docker-compose up --detach
 
 Navigate to the project directory and run `npm run build`.
 
-Copy all the files to your host using sftp/ftp. It is recommended to host this on a VPS/KVM instead.
+Copy all the files to your host using SFTP/FTP. It is recommended to host this on a VPS/KVM instead.
 
 ## 🤝 Contributing
 
