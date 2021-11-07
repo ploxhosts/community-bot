@@ -24,7 +24,7 @@ An open-source community project created by members of our discord server, maint
 
 Run `git clone --branch main https://github.com/PloxHost-LLC/community-bot` then cd `community-bot` to access your project directory. Replace main with another branch is preffered.
 
-Copy/rename `.env-template` to `.env` and fill out the values:
+Copy/rename `.env.template` to `.env` and fill out the values:
 
 ### ⚠️ Never commit or share your token or API keys publicly ⚠️
 
