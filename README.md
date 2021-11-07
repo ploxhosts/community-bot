@@ -11,7 +11,18 @@ An open-source community project created by members of our discord server, maint
 3. A mysql/mariadb server with access to a database.
 4. **(Optional)** [Docker](https://docs.docker.com/get-docker/) and [docker-compose](https://docs.docker.com/compose/install/) installed.
 
+## branches
+
+`main` - Most stable builds of the bot, updates endured tests.
+
+`discord.js` - The latest development builds of the bot, it could work or it could not work 
+🤷 50/50 chance.
+
+`discord.py` - The latest python version of the bot, since it's been discontinued. It's purpose is an archive.
+
 ## ⚙️Configuration
+
+Run `git clone --branch main https://github.com/PloxHost-LLC/community-bot` then cd `community-bot` to access your project directory. Replace main with another branch is preffered.
 
 Copy/rename `.env-template` to `.env` and fill out the values:
 
