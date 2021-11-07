@@ -1,5 +1,5 @@
 # set base image (host OS)
-FROM python:3.8
+FROM node:16
 
 # set the working directory in the container
 WORKDIR /code
@@ -14,10 +14,11 @@ RUN apt-get install libtesseract-dev -y
 RUN apt-get install ffmpeg libsm6 libxext6 libgl1-mesa-dev -y
 
 
-# install dependencies
-RUN pip install -r requirements.txt
+# install dependencies and get ride of cache
+RUN npm ci --only=production && npm cache clean --force
 
 ENV docker true
+ENV NODE_ENV production
 
 # command to run on container start
-CMD [ "python", "./main.py", "&&", "curl", "mongodb:27017"]
+CMD [ "npm", "run", "prod"]
