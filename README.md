@@ -11,7 +11,7 @@ An open-source community project created by members of our discord server, maint
 3. A mysql/mariadb server with access to a database.
 4. **(Optional)** [Docker](https://docs.docker.com/get-docker/) and [docker-compose](https://docs.docker.com/compose/install/) installed.
 
-## branches
+## 🌿 Branches
 
 `main` - Most stable builds of the bot, updates endured tests.
 
