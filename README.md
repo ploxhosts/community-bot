@@ -55,6 +55,35 @@ brandName = "Ploxy"
 
 - `brandName` is what will show up on the bottom of embeds. You could use the name of your brand or bot.
 
+## ▶️ Running the bot
+
+You can run the bot with different methods. The most recommended one is to use docker as most things are done for you.
+
+### 🖥️ Development Configuration
+
+*made for writing and testing code*
+
+To run it on your own computer do `npm install` then `npm run dev` in the directory of the project.
+
+If you want to a run more production version of the bot use `npm install` then `npm run build` then `npm run start`.
+
+### 🐬 Docker Configuration
+
+*made for production/hosting it*
+
+Navigate to the project directory and run the following command:
+
+```bash
+docker-compose up --detach
+```
+
+### 🗄️ Dicord Bot Hosting Configuration
+
+*made for running it on a discord bot hosting*
+
+Navigate to the project directory and run `npm run build`.
+
+Copy all the files to your host using sftp/ftp. It is recommended to host this on a VPS/KVM instead.
 
 ## 🤝 Contributing
 
