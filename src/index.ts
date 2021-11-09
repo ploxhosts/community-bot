@@ -73,6 +73,7 @@ if (process.env.themeColor === undefined || process.env.themeColor === '') {
 
 const client: any = new discord.Client({ intents: [new discord.Intents('32766')] }); // Get the value from https://ziad87.net/intents/
 
+// TODO: Update <any> to proper type for discord.Client
 (<any>client).commands = new discord.Collection();
 
 // Load files
