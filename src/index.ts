@@ -20,7 +20,9 @@ connection.getConnection(function(err, connection) {
 		console.log("\x1b[31m"+ "Failed to connect to database!" + "\x1b[0m" + "\nPlease make sure the database is running and the credentials are correct");
 		process.env.DB_MODE = "false";
 	}
-	if (connection) {
+
+	if (connection) { // if the connection could be established
+		// check if every table exists, if not create them
 		fs.readdir(__dirname + '/db/tables', function (err, files) {
 			//handling error
 			if (err) {
@@ -32,14 +34,17 @@ connection.getConnection(function(err, connection) {
 					if (err) {
 						return console.log("\x1b[31m"+ 'Unable to read file: ' + err + "\x1b[0m");
 					}
-					connection.query(data, function (err, result) {
+					connection.query(data, function (err, result) { // Run whatever is in the sql file
 						if (err) {
 							return console.log("\x1b[31m"+ 'Unable to run query: ' + err + "\x1b[0m");
 						}
 					});
 				});
 			});
+			// TODO: Create a patches folder within the db folder and put all sql files to update the database in there. Sort of similar to 00-thefirstupdate.sql and 01-thesecondupdate.sql
+			// TODO: Loop through patches
 		});
+		// Created tabels if not created
 		connection.query("SELECT * FROM `ploxy_users`", function(err, rows) {
 			if (err) {
 				console.log("Error querying database: " + err);
