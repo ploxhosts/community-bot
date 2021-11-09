@@ -21,7 +21,25 @@ connection.getConnection(function(err, connection) {
 		process.env.DB_MODE = "false";
 	}
 	if (connection) {
-
+		fs.readdir(__dirname + '/db/tables', function (err, files) {
+			//handling error
+			if (err) {
+				return console.log("\x1b[31m"+ 'Unable to scan directory in attempt to load sql tables: ' + err + "\x1b[0m");
+			} 
+			//listing all files using forEach
+			files.forEach(function (file) {
+				fs.readFile(__dirname + '/db/tables/' + file, 'utf8', function (err, data) {
+					if (err) {
+						return console.log("\x1b[31m"+ 'Unable to read file: ' + err + "\x1b[0m");
+					}
+					connection.query(data, function (err, result) {
+						if (err) {
+							return console.log("\x1b[31m"+ 'Unable to run query: ' + err + "\x1b[0m");
+						}
+					});
+				});
+			});
+		});
 		connection.query("SELECT * FROM `ploxy_users`", function(err, rows) {
 			if (err) {
 				console.log("Error querying database: " + err);

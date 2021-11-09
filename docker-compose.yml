@@ -1,24 +1,27 @@
 version: "3"
 services:
     bot:
-        build: https://github.com/PloxHost-LLC/community-bot.git#main
-        pull_policy: always
+        build: .
         restart: unless-stopped
         depends_on:
-            - mongodb
+            - mysql
         links:
-            - mongodb
+            - mysql
         networks:
             - backend
-        env_file: 
+        env_file:
             - .env
-    mongodb:
-        image: mongo:latest
-        restart: unless-stopped
-        volumes:
-            - mongodb_combot:/data/db
+    mysql:
+        image: mysql:8
+        restart: always
+        ports:
+            # <Port exposed> : < Port inside container>
+            - '3306:3306'
         expose:
-            - "27017"
+            # Opens port 3306 on the container
+            - '3306'
+        volumes:
+            - db:/data/ploxy
         env_file: 
             - .env
         networks:
@@ -28,4 +31,4 @@ networks:
         driver: bridge
 
 volumes:
-    mongodb_combot: {}
+    db: {}

@@ -33,11 +33,12 @@ token = token
 prefix = ?
 guildId = main_guild_id
 clientId = bot_id
-mysql_host="localhost"
-mysql_port=3306
-mysql_username="username"
-mysql_password="password"
-mysql_database="database"
+MYSQL_HOST="localhost"
+MYSQL_PORT=3306
+MYSQL_DATABASE="database"
+MYSQL_USER="username"
+MYSQL_PASSWORD="password"
+MYSQL_ROOT_PASSWORD="password"
 themeColor = "#39b5af"
 brandName = "Ploxy"
 ```
@@ -50,15 +51,15 @@ brandName = "Ploxy"
 
 **Step 4:** Decide on MySQL/MariaDB details. If using Discord Bot hosting offered by PloxHost, please navigate to your bot -> Databases -> Click on your database or create one(pick any name). If you
 
-- `mysql_host` is the endpoint, whether it is a Domain or an IP address. If you are using a localhost database put `172.0.0.1` or `localhost`.
+- `MYSQL_HOST` is the endpoint, whether it is a Domain or an IP address. If you are using a localhost database put `172.0.0.1` or `localhost`. If you are using docker-compose use `mysql` as the `MYSQL_HOST`
 
-- `mysql_port` is the MySQL/MariaDB port. The default is `3306`.
+- `MYSQL_PORT` is the MySQL/MariaDB port. The default is `3306`, if using docker-compose please leave this alone.
 
-- `mysql_username` is the MySQL/MariaDB username you want to use. On PloxHost's panel, it is the long name on the right side of the database. Place this in quotations to avoid any issues.
+- `MYSQL_USER` is the MySQL/MariaDB username you want to use. On PloxHost's panel, it is the long name on the right side of the database. Place this in quotations to avoid any issues.
 
-- `mysql_password` is the MySQL/MariaDB password you want to use. On PloxHost's panel, it's the eye next to the garbage bin emoji, press the eye and scroll down till you see the password field.
+- `MYSQL_PASSWORD` is the MySQL/MariaDB password you want to use. On PloxHost's panel, it's the eye next to the garbage bin emoji, press the eye and scroll down till you see the password field.
 
-- `mysql_database` is the MySQL/MariaDB database name you want to use. On PloxHost's panel, it's the large text on the left side. Make sure the user has the correction permissions to access the database.
+- `MYSQL_DATABASE` is the MySQL/MariaDB database name you want to use. On PloxHost's panel, it's the large text on the left side. Make sure the user has the correction permissions to access the database.
 
 **Step 5:** Setup brand information for your bot.
 

@@ -9,7 +9,8 @@
     "build": "tsc -p .",
     "start": "NODE_ENV=production node ./dist/index.js",
     "prod": "npm run build && NODE_ENV=production node ./dist/index.js",
-    "dev": "npm run build && node ./dist/index.js",
+    "copy-files": "copyfiles -u 1 src/db/tables/*.sql dist/",
+    "dev": "npm run build && npm run copy-files && node ./dist/index.js",
     "rc": "npx ts-node ./src/deploy-commands.ts"
   },
   "repository": {
@@ -31,6 +32,7 @@
     "@discordjs/rest": "^0.1.0-canary.0",
     "@types/mysql": "^2.15.19",
     "axios": "^0.21.3",
+    "copyfiles": "^2.4.1",
     "discord-api-types": "^0.22.0",
     "discord.js": "^13.1.0",
     "dotenv": "^10.0.0",
