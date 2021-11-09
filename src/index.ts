@@ -64,25 +64,9 @@ if (process.env.brandName === undefined || process.env.brandName === '') {
 if (process.env.themeColor === undefined || process.env.themeColor === '') {
 	process.env.themeColor = '#39b5af';
 }
-const intents = new discord.Intents();
-intents.add(discord.Intents.FLAGS.GUILDS);
-intents.add(discord.Intents.FLAGS.GUILD_MEMBERS);
-intents.add(discord.Intents.FLAGS.GUILD_BANS);
-
-// Message/ Chat moderation/ Custom commands/ Auto-moderation etc.
-intents.add(discord.Intents.FLAGS.GUILD_MESSAGES);
-
-intents.add(discord.Intents.FLAGS.GUILD_MESSAGE_TYPING);
-
-// Reaction roles/ Polls/ Emoji spam detection
-intents.add(discord.Intents.FLAGS.GUILD_MESSAGE_REACTIONS);
-
-// Ai support/ playground/ etc.
-intents.add(discord.Intents.FLAGS.DIRECT_MESSAGES);
-intents.add(discord.Intents.FLAGS.DIRECT_MESSAGE_REACTIONS);
 
 
-const client: any = new discord.Client({ intents: intents });
+const client: any = new discord.Client({ intents: [new discord.Intents('32766')] }); // Get the value from https://ziad87.net/intents/
 
 (<any>client).commands = new discord.Collection();
 
