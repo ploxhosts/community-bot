@@ -23,7 +23,7 @@ SET time_zone = "+00:00";
 -- Table structure for table `ploxy_automod`
 --
 
-CREATE TABLE `ploxy_automod` (
+CREATE TABLE IF NOT EXISTS `ploxy_automod` (
   `guild_id` varchar(255) NOT NULL,
   `bad_word_check` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'check for bad words',
   `user_date_check` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Should minimum age exist?',

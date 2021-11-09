@@ -23,7 +23,7 @@ SET time_zone = "+00:00";
 -- Table structure for table `ploxy_guilds`
 --
 
-CREATE TABLE `ploxy_guilds` (
+CREATE TABLE IF NOT EXISTS `ploxy_guilds` (
   `guild_id` varchar(255) NOT NULL,
   `guild_name` varchar(255) NOT NULL,
   `guild_avatar` text NOT NULL,

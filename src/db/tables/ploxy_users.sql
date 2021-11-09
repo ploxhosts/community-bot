@@ -23,7 +23,7 @@ SET time_zone = "+00:00";
 -- Table structure for table `ploxy_users`
 --
 
-CREATE TABLE `ploxy_users` (
+CREATE TABLE IF NOT EXISTS `ploxy_users` (
   `user_id` varchar(255) NOT NULL,
   `username` varchar(255) NOT NULL,
   `discriminator` varchar(10) NOT NULL,
