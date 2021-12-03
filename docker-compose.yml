@@ -4,15 +4,15 @@ services:
         build: .
         restart: unless-stopped
         depends_on:
-            - mysql
+            - postgres
         links:
-            - mysql
+            - postgres
         networks:
             - backend
         env_file:
             - .env
-    mysql:
-        image: mysql:8
+    postgres:
+        image: postgres:14.1
         restart: always
         ports:
             # <Port exposed> : < Port inside container>
