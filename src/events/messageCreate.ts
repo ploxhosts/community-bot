@@ -1,5 +1,5 @@
 import discord from 'discord.js';
-import checkForBadWords from './utils/checkForBadWords'
+import checkForBadWords from '../utils/checkForBadWords'
 
 module.exports = {
 	name: 'messageCreate',

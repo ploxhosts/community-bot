@@ -1,5 +1,5 @@
 import discord from 'discord.js';
-import connection from '../../db/mysql';
+import connection from '../db/mysql';
 
 
 async function check(message: discord.Message) {
