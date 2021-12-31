@@ -6,19 +6,19 @@ async function copyPastaCheck(text: string) {
   let shareDeathCount = 0;
 
   for (let i = 0; i < fakeDiscordAnnc.length; i++) {
-    if (text.indexOf(fakeDiscordAnnc[i]) > -1){
+    if (text.toLowerCase().indexOf(fakeDiscordAnnc[i]) > -1){
       discordAnnouncementCount++;
     }
   }
 
   for (let i = 0; i < unicode.length; i++) {
-    if (text.indexOf(unicode[i]) > -1){
+    if (text.toLowerCase().indexOf(unicode[i]) > -1){
       unicodeCount++;
     }
   }
 
   for (let i = 0; i < shareDeath.length; i++) {
-    if (text.indexOf(shareDeath[i]) > -1){
+    if (text.toLowerCase().indexOf(shareDeath[i]) > -1){
       shareDeathCount++;
     }
   }
