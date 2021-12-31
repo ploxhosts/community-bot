@@ -1,4 +1,11 @@
-import { badwords } from '../badwords';
+import { badwords, falsePositives } from '../badwords';
+
+function checkNotFalsePositive(word: string): boolean {
+  if (falsePositives.indexOf(word)){
+    return false;
+  }
+  return true;
+}
 
 async function badWordCheck(text: string, checkForImplicit: boolean = false) {
   let badWordCount = 0;
@@ -7,9 +14,12 @@ async function badWordCheck(text: string, checkForImplicit: boolean = false) {
   for (let i = 0; i < text.length; i++) {
     const word: string = text.split(" ")[i];
 
-    // check for bad word
-    if (badwords.indexOf(word)){
-      badWordCount ++;
+    if (checkNotFalsePositive(word)) { // Run if it's not a false positive
+
+      // check for bad word
+      if (badwords.indexOf(word)){
+        badWordCount ++;
+      }
     }
   }
 
@@ -17,8 +27,11 @@ async function badWordCheck(text: string, checkForImplicit: boolean = false) {
     // loop through bad words
     for (let i = 0; i < badwords.length; i++) {
       const word: string = badwords[i];
-      if (text.indexOf(word) > -1){ // check if text includes any usage of the bad word
-        badWordCount ++;
+
+      if (checkNotFalsePositive(word)) { // Run if it's not a false positive
+        if (text.indexOf(word) > -1){ // check if text includes any usage of the bad word
+          badWordCount ++;
+        }
       }
     }
   }
