@@ -7,6 +7,27 @@ async function copyPastaCheck(text: string, author: discord.User) {
   let unicodeCount = 0;
   let shareDeathCount = 0;
 
-  if (process.env.DB_MODE === "true") {
-  } // TODO: Use database to get the limits
+  // loop through text
+  for (let i = 0; i < text.length; i++) {
+    const word: string = text[i]
+    // check for discord announcement
+    if (fakeDiscordAnnc.indexOf(word)){
+      discordAnnouncementCount++;
+    }
+    // check for unicode
+    if (unicode.indexOf(word)){
+      unicodeCount++;
+    }
+
+    // check for share death
+    if (shareDeath.indexOf(word)){
+      shareDeathCount++;
+    }
+  }
+
+  return {
+    discordAnnouncementCount,
+    unicodeCount,
+    shareDeathCount
+  }
 }
