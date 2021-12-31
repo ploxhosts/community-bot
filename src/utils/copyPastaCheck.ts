@@ -5,20 +5,20 @@ async function copyPastaCheck(text: string) {
   let unicodeCount = 0;
   let shareDeathCount = 0;
 
-  // loop through text
-  for (let i = 0; i < text.length; i++) {
-    const word: string = text[i]
-    // check for discord announcement
-    if (fakeDiscordAnnc.indexOf(word)){
+  for (let i = 0; i < fakeDiscordAnnc.length; i++) {
+    if (text.indexOf(fakeDiscordAnnc[i]) > -1){
       discordAnnouncementCount++;
     }
-    // check for unicode
-    if (unicode.indexOf(word)){
+  }
+
+  for (let i = 0; i < unicode.length; i++) {
+    if (text.indexOf(unicode[i]) > -1){
       unicodeCount++;
     }
+  }
 
-    // check for share death
-    if (shareDeath.indexOf(word)){
+  for (let i = 0; i < shareDeath.length; i++) {
+    if (text.indexOf(shareDeath[i]) > -1){
       shareDeathCount++;
     }
   }

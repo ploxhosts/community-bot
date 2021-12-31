@@ -12,7 +12,7 @@ async function badWordCheck(text: string, checkForImplicit: boolean = false) {
   
   // loop through text to detect for explicit bad words
   for (let i = 0; i < text.length; i++) {
-    const word: string = text.split(" ")[i];
+    const word: string = text.split(" ")[i].toLowerCase();
 
     if (checkNotFalsePositive(word)) { // Run if it's not a false positive
 
@@ -26,10 +26,10 @@ async function badWordCheck(text: string, checkForImplicit: boolean = false) {
   if (checkForImplicit){
     // loop through bad words
     for (let i = 0; i < badwords.length; i++) {
-      const word: string = badwords[i];
+      const word: string = badwords[i].toLowerCase();
 
       if (checkNotFalsePositive(word)) { // Run if it's not a false positive
-        if (text.indexOf(word) > -1){ // check if text includes any usage of the bad word
+        if (text.toLowerCase().indexOf(word) > -1){ // check if text includes any usage of the bad word
           badWordCount ++;
         }
       }
