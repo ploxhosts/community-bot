@@ -1,24 +1,28 @@
 import discord from 'discord.js';
 import fs from 'fs';
 import dotenv from 'dotenv';
+import log from './utils/log';
+import { shimLog } from '@lvksh/logger';
+
+shimLog(log, 'debug');
 
 // Load environment variables from .env file
 dotenv.config();
 
-import connection from './db/mysql';
+import connection from './db/postgres';
 
 // Stop the bot from running if there is not a valid token
 if (!process.env.token) {
-	console.log("Please specify a token to connect to the Discord API!\n Please create a bot from https://discord.com/developers/applications and copy the token, make sure there are no spaces within the .env");
+	log.error("Please specify a token to connect to the Discord API!\n Please create a bot from https://discord.com/developers/applications and copy the token, make sure there are no spaces within the .env");
 	process.exit(1);
 };
 
 connection.getConnection(function(err, connection) {
 	if (err) {
-		console.log("Error connecting to database: " + err);
+		log.error("Error connecting to database: " + err);
 
-		console.log("\x1b[31m"+ "Failed to connect to database!" + "\x1b[0m" + "\nPlease make sure the database is running and the credentials are correct");
-		process.env.DB_MODE = "false";
+		log.error("\x1b[31m"+ "Failed to connect to database!" + "\x1b[0m" + "\nPlease make sure the database is running and the credentials are correct");
+		process.exit(1);
 	}
 
 	if (connection) { // if the connection could be established
@@ -110,52 +114,6 @@ client.on('interactionCreate', async (interaction: discord.BaseCommandInteractio
 
 	// If the command is disabled then return
 	if (command.data.disabled) return;
-
-	// insert data to database if not exists
-	if (process.env.DB_MODE === "true") {
-		connection.getConnection(function(err, connection) {
-			if (err) {
-				console.log("Error connecting to database: " + err);
-				console.log("\x1b[31m"+ "Failed to connect to database!" + "\x1b[0m");
-			}
-			if (connection) {
-				connection.query("SELECT * FROM `ploxy_users` WHERE `user_id` = " + String(interaction.user.id), function(err, rows) {
-					if (err) {
-						console.log("Error querying database: " + err);
-					}  else {
-						if (rows.length === 0) {
-							connection.query("INSERT INTO ploxy_users (user_id, username, discriminator, user_avatar, premium, banned) VALUES (?, ?, ?, ?, false, 0)", [String(interaction.user.id), interaction.user.username, String(interaction.user.discriminator), String(interaction.user.avatar)], function(err, rows) {
-								if (err) {
-									console.log("Error querying database: " + err);
-								}  else {
-									console.log("\x1b[32m"+ "Inserted user into database!" + "\x1b[0m");
-								}
-							});
-						}
-					}
-				});
-				
-				connection.query("SELECT * FROM `ploxy_automod` WHERE `guild_id` = " + String(interaction.guild?.id), function(err, rows) {
-					if (err) {
-						console.log("Error querying database: " + err);
-					}  else {
-						if (rows.length === 0) {
-							connection.query(
-								"INSERT INTO ploxy_automod (guild_id, bad_word_check, user_date_check, minimum_user_age, preset_badwords, message_spam_check, on_fail_bad_word, on_fail_spam_check, auto_ban_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
-								, [String(interaction.guild?.id), 0, 0, 0, 1, 1, 1, 1, 0], function(err, rows) {
-								if (err) {
-									console.log("Error querying database: " + err);
-								}  else {
-									console.log("\x1b[32m"+ "Inserted user into database!" + "\x1b[0m");
-								}
-							});
-						}
-					}
-				});
-				connection.release();
-			}
-		});
-	}
 
 	// Log the usage
 	console.log(`${interaction.user.tag} in #${(interaction as any).channel?.name} triggered an interaction.`);

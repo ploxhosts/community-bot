@@ -1,11 +1,10 @@
 import discord from 'discord.js';
-import checkForBadWords from '../utils/checkForBadWords'
+import { badWordCheck } from '../utils/badWordCheck';
 
 module.exports = {
 	name: 'messageCreate',
-	dbRequired: true,
 	async execute(message: discord.Message) {
 		console.log("Message sent");
-		await checkForBadWords(message);
+		await badWordCheck(message.content, true);
 	},
 };

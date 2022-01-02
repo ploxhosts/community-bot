@@ -7,7 +7,7 @@ function checkNotFalsePositive(word: string): boolean {
   return true;
 }
 
-async function badWordCheck(text: string, checkForImplicit: boolean = false) {
+export async function badWordCheck(text: string, checkForImplicit: boolean = false) {
   let badWordCount = 0;
   
   // loop through text to detect for explicit bad words

@@ -16,10 +16,10 @@ services:
         restart: always
         ports:
             # <Port exposed> : < Port inside container>
-            - '3306:3306'
+            - '5432:5432'
         expose:
-            # Opens port 3306 on the container
-            - '3306'
+            # Opens port 5432 on the container
+            - '5432'
         volumes:
             - db:/data/ploxy
         env_file: 
