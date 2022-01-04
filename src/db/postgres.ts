@@ -1,6 +1,6 @@
 import pg from 'pg';
 import log from '../utils/log';
-import {fs} from 'fs';
+import fs from 'fs';
 
 const pool = new pg.Pool({
 	max: 25,
@@ -20,7 +20,7 @@ pool.on('error', (err, client) => {
 pool.on('connect', client => {
   log.ok("Connected to postgres database");
 
-  fs.readdir(__dirname + '/db/tables', function (err, files) {
+  fs.readdir(__dirname + '/db/tables', function (err, files: string[]) {
     //handling error
     if (err) {
       return console.log("\x1b[31m"+ 'Unable to scan directory in attempt to load sql tables: ' + err + "\x1b[0m");
