@@ -26,12 +26,12 @@ pool.on('connect', client => {
       return console.log("\x1b[31m"+ 'Unable to scan directory in attempt to load sql tables: ' + err + "\x1b[0m");
     } 
     //listing all files using forEach
-    files.forEach(function (file) {
+    files.forEach(function (file: string) {
       fs.readFile(__dirname + '/db/tables/' + file, 'utf8', function (err, data) {
         if (err) {
           return console.log("\x1b[31m"+ 'Unable to read file: ' + err + "\x1b[0m");
         }
-        connection.query(data, function (err, result) { // Run whatever is in the sql file
+        pool.query(data, function (err, result) { // Run whatever is in the sql file
           if (err) {
             return console.log("\x1b[31m"+ 'Unable to run query: ' + err + "\x1b[0m");
           }
