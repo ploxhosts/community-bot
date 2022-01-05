@@ -58,6 +58,7 @@ for (const file of commandFiles) {
 	(<any>client).commands.set(command.data.name, command);
 }
 
+// Command Handler
 client.on('interactionCreate', async (interaction: discord.BaseCommandInteraction) => {
 	// Get the command from the Collection 
 	const command = (<any>client).commands.get(interaction.commandName);
@@ -69,13 +70,13 @@ client.on('interactionCreate', async (interaction: discord.BaseCommandInteractio
 	if (command.data.disabled) return;
 
 	// Log the usage
-	console.log(`${interaction.user.tag} in #${(interaction as any).channel?.name} triggered an interaction.`);
+	log.debug(`${interaction.user.tag} in #${(interaction as any).channel?.name} triggered an interaction.`);
 
 	try {
 		// Run code here to execute the command
 		await command.execute(interaction);
-	} catch (error) {
-		console.error(error);
+	} catch (error: any) {
+		log.error(error);
 		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 	}
 });
