@@ -8,7 +8,7 @@ An open-source community project created by members of our discord server, maint
 
 1. [A Discord Bot Token](https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot)
 2. [Node.js v16.6 or newer](https://nodejs.org/en/download/)
-3. A mysql/mariadb server with access to a database.
+3. A POSTGRES database.
 4. **(Optional)** [Docker](https://docs.docker.com/get-docker/) and [docker-compose](https://docs.docker.com/compose/install/) installed.
 
 ## 🌿 Branches
@@ -33,12 +33,12 @@ token = token
 prefix = ?
 guildId = main_guild_id
 clientId = bot_id
-MYSQL_HOST="localhost"
-MYSQL_PORT=3306
-MYSQL_DATABASE="database"
-MYSQL_USER="username"
-MYSQL_PASSWORD="password"
-MYSQL_ROOT_PASSWORD="password"
+POSTGRES_host="localhost"
+POSTGRES_port=3306
+POSTGRES_DATABASE="database"
+POSTGRES_USER="username"
+POSTGRES_PASSWORD="password"
+POSTGRES_ROOT_PASSWORD="password"
 themeColor = "#39b5af"
 brandName = "Ploxy"
 ```
@@ -49,17 +49,17 @@ brandName = "Ploxy"
 
 **Step 3:** Get your test guild's id to publish guild specific commands for testing. The guild id can be obtained by following this [guide](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-).
 
-**Step 4:** Decide on MySQL/MariaDB details. If using Discord Bot hosting offered by PloxHost, please navigate to your bot -> Databases -> Click on your database or create one(pick any name). If you
+**Step 4:** Decide on Postgres details. If using Discord Bot hosting offered by PloxHost, please navigate to your bot -> Databases -> Click on your database or create one(pick any name) **At the time of writing, this is not supported**. If you
 
-- `MYSQL_HOST` is the endpoint, whether it is a Domain or an IP address. If you are using a localhost database put `172.0.0.1` or `localhost`. If you are using docker-compose use `mysql` as the `MYSQL_HOST`
+- `POSTGRES_HOST` is the endpoint, whether it is a Domain or an IP address. If you are using a localhost database put `172.0.0.1` or `localhost`. If you are using docker-compose use `postgres` as the `POSTGRES_HOST`
 
-- `MYSQL_PORT` is the MySQL/MariaDB port. The default is `3306`, if using docker-compose please leave this alone.
+- `POSTGRES_PORT` is thePOSTGRES/MariaDB port. The default is `3306`, if using docker-compose please leave this alone.
 
-- `MYSQL_USER` is the MySQL/MariaDB username you want to use. On PloxHost's panel, it is the long name on the right side of the database. Place this in quotations to avoid any issues.
+- `POSTGRES_USER` is thePOSTGRES/MariaDB username you want to use. On PloxHost's panel, it is the long name on the right side of the database. Place this in quotations to avoid any issues.
 
-- `MYSQL_PASSWORD` is the MySQL/MariaDB password you want to use. On PloxHost's panel, it's the eye next to the garbage bin emoji, press the eye and scroll down till you see the password field.
+- `POSTGRES_PASSWORD` is thePOSTGRES/MariaDB password you want to use. On PloxHost's panel, it's the eye next to the garbage bin emoji, press the eye and scroll down till you see the password field.
 
-- `MYSQL_DATABASE` is the MySQL/MariaDB database name you want to use. On PloxHost's panel, it's the large text on the left side. Make sure the user has the correction permissions to access the database.
+- `POSTGRES_DATABASE` is thePOSTGRES/MariaDB database name you want to use. On PloxHost's panel, it's the large text on the left side. Make sure the user has the correction permissions to access the database.
 
 **Step 5:** Setup brand information for your bot.
 

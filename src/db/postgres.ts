@@ -4,10 +4,10 @@ import fs from 'fs';
 
 const pool = new pg.Pool({
 	max: 25,
-	host: process.env.mysql_host as string,
-	user: process.env.MYSQL_USER as string,
-	password: process.env.MYSQL_PASSWORD as string,
-	database: process.env.MYSQL_DATABASE as string,
+	host: process.env.POSTGRES_HOST as string,
+	user: process.env.POSTGRES_USER as string,
+	password: process.env.POSTGRES_PASSWORD as string,
+	database: process.env.POSTGRES_DATABASE as string,
   idleTimeoutMillis: 30000
 });
 
