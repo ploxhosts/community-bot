@@ -35,8 +35,8 @@ guildId = main_guild_id
 clientId = bot_id
 POSTGRES_host="localhost"
 POSTGRES_port=5432
-POSTGRES_DATABASE="database"
-POSTGRES_USER="username"
+POSTGRES_DATABASE="postgres"
+POSTGRES_USER="postgres"
 POSTGRES_PASSWORD="password"
 POSTGRES_ROOT_PASSWORD="password"
 themeColor = "#39b5af"
@@ -87,6 +87,10 @@ Navigate to the project directory and run the following command:
 
 ```bash
 docker-compose up --detach
+```
+
+```bash
+docker run --name ploxy-postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=postgres -e POSTGRES_PASSWORD=password -p 5432:5432 -d postgres:14.1
 ```
 
 ### 🗄️ Dicord Bot Hosting Configuration
