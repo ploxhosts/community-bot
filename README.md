@@ -15,7 +15,7 @@ An open-source community project created by members of our discord server, maint
 
 `main` - Most stable builds of the bot, updates endured tests.
 
-`discord.js` - The latest development builds of the bot, it could work or it could not work 
+`discord.js` - The latest development builds of the bot, it could work or it could not work.
 🤷 50/50 chance.
 
 `discord.py` - The latest python version of the bot, since it's been discontinued. It's purpose is an archive.
