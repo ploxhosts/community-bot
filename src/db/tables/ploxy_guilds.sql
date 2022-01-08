@@ -1,49 +1,48 @@
--- phpMyAdmin SQL Dump
--- version 5.1.1
--- https://www.phpmyadmin.net/
---
--- Host: 127.0.0.1
--- Generation Time: Nov 08, 2021 at 10:10 PM
--- Server version: 10.4.20-MariaDB
--- PHP Version: 8.0.8
+create table ploxy_guilds
+(
+    guild_id                 varchar                not null
+        constraint ploxy_guilds_pk
+            primary key,
+    name                     text                   not null,
+    avatar                   text,
+    owner_id                 varchar                not null
+        constraint ploxy_guilds_ploxy_users_user_id_fk
+            references ploxy_users,
+    premium                  smallint default 0     not null,
+    banned                   smallint default 0     not null,
+    payment_level            int      default 0     not null,
+    listing                  bool     default false not null,
+    has_setup                bool     default false,
+    support_packages_enabled bool     default false not null,
+    auto_support_enabled     bool     default false not null
+);
 
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-START TRANSACTION;
-SET time_zone = "+00:00";
+comment on column ploxy_guilds.premium is 'Is the guild boosted';
 
+comment on column ploxy_guilds.payment_level is 'In the event it starts accepting premium servers
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
+0 - Not premium
+1 - Level 1 premium
+2 - Level 2 premium and so on';
 
--- --------------------------------------------------------
+comment on column ploxy_guilds.listing is 'False - Private listing for only server members to view
+True - Public listing';
 
---
--- Table structure for table `ploxy_guilds`
---
+comment on column ploxy_guilds.has_setup is 'Has done the web setup for their server';
 
-CREATE TABLE IF NOT EXISTS `ploxy_guilds` (
-  `guild_id` varchar(255) NOT NULL,
-  `guild_name` varchar(255) NOT NULL,
-  `guild_avatar` text NOT NULL,
-  `owner_id` int(11) NOT NULL,
-  `premium` tinyint(4) NOT NULL,
-  `banned` tinyint(4) NOT NULL,
-  `listing` tinyint(4) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+comment on column ploxy_guilds.support_packages_enabled is '0 - No support packages - /book, /timings etc
 
---
--- Indexes for dumped tables
---
+1 - Support enabled';
 
---
--- Indexes for table `ploxy_guilds`
---
-ALTER TABLE `ploxy_guilds`
-  ADD UNIQUE KEY `guild_id` (`guild_id`);
-COMMIT;
+comment on column ploxy_guilds.auto_support_enabled is 'False - No auto support
+True - Auto support allowed';
 
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+create unique index ploxy_guilds_guild_id_uindex
+    on ploxy_guilds (guild_id);
+
+create index ploxy_guilds_listing_index
+    on ploxy_guilds (listing);
+
+create index ploxy_guilds_owner_id_index
+    on ploxy_guilds (owner_id);
+
