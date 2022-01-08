@@ -1,4 +1,4 @@
-create table ploxy_users
+create table if not exists ploxy_users
 (
     user_id       varchar not null
         constraint ploxy_users_pk
@@ -8,7 +8,9 @@ create table ploxy_users
     user_avatar   TEXT,
     email         text,
     premium       smallint default 0,
-    banned        int      default 0
+    banned        int      default 0,
+    created_at timestamptz NOT NULL DEFAULT NOW(),
+    updated_at timestamptz NOT NULL DEFAULT NOW()
 );
 
 comment on table ploxy_users is 'Where normal user data is stored from discord';
@@ -25,5 +27,6 @@ create index ploxy_users_email_index
 create unique index ploxy_users_user_id_uindex
     on ploxy_users (user_id);
 
-grant delete, insert, references, select, trigger on ploxy_users to postgres;
-
+CREATE TRIGGER set_timestamp
+BEFORE UPDATE ON ploxy_users
+FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
