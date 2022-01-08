@@ -1,49 +1,29 @@
--- phpMyAdmin SQL Dump
--- version 5.1.1
--- https://www.phpmyadmin.net/
---
--- Host: 127.0.0.1
--- Generation Time: Nov 08, 2021 at 10:06 PM
--- Server version: 10.4.20-MariaDB
--- PHP Version: 8.0.8
+create table ploxy_users
+(
+    user_id       varchar not null
+        constraint ploxy_users_pk
+            primary key,
+    username      text    not null,
+    discriminator varchar not null,
+    user_avatar   TEXT,
+    email         text,
+    premium       smallint default 0,
+    banned        int      default 0
+);
 
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-START TRANSACTION;
-SET time_zone = "+00:00";
+comment on table ploxy_users is 'Where normal user data is stored from discord';
 
+comment on column ploxy_users.username is 'Used for website purposes';
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
+comment on column ploxy_users.user_avatar is 'Link to cdn of user''s avatar image';
 
--- --------------------------------------------------------
+comment on column ploxy_users.email is 'Used for oauth';
 
---
--- Table structure for table `ploxy_users`
---
+create index ploxy_users_email_index
+    on ploxy_users (email);
 
-CREATE TABLE IF NOT EXISTS `ploxy_users` (
-  `user_id` varchar(255) NOT NULL,
-  `username` varchar(255) NOT NULL,
-  `discriminator` varchar(10) NOT NULL,
-  `user_avatar` text NOT NULL,
-  `email` text DEFAULT NULL,
-  `premium` tinyint(3) UNSIGNED NOT NULL,
-  `banned` tinyint(4) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+create unique index ploxy_users_user_id_uindex
+    on ploxy_users (user_id);
 
---
--- Indexes for dumped tables
---
+grant delete, insert, references, select, trigger on ploxy_users to postgres;
 
---
--- Indexes for table `ploxy_users`
---
-ALTER TABLE `ploxy_users`
-  ADD UNIQUE KEY `user_id` (`user_id`);
-COMMIT;
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
