@@ -14,7 +14,9 @@ create table ploxy_guilds
     listing                  bool     default false not null,
     has_setup                bool     default false,
     support_packages_enabled bool     default false not null,
-    auto_support_enabled     bool     default false not null
+    auto_support_enabled     bool     default false not null,
+    created_at timestamptz NOT NULL DEFAULT NOW(),
+    updated_at timestamptz NOT NULL DEFAULT NOW()
 );
 
 comment on column ploxy_guilds.premium is 'Is the guild boosted';
@@ -46,3 +48,6 @@ create index ploxy_guilds_listing_index
 create index ploxy_guilds_owner_id_index
     on ploxy_guilds (owner_id);
 
+CREATE TRIGGER set_timestamp
+BEFORE UPDATE ON ploxy_guilds
+FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
