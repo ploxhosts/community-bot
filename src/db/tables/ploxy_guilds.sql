@@ -1,4 +1,4 @@
-create table ploxy_guilds
+create table if not exists ploxy_guilds
 (
     guild_id                 varchar                not null
         constraint ploxy_guilds_pk
