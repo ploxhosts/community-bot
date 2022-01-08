@@ -1,6 +1,6 @@
 import {fakeDiscordAnnc, unicode, shareDeath} from '../copypasta';
 
-async function copyPastaCheck(text: string) {
+export async function copyPastaCheck(text: string) {
   let discordAnnouncementCount = 0;
   let unicodeCount = 0;
   let shareDeathCount = 0;
