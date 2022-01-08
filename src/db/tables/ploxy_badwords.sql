@@ -1,36 +1,25 @@
--- phpMyAdmin SQL Dump
--- version 5.1.1
--- https://www.phpmyadmin.net/
---
--- Host: 127.0.0.1
--- Generation Time: Nov 08, 2021 at 10:10 PM
--- Server version: 10.4.20-MariaDB
--- PHP Version: 8.0.8
+create table if not exists ploxy_badwords
+(
+    word_id    serial,
+    guild_id   varchar        not null
+        constraint ploxy_badwords_ploxy_guilds_guild_id_fk
+            references ploxy_guilds,
+    word       text           not null,
+    implicit   bool default false not null,
+    created_by varchar        not null
+        constraint ploxy_badwords_ploxy_users_user_id_fk
+            references ploxy_users,
+    created_at timestamptz NOT NULL DEFAULT NOW(),
+    updated_at timestamptz NOT NULL DEFAULT NOW()
+);
 
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-START TRANSACTION;
-SET time_zone = "+00:00";
+comment on column ploxy_badwords.word is 'The word that is to be blocked';
 
+comment on column ploxy_badwords.implicit is 'Overwrite to check to search if the word exists within another word. Mainly here for web use';
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
+create unique index if not exists ploxy_badwords_word_id_uindex
+    on ploxy_badwords (word_id);
 
--- --------------------------------------------------------
-
---
--- Table structure for table `ploxy_badwords`
---
-
-CREATE TABLE IF NOT EXISTS `ploxy_badwords` (
-  `guild_id` varchar(255) NOT NULL,
-  `word` text NOT NULL,
-  `added_by` varchar(255) NOT NULL,
-  `created` bigint(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-COMMIT;
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+CREATE TRIGGER set_timestamp
+BEFORE UPDATE ON ploxy_badwords
+FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
