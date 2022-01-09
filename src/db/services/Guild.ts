@@ -64,3 +64,21 @@ export const createGuild = async (
   }
 
 }
+
+/**
+ * @param {string} guild_id - The guild id
+ * 
+ * @description Gets a guild
+*/
+ 
+export const getGuild = async (guild_id: string) => {
+  const query = `SELECT * FROM guilds WHERE guild_id = $1`;
+  const values = [guild_id];
+  try {
+    const res = await postgres.query(query, values);
+    return res.rows[0];
+  } catch (err: any) {
+    log.error(err);
+    return false;
+  }
+}
