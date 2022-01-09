@@ -10,7 +10,7 @@ export const createUser = async (
     premium : number,
     banned: number = 0
   ) => {
-  const res = await postgres.query("SELECT * FROM ploxy_users WHERE user_id = ?", [user_id]);
+  const res = await getUser(user_id);
   if (res.rows.length > 0) {
     log.debug(`User ${user_id} already exists, createUser failed`);
     return res.rows.length;
