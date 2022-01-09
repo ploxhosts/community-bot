@@ -29,6 +29,10 @@ export const createGuild = async (
   support_packages_enabled: boolean = false,
   auto_support_enabled: boolean = false
   ) => {
+  if (await getGuild(guild_id)) {
+    log.debug(`Guild ${guild_id} already exists, createGuild failed`);
+    return false;
+  }
   const query = `INSERT INTO guilds (
     guild_id,
     guild_name,
@@ -70,7 +74,7 @@ export const createGuild = async (
  * 
  * @description Gets a guild
 */
- 
+
 export const getGuild = async (guild_id: string) => {
   const query = `SELECT * FROM guilds WHERE guild_id = $1`;
   const values = [guild_id];
