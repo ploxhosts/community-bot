@@ -39,6 +39,7 @@ export const createUser = async (
   
   return result.rows[0];
 }
+
 /**
  * Fetches a user from the database, user_id or email should be provided. If supplying both username or discriminator, provide both username and discriminator to function.
  *
@@ -82,6 +83,18 @@ export const getUser = async (
   return false;
 }
 
+/**
+ * Updates a user in the database, supply all data and change what is wanted.
+ *
+ * @param user_id - The user id Example 123213021032131
+ * @param username - The username Example JohnJames
+ * @param discriminator - The discriminator/tag of the user without the # Example 1234
+ * @param user_avatar - Profile image url of the user, link to the cdn
+ * @param email - The user email address Example JohnJames@example.com
+ * @param premium - The nitro level of the user - Going to be 0 if no nitro
+ * @param banned - If the user is banned from using the bot as in rate limit - Going to be 0 if not fulfilled
+ *
+ */
 export const updateUser = async (
     user_id: string,
     username: string,
