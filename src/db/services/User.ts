@@ -27,3 +27,36 @@ export const createUser = async (
   
   return result.rows[0];
 }
+
+export const getUser = async (
+    user_id?: string,
+    username?: string,
+    discriminator?: string,
+    email?: string
+  ) => {
+    let query = "SELECT * FROM ploxy_users WHERE ";
+    let values = [];
+    if (user_id) {
+      query += "user_id = $1";
+      values.push(user_id);
+    }
+    if ((username && discriminator) && !user_id) {
+      query += "username = $2 && discriminator = $3";
+      values.push(username, discriminator);
+    }
+    if (email && !(user_id && username && discriminator)) {
+      query += "email = $4";
+      values.push(email);
+    }
+    if (values.length === 0) {
+      log.debug("getUser failed, no values in function to search for");
+      return false;
+    }
+
+    const res = await postgres.query(query, values);
+    if (res.rows.length > 0) {
+      return res.rows[0];
+    }
+    log.debug(`User ${user_id} not found, getUser failed`);
+    return false;
+}
