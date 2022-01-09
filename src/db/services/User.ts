@@ -6,7 +6,7 @@ import log from '../../utils/log';
  *
  * @param user_id - The user id Example 123213021032131
  * @param username - The username Example JohnJames
- * @param discriminator - The discriminator/tag of the user without the hashtag # Example 1234
+ * @param discriminator - The discriminator/tag of the user without the # Example 1234
  * @param user_avatar - Profile image url of the user, link to the cdn
  * @param email - The user email address Example JohnJames@example.com
  * @param premium - The nitro level of the user - Going to be 0 if no nitro
@@ -39,7 +39,15 @@ export const createUser = async (
   
   return result.rows[0];
 }
-
+/**
+ * Fetches a user from the database, user_id or email should be provided. If supplying both username or discriminator, provide both username and discriminator to function.
+ *
+ * @param user_id - The user id Example 123213021032131
+ * @param username - The username, must also be supplpied with a discriminator Example JohnJames
+ * @param discriminator - The discriminator/tag of the user without the # Example 1234
+ * @param email - The user email address Example JohnJames@example.com
+ *
+ */
 export const getUser = async (
     user_id?: string,
     username?: string,
