@@ -1,51 +1,87 @@
--- phpMyAdmin SQL Dump
--- version 5.1.1
--- https://www.phpmyadmin.net/
---
--- Host: 127.0.0.1
--- Generation Time: Nov 08, 2021 at 10:10 PM
--- Server version: 10.4.20-MariaDB
--- PHP Version: 8.0.8
+create table ploxy_automod
+(
+    guild_id                  varchar              not null
+        constraint ploxy_automod_pk
+            primary key
+        constraint ploxy_automod_ploxy_guilds_guild_id_fk
+            references ploxy_guilds,
+    bad_word_check            bool   default false not null,
+    user_date_check           bool   default false not null,
+    minimum_user_age          bigint default 0     not null,
+    bad_word_limit            int    default 0     not null,
+    message_spam_check        bool   default false not null,
+    message_pasta_check       bool   default false not null,
+    on_fail_bad_word          int    default 1,
+    tempban_time              bigint default 0     not null,
+    tempban_time_increment    bigint default 0     not null,
+    max_warns_before_kick     int    default 0     not null,
+    max_warns_before_temp_ban int    default 0     not null,
+    max_warns_before_perm_ban int    default 0,
+    mute_time                 bigint default 0     not null,
+    mute_time_increment       bigint default 0     not null,
+    warn_reset_time           bigint default 0,
+    on_fail_spam              int    default 1     not null,
+    duplicated_message_check  bool   default false not null,
+    created_at timestamptz NOT NULL DEFAULT NOW(),
+    updated_at timestamptz NOT NULL DEFAULT NOW()
+);
 
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-START TRANSACTION;
-SET time_zone = "+00:00";
+comment on column ploxy_automod.minimum_user_age is '0 for no minimum,
+time in minutes for minimum,
+10 for 10 minutes,
+60 for 1 hour,
+1440 for 1 day,
+10080 for 7 days
+if it fails this then the user is kicked';
 
+comment on column ploxy_automod.bad_word_limit is 'Amount of bad words that can be said in a sentence before moderation happens';
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
+comment on column ploxy_automod.message_spam_check is 'Whether to check if a message is spam or not';
 
--- --------------------------------------------------------
+comment on column ploxy_automod.message_pasta_check is 'Check if a message is a pasta or not';
 
---
--- Table structure for table `ploxy_automod`
---
+comment on column ploxy_automod.on_fail_bad_word is 'What to do when a bad word is detected and it goes over the limit
+0 - Nothing
+1 - Warn
+2 - Kick
+3 - Temp ban - (variable time)
+4 - Perm ban';
 
-CREATE TABLE IF NOT EXISTS `ploxy_automod` (
-  `guild_id` varchar(255) NOT NULL,
-  `bad_word_check` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'check for bad words',
-  `user_date_check` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Should minimum age exist?',
-  `minimum_user_age` bigint(20) NOT NULL DEFAULT 0 COMMENT 'Minimum amount of user age to be allowed in days',
-  `preset_badwords` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'What preset you want to use for bad words',
-  `message_spam_check` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Check for spam messages?',
-  `on_fail_bad_word` text DEFAULT NULL COMMENT 'What to do on failing a bad word inspection',
-  `on_fail_spam_check` text NOT NULL COMMENT 'What to do on failing the spam check',
-  `auto_ban_count` int(10) UNSIGNED NOT NULL COMMENT 'amount of warns till you get auto banned/kicked'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+comment on column ploxy_automod.tempban_time is 'Time to temp ban person';
 
---
--- Indexes for dumped tables
---
+comment on column ploxy_automod.tempban_time_increment is '-1 Disabled
+0 - No effect
+1+ - milliseconds to ban for every temp ban they have';
 
---
--- Indexes for table `ploxy_automod`
---
-ALTER TABLE `ploxy_automod`
-  ADD UNIQUE KEY `guild_id` (`guild_id`);
-COMMIT;
+comment on column ploxy_automod.max_warns_before_kick is '0 - Disabled
+1+ - How many warns before someone is kicked';
 
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+comment on column ploxy_automod.max_warns_before_temp_ban is '0 - disabled
+1+ max warns before a temp ban - follows temp ban system';
+
+comment on column ploxy_automod.max_warns_before_perm_ban is '0 - disabled
+1+ - amount of warns before perm ban';
+
+comment on column ploxy_automod.max_warns_before_kick is '0 - disabled
+1+ - amount of warns until mute';
+
+comment on column ploxy_automod.mute_time is '0 - disabled
+1+ amount of time in minutes to mute';
+
+comment on column ploxy_automod.mute_time_increment is 'same as temp ban time, 0 - disabled, each mute increases the mute time for a user';
+
+comment on column ploxy_automod.warn_reset_time is 'Amount of time till warnings get erased from current moderation statistics - still visible but not for any usage other than archive';
+
+comment on column ploxy_automod.on_fail_spam is 'What to do when a spam or a pasta is detected and it goes over the limit
+0 - Nothing
+1 - Warn
+2 - Kick
+3 - Temp ban - (variable time)
+4 - Perm ban';
+
+create unique index ploxy_automod_guild_id_uindex
+    on ploxy_automod (guild_id);
+
+CREATE TRIGGER set_timestamp
+BEFORE UPDATE ON ploxy_automod
+FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
