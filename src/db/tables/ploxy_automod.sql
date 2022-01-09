@@ -1,4 +1,4 @@
-create table ploxy_automod
+create table if not exists ploxy_automod
 (
     guild_id                  varchar              not null
         constraint ploxy_automod_pk
