@@ -33,7 +33,7 @@ export const createGuild = async (
     log.debug(`Guild ${guild_id} already exists, createGuild failed`);
     return false;
   }
-  const query = `INSERT INTO guilds (
+  const query = `INSERT INTO ploxy_guilds (
     guild_id,
     guild_name,
     avatar,
@@ -76,7 +76,7 @@ export const createGuild = async (
 */
 
 export const getGuild = async (guild_id: string) => {
-  const query = `SELECT * FROM guilds WHERE guild_id = $1`;
+  const query = `SELECT * FROM ploxy_guilds WHERE guild_id = $1`;
   const values = [guild_id];
   try {
     const res = await postgres.query(query, values);
@@ -116,7 +116,7 @@ export const updateGuild = async (
   support_packages_enabled: boolean = false,
   auto_support_enabled: boolean = false
   ) => {
-  const query = `UPDATE guilds SET
+  const query = `UPDATE ploxy_guilds SET
     guild_name = $2,
     avatar = $3,
     owner_id = $4,
@@ -141,6 +141,24 @@ export const updateGuild = async (
     support_packages_enabled,
     auto_support_enabled
   ];
+  try {
+    const res = await postgres.query(query, values);
+    return res.rows[0];
+  } catch (err: any) {
+    log.error(err);
+    return false;
+  }
+}
+
+/**
+ * @param {string} guild_id - The guild id
+ * 
+ * @description Deletes a guild
+*/
+
+export const deleteGuild = async (guild_id: string) => {
+  const query = `DELETE FROM ploxy_guilds WHERE guild_id = $1`;
+  const values = [guild_id];
   try {
     const res = await postgres.query(query, values);
     return res.rows[0];
