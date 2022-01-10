@@ -121,3 +121,8 @@ export const updateUser = async (
   
   return result.rows[0];
 }
+
+
+export const deleteUser = (user_id: string) => {
+  return postgres.query("DELETE FROM ploxy_users WHERE user_id = $1", [user_id]);
+}
