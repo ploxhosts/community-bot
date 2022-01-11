@@ -19,7 +19,7 @@ import log from '../../utils/log';
 export const createGuild = async (
   guild_id: string, 
   guild_name: string, 
-  avatar: string,
+  avatar: string | null,
   owner_id: string,
   premium: number,
   banned: number = 0,
