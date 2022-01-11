@@ -26,6 +26,7 @@
   "homepage": "https://github.com/PloxHost-LLC/community-bot#readme",
   "devDependencies": {
     "@types/pg": "^8.6.3",
+    "@types/redis": "^4.0.11",
     "eslint": "^7.32.0",
     "typescript": "^4.4.2"
   },
@@ -39,6 +40,7 @@
     "discord.js": "^13.1.0",
     "dotenv": "^10.0.0",
     "pg": "^8.7.1",
+    "redis": "^4.0.1",
     "safe-eval": "^0.4.1"
   }
 }
