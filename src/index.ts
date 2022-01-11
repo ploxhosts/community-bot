@@ -40,7 +40,13 @@ const client: any = new discord.Client({ intents: [new discord.Intents('32766')]
 
 const commandFiles = fs.readdirSync(__dirname + '/commands').filter(file => file.endsWith('.js'));
 const eventFiles = fs.readdirSync(__dirname + '/events').filter(file => file.endsWith('.js'));
+const serviceFiles = fs.readdirSync(__dirname + '/db/services').filter(file => file.endsWith('.js'));
 
+// Loop through services files to set redis connection
+for (const file of serviceFiles) {
+  const service = require(`./db/services/${file}`);
+  service.setRedis(RedisClient);
+}
 
 // Event handler, no reason for anyone to touch this
 for (const file of eventFiles) {
