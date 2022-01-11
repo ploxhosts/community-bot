@@ -4,7 +4,7 @@ import { RedisClientType } from 'redis';
 
 let redis: RedisClientType;
 
-export const addGuildAutoMod = (
+export const addGuildAutoMod = async (
   guild_id: string,
   bad_word_check: boolean,
   user_date_check: boolean,
@@ -64,7 +64,7 @@ export const addGuildAutoMod = (
 }
 
 
-export const getGuildAutoMod = (guild_id: string) => {
+export const getGuildAutoMod = async (guild_id: string) => {
   try {
     return postgres.query(
       `SELECT * FROM ploxy_automod WHERE guild_id = $1`,
@@ -76,7 +76,7 @@ export const getGuildAutoMod = (guild_id: string) => {
   }
 }
 
-export const updateGuildAutoMod = (
+export const updateGuildAutoMod = async (
   guild_id: string,
   bad_word_check: boolean,
   user_date_check: boolean,

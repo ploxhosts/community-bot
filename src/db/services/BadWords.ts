@@ -11,7 +11,7 @@ let redis: RedisClientType;
  * @param guild_id - The user id Example 1232132132131231
  *
  */
-export const addBadWord = (badWord: string, guild_id: string) => {
+export const addBadWord = async (badWord: string, guild_id: string) => {
   try {
     return postgres.query(
       `INSERT INTO ploxy_badwords (word) WHERE guild_id = $2 VALUES ($1)`,
@@ -31,7 +31,7 @@ export const addBadWord = (badWord: string, guild_id: string) => {
  *
  */
 
-export const removeBadWord = (badWord: string, guild_id: string) => {
+export const removeBadWord = async (badWord: string, guild_id: string) => {
   try {
     return postgres.query(
       `DELETE FROM ploxy_badwords WHERE word = $1 WHERE guild_id = $2`,
@@ -50,7 +50,7 @@ export const removeBadWord = (badWord: string, guild_id: string) => {
  *
  */
 
-export const getAllBadWords = (guild_id: string) => {
+export const getAllBadWords = async (guild_id: string) => {
   try {
     return postgres.query(
       `SELECT word FROM ploxy_badwords WHERE guild_id = $1`,
@@ -69,7 +69,7 @@ export const getAllBadWords = (guild_id: string) => {
  *
  */
 
-export const getAll = (guild_id: string) => {
+export const getAll = async (guild_id: string) => {
   try {
     return postgres.query(
       `SELECT * FROM ploxy_badwords WHERE guild_id = $1`,
