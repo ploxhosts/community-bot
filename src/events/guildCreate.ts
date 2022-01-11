@@ -25,6 +25,5 @@ module.exports = {
     if (guild_data) {
       console.log(guild_data);
     }
-    
 	},
 };
