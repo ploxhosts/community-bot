@@ -13,7 +13,7 @@ let redis: RedisClientType;
  */
 export const addBadWord = async (badWord: string, guild_id: string) => {
   try {
-    return postgres.query(
+    return await postgres.query(
       `INSERT INTO ploxy_badwords (word) WHERE guild_id = $2 VALUES ($1)`,
       [badWord, guild_id]
     );
@@ -33,7 +33,7 @@ export const addBadWord = async (badWord: string, guild_id: string) => {
 
 export const removeBadWord = async (badWord: string, guild_id: string) => {
   try {
-    return postgres.query(
+    return await postgres.query(
       `DELETE FROM ploxy_badwords WHERE word = $1 WHERE guild_id = $2`,
       [badWord, guild_id]
     );
@@ -52,7 +52,7 @@ export const removeBadWord = async (badWord: string, guild_id: string) => {
 
 export const getAllBadWords = async (guild_id: string) => {
   try {
-    return postgres.query(
+    return await postgres.query(
       `SELECT word FROM ploxy_badwords WHERE guild_id = $1`,
       [guild_id]
     );
@@ -71,7 +71,7 @@ export const getAllBadWords = async (guild_id: string) => {
 
 export const getAll = async (guild_id: string) => {
   try {
-    return postgres.query(
+    return await postgres.query(
       `SELECT * FROM ploxy_badwords WHERE guild_id = $1`,
       [guild_id]
     );

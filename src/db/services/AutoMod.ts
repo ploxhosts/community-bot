@@ -25,7 +25,7 @@ export const addGuildAutoMod = async (
   duplicated_message_check: boolean
 ) => {
   try {
-    return postgres.query(
+    return await postgres.query(
       `INSERT INTO ploxy_automod (
         guild_id, bad_word_check, user_date_check, 
         minimum_user_age, bad_word_limit, 
@@ -66,7 +66,7 @@ export const addGuildAutoMod = async (
 
 export const getGuildAutoMod = async (guild_id: string) => {
   try {
-    return postgres.query(
+    return await postgres.query(
       `SELECT * FROM ploxy_automod WHERE guild_id = $1`,
       [guild_id]
     );
@@ -97,7 +97,7 @@ export const updateGuildAutoMod = async (
   duplicated_message_check: boolean
 ) => {
   try {
-    return postgres.query(
+    return await postgres.query(
       `UPDATE ploxy_automod SET
         bad_word_check = $1, user_date_check = $2, 
         minimum_user_age = $3, bad_word_limit = $4, 
@@ -136,7 +136,7 @@ export const updateGuildAutoMod = async (
 
 export const deleteGuildAutoMod = (guild_id: string) => {
   try {
-    return postgres.query(
+    return await postgres.query(
       `DELETE FROM ploxy_automod WHERE guild_id = $1`,
       [guild_id]
     );
