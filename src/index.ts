@@ -3,6 +3,9 @@ import fs from 'fs';
 import dotenv from 'dotenv';
 import log from './utils/log';
 import { shimLog } from '@lvksh/logger';
+import redis from 'redis';
+
+let RedisClient = redis.createClient();
 
 shimLog(log, 'debug');
 
@@ -42,6 +45,7 @@ const eventFiles = fs.readdirSync(__dirname + '/events').filter(file => file.end
 // Event handler, no reason for anyone to touch this
 for (const file of eventFiles) {
 	const event = require(`./events/${file}`);
+  event.setRedis(RedisClient);
 	if (event.once) {
 		client.once(event.name, (...args: any) => event.execute(...args));
 	} else {
