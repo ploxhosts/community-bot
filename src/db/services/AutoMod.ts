@@ -131,3 +131,15 @@ export const updateGuildAutoMod = (
     return false;
   }
 }
+
+export const deleteGuildAutoMod = (guild_id: string) => {
+  try {
+    return postgres.query(
+      `DELETE FROM ploxy_automod WHERE guild_id = $1`,
+      [guild_id]
+    );
+  } catch (error: any) {
+    log.error(error);
+    return false;
+  }
+}
