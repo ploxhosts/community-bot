@@ -1,6 +1,8 @@
 import postgres from '../postgres';
 import log from '../../utils/log';
+import { RedisClientType } from 'redis';
 
+let redis: RedisClientType;
 /**
  * @param {string} guild_id - The guild id
  * @param {string} guild_name - The guild name
@@ -165,5 +167,11 @@ export const deleteGuild = async (guild_id: string) => {
   } catch (err: any) {
     log.error(err);
     return false;
+  }
+}
+
+module.exports = {
+  setRedis: function(redis: RedisClientType) {
+    redis = redis;
   }
 }

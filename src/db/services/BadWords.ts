@@ -1,5 +1,8 @@
 import postgres from '../postgres';
 import log from '../../utils/log';
+import { RedisClientType } from 'redis';
+
+let redis: RedisClientType;
 
 /**
  * Adds a guild bad word
@@ -75,5 +78,11 @@ export const getAll = (guild_id: string) => {
   } catch (error: any) {
     log.error(error);
     return false;
+  }
+}
+
+module.exports = {
+  setRedis: function(redis: RedisClientType) {
+    redis = redis;
   }
 }

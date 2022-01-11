@@ -1,6 +1,8 @@
 import postgres from '../postgres';
 import log from '../../utils/log';
+import { RedisClientType } from 'redis';
 
+let redis: RedisClientType;
 
 export const addGuildAutoMod = (
   guild_id: string,
@@ -141,5 +143,12 @@ export const deleteGuildAutoMod = (guild_id: string) => {
   } catch (error: any) {
     log.error(error);
     return false;
+  }
+}
+
+
+module.exports = {
+  setRedis: function(redis: RedisClientType) {
+    redis = redis;
   }
 }

@@ -1,5 +1,8 @@
 import postgres from '../postgres';
 import log from '../../utils/log';
+import { RedisClientType } from 'redis';
+
+let redis: RedisClientType;
 
 /**
  * Creates a new user
@@ -125,4 +128,10 @@ export const updateUser = async (
 
 export const deleteUser = (user_id: string) => {
   return postgres.query("DELETE FROM ploxy_users WHERE user_id = $1", [user_id]);
+}
+
+module.exports = {
+  setRedis: function(redis: RedisClientType) {
+    redis = redis;
+  }
 }
