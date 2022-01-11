@@ -60,3 +60,16 @@ export const addGuildAutoMod = (
   }
 
 }
+
+
+export const getGuildAutoMod = (guild_id: string) => {
+  try {
+    return postgres.query(
+      `SELECT * FROM ploxy_automod WHERE guild_id = $1`,
+      [guild_id]
+    );
+  } catch (error: any) {
+    log.error(error);
+    return false;
+  }
+}
