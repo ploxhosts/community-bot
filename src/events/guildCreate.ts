@@ -20,5 +20,11 @@ module.exports = {
 		console.log("Joined guild");
 		await createGuild(guild.id, guild.name, guild.iconURL(), guild.ownerId
       , getTier(guild.premiumTier), 0, 0, false, false, false, false);
+
+    const guild_data = await getGuild(guild.id);
+    if (guild_data) {
+      console.log(guild_data);
+    }
+    
 	},
 };
