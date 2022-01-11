@@ -134,7 +134,7 @@ export const updateGuildAutoMod = async (
   }
 }
 
-export const deleteGuildAutoMod = (guild_id: string) => {
+export const deleteGuildAutoMod = async (guild_id: string) => {
   try {
     return await postgres.query(
       `DELETE FROM ploxy_automod WHERE guild_id = $1`,
