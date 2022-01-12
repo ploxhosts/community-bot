@@ -69,10 +69,16 @@ export const addGuildAutoMod = async (
 
 export const getGuildAutoMod = async (guild_id: string) => {
   try {
-    return await postgres.query(
+    const res = await redis.get(`automod:${guild_id}`);
+    if (res) {
+      return JSON.parse(res);
+    }
+    const data = await postgres.query(
       `SELECT * FROM ploxy_automod WHERE guild_id = $1`,
       [guild_id]
     );
+    await redis.set(`automod:${guild_id}`, JSON.stringify(data.rows[0]));
+    return data.rows[0];
   } catch (error: any) {
     log.error(error);
     return false;
