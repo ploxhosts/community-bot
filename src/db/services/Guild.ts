@@ -95,6 +95,30 @@ export const getGuild = async (guild_id: string) => {
   }
 }
 
+
+/**
+ * 
+ * @description Gets all guilds
+*/
+
+export const getAllGuild = async () => {
+  const query = `SELECT * FROM ploxy_guilds`;
+  try {
+    const guildCache = await redis.get(`guild:${guild_id}`);
+    if (guildCache) {
+      return JSON.parse(guildCache);
+    }
+    const res = await postgres.query(query);
+    res.rows.forEach(async (guild: any) => {
+      await redis.set(`guild:${guild.guild_id}`, JSON.stringify(guild));
+    });
+    return res.rows;
+  } catch (err: any) {
+    log.error(err);
+    return false;
+  }
+}
+
 /**
  * @param {string} guild_id - The guild id
  * @param {string} guild_name - The guild name
