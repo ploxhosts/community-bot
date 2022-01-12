@@ -63,6 +63,7 @@ export const createGuild = async (
   ];
   try {
     const res = await postgres.query(query, values);
+    await redis.set(`guild:${guild_id}`, JSON.stringify(res.rows[0]));
     return res.rows[0];
   } catch (err: any) {
     log.error(err);
@@ -150,6 +151,7 @@ export const updateGuild = async (
   ];
   try {
     const res = await postgres.query(query, values);
+    await redis.set(`guild:${guild_id}`, JSON.stringify(res.rows[0]));
     return res.rows[0];
   } catch (err: any) {
     log.error(err);
@@ -167,6 +169,7 @@ export const deleteGuild = async (guild_id: string) => {
   const query = `DELETE FROM ploxy_guilds WHERE guild_id = $1`;
   const values = [guild_id];
   try {
+    await redis.del(`guild:${guild_id}`);
     const res = await postgres.query(query, values);
     return res.rows[0];
   } catch (err: any) {
