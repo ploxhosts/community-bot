@@ -101,7 +101,7 @@ export const getGuild = async (guild_id: string) => {
  * @description Gets all guilds
 */
 
-export const getAllGuild = async () => {
+export const getAllGuilds = async () => {
   const query = `SELECT * FROM ploxy_guilds`;
   try {
     const res = await postgres.query(query);
