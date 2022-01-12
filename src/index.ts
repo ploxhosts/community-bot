@@ -3,7 +3,7 @@ import fs from 'fs';
 import dotenv from 'dotenv';
 import log from './utils/log';
 import { shimLog } from '@lvksh/logger';
-import redis from 'redis';
+import * as redis from 'redis';
 
 let RedisClient = redis.createClient();
 
