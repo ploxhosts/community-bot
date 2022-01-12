@@ -104,10 +104,6 @@ export const getGuild = async (guild_id: string) => {
 export const getAllGuild = async () => {
   const query = `SELECT * FROM ploxy_guilds`;
   try {
-    const guildCache = await redis.get(`guild:${guild_id}`);
-    if (guildCache) {
-      return JSON.parse(guildCache);
-    }
     const res = await postgres.query(query);
     res.rows.forEach(async (guild: any) => {
       await redis.set(`guild:${guild.guild_id}`, JSON.stringify(guild));
