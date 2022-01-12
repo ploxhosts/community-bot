@@ -34,8 +34,11 @@ export const createUser = async (
   try {
     result = await postgres.query(
       "INSERT INTO ploxy_users (user_id, username, discriminator, user_avatar, email, premium, banned) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
-      [user_id, username, discriminator, user_avatar, email, premium, banned])
-  
+      [user_id, username, discriminator, user_avatar, email, premium, banned]
+    );
+
+    await redis.set(`user:${user_id}`, JSON.stringify(result.rows[0]));
+
     return result.rows[0];
   } catch (err: any) {
     log.error(err);
@@ -78,12 +81,21 @@ export const getUser = async (
     return false;
   }
 
-  const res = await postgres.query(query, values);
-  if (res.rows.length > 0) {
-    return res.rows[0];
+  try {
+    const userCache = await redis.get(`user:${user_id}`);
+    if (userCache) {
+      return JSON.parse(userCache);
+    }
+    const res = await postgres.query(query, values);
+    if (res.rows.length > 0) {
+      return res.rows[0];
+    }
+    log.debug(`User ${user_id} not found, getUser failed`);
+  } catch (error: any) {
+    log.error(error);
   }
-  log.debug(`User ${user_id} not found, getUser failed`);
   return false;
+  
 }
 
 /**
