@@ -81,7 +81,12 @@ export const getGuild = async (guild_id: string) => {
   const query = `SELECT * FROM ploxy_guilds WHERE guild_id = $1`;
   const values = [guild_id];
   try {
+    const guildCache = await redis.get(`guild:${guild_id}`);
+    if (guildCache) {
+      return JSON.parse(guildCache);
+    }
     const res = await postgres.query(query, values);
+    await redis.set(`guild:${guild_id}`, JSON.stringify(res.rows[0]));
     return res.rows[0];
   } catch (err: any) {
     log.error(err);
