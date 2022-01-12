@@ -138,7 +138,8 @@ export const updateUser = async (
 }
 
 
-export const deleteUser = (user_id: string) => {
+export const deleteUser = async (user_id: string) => {
+  await redis.del(`user:${user_id}`);
   return postgres.query("DELETE FROM ploxy_users WHERE user_id = $1", [user_id]);
 }
 
