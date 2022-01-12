@@ -25,7 +25,8 @@ export const addGuildAutoMod = async (
   duplicated_message_check: boolean
 ) => {
   try {
-    return await postgres.query(
+
+    const res = await postgres.query(
       `INSERT INTO ploxy_automod (
         guild_id, bad_word_check, user_date_check, 
         minimum_user_age, bad_word_limit, 
@@ -56,6 +57,8 @@ export const addGuildAutoMod = async (
         duplicated_message_check
       ]
     );
+    await redis.set(`automod:${guild_id}`, JSON.stringify(res.rows[0]));
+    return res.rows[0];
   } catch (error: any) {
     log.error(error);
     return false;
