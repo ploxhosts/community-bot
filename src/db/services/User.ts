@@ -129,6 +129,7 @@ export const updateUser = async (
     result = await postgres.query(
       "UPDATE ploxy_users SET username = $1, discriminator = $2, user_avatar = $3, email = $4, premium = $5, banned = $6 WHERE user_id = $7 RETURNING *",
       [username, discriminator, user_avatar, email, premium, banned, user_id])
+    await redis.set(`user:${user_id}`, JSON.stringify(result.rows[0]));
   } catch (err: any) {
     log.error(err);
     return false;
