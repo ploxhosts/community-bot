@@ -106,7 +106,7 @@ export const updateGuildAutoMod = async (
   duplicated_message_check: boolean
 ) => {
   try {
-    return await postgres.query(
+    const res = await postgres.query(
       `UPDATE ploxy_automod SET
         bad_word_check = $1, user_date_check = $2, 
         minimum_user_age = $3, bad_word_limit = $4, 
@@ -137,6 +137,8 @@ export const updateGuildAutoMod = async (
         guild_id
       ]
     );
+    await redis.set(`automod:${guild_id}`, JSON.stringify(res.rows[0]));
+    return res.rows[0];
   } catch (error: any) {
     log.error(error);
     return false;
@@ -149,6 +151,7 @@ export const deleteGuildAutoMod = async (guild_id: string) => {
       `DELETE FROM ploxy_automod WHERE guild_id = $1`,
       [guild_id]
     );
+    await redis.del(`automod:${guild_id}`);
   } catch (error: any) {
     log.error(error);
     return false;
