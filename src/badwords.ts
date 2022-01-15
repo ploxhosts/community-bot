@@ -42,12 +42,33 @@ export const badwords = ['4r5e', '5h1t', '5hit', 'a55', 'anal', 'anus', 'ar5e', 
   'v1gra', 'vagina', 'viagra', 'vulva', 'w00se', 'wang', 'wank', 'wanker', 'wanky', 'whoar', 'whore', 'willies', 'willy', 'xrated', 'xxx'
 ]
 
+// Words that go in here include a bad word but the word is normal
+
 export const falsePositives = [
   "cockpit"
 ];
 
+// These are spelling mistakes of badwords
+
 export const subsitutes = [{
   words: ["butt"],
-  before: ["everyone", "nobody", "everything", "all"],
-  after: ["you", "u", "the", "him", "her", "me", "she", "he", "them", "they", "for", "if"]
+  before: ["everyone", "nobody", "everything", "all", "myself"],
+  after: ["you", "u", "the", "him",
+    "her", "me", "she", "he", "them", 
+    "they", "for", "if", "we", "its",
+    "it", "this", "that", "these", "those",
+    "my", "your", "his", "their", "mine", 
+    "yours", "ours", "theirs", "dont",
+    "doesnt", "didnt", "cant", "couldnt",
+    "shouldnt", "wouldnt", "wont", "isnt",
+    "arent", "aint", "hasnt", "hadnt", "wasnt",
+    "when", "where", "why", "how", "what",
+    "who", "whom", "whose", "whos", "whom",
+    "whats", "from", "with", "without",
+    "now", "then", "than", "until", "till",
+    "since", "after", "before", "between",
+    "i", "thats", "ended", "ends", "like",
+    "still", "also", "does"
+  ],
+  allow: true,
 }]
