@@ -10,9 +10,11 @@ function checkNotFalsePositive(word: string): boolean {
 export async function badWordCheck(text: string, checkForImplicit: boolean = false) {
   let badWordCount = 0;
   
+  text = text.toLowerCase();
+
   // loop through text to detect for explicit bad words
   for (let i = 0; i < text.length; i++) {
-    const word: string = text.split(" ")[i].toLowerCase();
+    const word: string = text.split(" ")[i];
 
     if (checkNotFalsePositive(word)) { // Run if it's not a false positive
 

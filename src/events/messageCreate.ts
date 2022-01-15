@@ -13,7 +13,7 @@ module.exports = {
     const copyPastas = await copyPastaCheck(message.content);
     
 	},
-  setRedis: function(redis: RedisClientType) {
+  setRedis(redis: RedisClientType) {
     redis = redis;
   }
 };
