@@ -45,3 +45,9 @@ export const badwords = ['4r5e', '5h1t', '5hit', 'a55', 'anal', 'anus', 'ar5e', 
 export const falsePositives = [
   "cockpit"
 ];
+
+export const subsitutes = [{
+  words: ["butt"],
+  before: ["everyone", "nobody", "everything", "all"],
+  after: ["you", "u", "the", "him", "her", "me", "she", "he", "them", "they", "for", "if"]
+}]

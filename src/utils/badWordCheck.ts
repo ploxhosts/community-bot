@@ -1,10 +1,30 @@
-import { badwords, falsePositives } from '../badwords';
+import { badwords, falsePositives, subsitutes } from '../badwords';
 
 function checkNotFalsePositive(word: string): boolean {
   if (falsePositives.indexOf(word) != -1){
     return false;
   }
   return true;
+}
+
+function checkForSubsitutes(text: string, word: string): boolean {
+  for (var i = 0; i < subsitutes.length; i++) {
+    console.log(subsitutes[i].words);
+    if (subsitutes[i].words.includes(word)){
+      const words = text.toLowerCase().split(' ');
+      const wordPosition = words.indexOf(word);
+
+      if (subsitutes[i].before.includes(words[wordPosition - 1])){
+        console.log("Not a bad word - before", word, words[wordPosition - 1]);
+        return true;
+      }
+      if (subsitutes[i].after.includes(words[wordPosition + 1])){
+        console.log("Not a bad word - after", word, words[wordPosition + 1]);
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 export async function badWordCheck(text: string, checkForImplicit: boolean = false) {
@@ -18,14 +38,16 @@ export async function badWordCheck(text: string, checkForImplicit: boolean = fal
     let usedWords: number[] = []
     for (let i = 0; i < badwords.length; i++) {
       const word: string = badwords[i].toLowerCase();
-
       if (checkNotFalsePositive(word)) { // Run if it's not a false positive
         const badWordIndex = text.toLowerCase().indexOf(word);
         if ( badWordIndex != -1 && usedWords.indexOf(badWordIndex) == -1) { // check if text includes any usage of the bad word
-          usedWords.push(badWordIndex);
-          let regex = new RegExp(word, "g"); 
-          let count = (text.match(regex) || []).length;
-          badWordCount += count;
+          console.log(checkForSubsitutes(text, word));
+          if (!checkForSubsitutes(text, word)){
+            usedWords.push(badWordIndex);
+            let regex = new RegExp(word, "g"); 
+            let count = (text.match(regex) || []).length;
+            badWordCount += count;
+          }
         }
       }
     }
@@ -35,7 +57,6 @@ export async function badWordCheck(text: string, checkForImplicit: boolean = fal
       if (checkNotFalsePositive(word)) { // Run if it's not a false positive
         // check for bad word
         if (badwords.indexOf(word) && badwords[badwords.indexOf(word)] != undefined) {
-          console.log("choice word 1", badwords[i]);
           badWordCount += 1;
         }
       }
