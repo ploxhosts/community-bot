@@ -18,8 +18,8 @@ function checkForSubsitutes(text: string, word: string): boolean {
         console.log("Not a bad word - before", word, words[wordPosition - 1]);
         return true;
       }
+      
       if (subsitutes[i].after.includes(words[wordPosition + 1])){
-        console.log("Not a bad word - after", word, words[wordPosition + 1]);
         return true;
       }
     }
