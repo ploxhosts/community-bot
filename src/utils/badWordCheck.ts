@@ -13,31 +13,34 @@ export async function badWordCheck(text: string, checkForImplicit: boolean = fal
   text = text.toLowerCase();
 
   // loop through text to detect for explicit bad words
-  for (let i = 0; i < text.length; i++) {
-    const word: string = text.split(" ")[i];
-    console.log(word);
-    if (checkNotFalsePositive(word)) { // Run if it's not a false positive
-      // check for bad word
-      if (badwords.indexOf(word) && badwords[badwords.indexOf(word)] != undefined) {
-        badWordCount += 1;
-      }
-    }
-  }
 
-  console.log("bad word count", badWordCount);
-
-  if (checkForImplicit){
-    // loop through bad words
+  if (checkForImplicit){ // Check for implicit words too
+    let usedWords: number[] = []
     for (let i = 0; i < badwords.length; i++) {
       const word: string = badwords[i].toLowerCase();
 
       if (checkNotFalsePositive(word)) { // Run if it's not a false positive
-        if (text.toLowerCase().indexOf(word) != -1 && badwords.indexOf(word) == -1) { // check if text includes any usage of the bad word
-          console.log("choice word 2", badwords[i]);
+        const badWordIndex = text.toLowerCase().indexOf(word);
+        if ( badWordIndex != -1 && usedWords.indexOf(badWordIndex) == -1) { // check if text includes any usage of the bad word
+          usedWords.push(badWordIndex);
+          let regex = new RegExp(word, "g"); 
+          let count = (text.match(regex) || []).length;
+          badWordCount += count;
+        }
+      }
+    }
+  } else { // check for only plain usage
+    for (let i = 0; i < text.length; i++) {
+      const word: string = text.split(" ")[i];
+      if (checkNotFalsePositive(word)) { // Run if it's not a false positive
+        // check for bad word
+        if (badwords.indexOf(word) && badwords[badwords.indexOf(word)] != undefined) {
+          console.log("choice word 1", badwords[i]);
           badWordCount += 1;
         }
       }
     }
+  
   }
  
 
