@@ -11,7 +11,7 @@ module.exports = {
 		console.log("Message sent");
 		const badwords = await badWordCheck(message.content, true);
     const copyPastas = await copyPastaCheck(message.content);
-    
+    console.log(badwords, copyPastas);
 	},
   setRedis(redis: RedisClientType) {
     redis = redis;
