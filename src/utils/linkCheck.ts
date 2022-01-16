@@ -1,5 +1,4 @@
 import axios from 'axios';
-const urlRegex = require('url-regex');
 import tlds from './tlds';
 const whois = require('whois');
 
@@ -27,6 +26,7 @@ export const linkCheck = async (text: string): Promise<Number> => {
 
       const url = text.substring(0, i);
 
+      // Get all the index of spaces
       var indexOfSpaces = [];
       for(var ii = 0; ii < url.length; ii++) {
         if (url[ii] === " ") {
@@ -34,10 +34,20 @@ export const linkCheck = async (text: string): Promise<Number> => {
         }
       }
 
-      if (indexOfSpaces.length === 0) {
+      if (indexOfSpaces.length === 0) { // If no space exists before link put 0 to get all text
         indexOfSpaces.push(0);
       }
-      const urlWithoutSpaces = url.substring(indexOfSpaces[indexOfSpaces.length - 1], i);
+
+      let urlWithoutSpaces = "." + tld;
+      while (indexOfSpaces.length > 0) { // Get the url without spaces
+        urlWithoutSpaces = url.substring(indexOfSpaces[indexOfSpaces.length - 1], i);
+        if (urlWithoutSpaces != "." + tld && urlWithoutSpaces != " ") {
+          console.log("Matches")
+          break;
+        }
+        
+        indexOfSpaces.pop();
+      }
       const fullUrl = (urlWithoutSpaces + "." + textAfterDot).replaceAll(" ", "");
 
       urls.add(fullUrl);
@@ -50,9 +60,27 @@ export const linkCheck = async (text: string): Promise<Number> => {
 }
 
 
-linkCheck("Hello world https:// link1.com")
+linkCheck("Hello world https://link1.com")
 console.log("-------------")
 linkCheck("Hello world https://link1.com and https://link2.co.uk")
 console.log("-------------")
 linkCheck("Hello world https://link1.com and https://link2.co.uk/link3.com and link4.co.uk")
+console.log("-------------")
+
+linkCheck("Hello world https://link1.com and https://link2.co.uk/link3.com and link4.co.uk https:// link5.com https://link6 .com")
+console.log("-------------")
+
+linkCheck("Hello world https://link1.com and https://link2.co.uk/link3.com and link4.co.uk https:// link5.com https://link6 .com | https: //link7.com")
+console.log("-------------")
+
+linkCheck("Hello world https://link1.com and https://link2.co.uk/link3.com and link4.co.uk https:// link5.com https://link6 .com | https: //link7.com | https: // link8.com")
+console.log("-------------")
+
+linkCheck("Hello world https://link1.com and https://link2.co.uk/link3.com and link4.co.uk https:// link5.com https://link6 .com | https: //link7.com | https: // link8.com | https: // link9 .com ")
+console.log("-------------")
+
+linkCheck("Hello world https://link1.com and https://link2.co.uk/link3.com and link4.co.uk https:// link5.com https://link6 .com | https: //link7.com | https: // link8.com | https: // link9 .com | https: // link10 . com")
+console.log("-------------")
+
+linkCheck("https://link1.com | https://link2.co.uk/link3.com | link4.co.uk https:// link5.com https://link6 .com | https: //link7.com | https: // link8.com | https: // link9 .com | https: // link10 . com | https: // link11. com")
 console.log("-------------")
