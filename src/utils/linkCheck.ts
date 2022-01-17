@@ -10,6 +10,14 @@ export const linkCheck = async (text: string): Promise<Number> => {
     const char = text[i];
     if (char == ".") {
       let indexOfSpace = text.indexOf(" ", i);
+      let runsOfChecking = 0;
+      while (indexOfSpace - i < 2) {
+        runsOfChecking++;
+        indexOfSpace = text.indexOf(" ", i + runsOfChecking);
+        if (runsOfChecking >= 6) {
+          break;
+        }
+      }
 
       if (indexOfSpace == undefined || indexOfSpace == -1) {
         indexOfSpace = text.length;
@@ -18,14 +26,13 @@ export const linkCheck = async (text: string): Promise<Number> => {
       let textAfterDot = text.substring(i + 1, indexOfSpace); // Get possible domain
 
       const rawTld = textAfterDot.split("/")[0].split('.') // Accounts for sub domains
-      const tld = rawTld[rawTld.length - 1]; // Get the TLD
+      const tld = rawTld[rawTld.length - 1].replaceAll(" ", ""); // Get the TLD
 
       const validTld = tlds.includes(tld.toUpperCase()); // check if the tld exists in the list of tlds
       if (!validTld) continue;
 
-
+ 
       const url = text.substring(0, i);
-
       // Get all the index of spaces
       var indexOfSpaces = [];
       for(var ii = 0; ii < url.length; ii++) {
@@ -38,18 +45,20 @@ export const linkCheck = async (text: string): Promise<Number> => {
         indexOfSpaces.push(0);
       }
 
+      // Get the text before the link, even if there is a space
       let urlWithoutSpaces = "." + tld;
-      while (indexOfSpaces.length > 0) { // Get the url without spaces
-        urlWithoutSpaces = url.substring(indexOfSpaces[indexOfSpaces.length - 1], i);
-        if (urlWithoutSpaces != "." + tld && urlWithoutSpaces != " ") {
-          console.log("Matches")
+      let indexRound = indexOfSpaces.length
+      while (indexRound > 0) { // Get the url without spaces
+        urlWithoutSpaces = url.substring(indexOfSpaces[indexRound - 1], i);
+
+        if (urlWithoutSpaces != "." + tld && urlWithoutSpaces != " " && urlWithoutSpaces != tld) {
           break;
         }
-        
-        indexOfSpaces.pop();
+        indexRound --;
       }
+      
+      // End result
       const fullUrl = (urlWithoutSpaces + "." + textAfterDot).replaceAll(" ", "");
-
       urls.add(fullUrl);
 
     }
