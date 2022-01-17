@@ -2,7 +2,7 @@ import axios from 'axios';
 import tlds from './tlds';
 const whois = require('whois');
 
-export const linkCheck = async (text: string): Promise<Set<String>> => {
+export const getLinks = async (text: string): Promise<Set<String>> => {
 
   const urls: Set<string> = new Set();
 
