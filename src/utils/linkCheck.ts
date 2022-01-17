@@ -67,29 +67,3 @@ export const linkCheck = async (text: string): Promise<Number> => {
   console.log(urls)
   return 0;
 }
-
-
-linkCheck("Hello world https://link1.com")
-console.log("-------------")
-linkCheck("Hello world https://link1.com and https://link2.co.uk")
-console.log("-------------")
-linkCheck("Hello world https://link1.com and https://link2.co.uk/link3.com and link4.co.uk")
-console.log("-------------")
-
-linkCheck("Hello world https://link1.com and https://link2.co.uk/link3.com and link4.co.uk https:// link5.com https://link6 .com")
-console.log("-------------")
-
-linkCheck("Hello world https://link1.com and https://link2.co.uk/link3.com and link4.co.uk https:// link5.com https://link6 .com | https: //link7.com")
-console.log("-------------")
-
-linkCheck("Hello world https://link1.com and https://link2.co.uk/link3.com and link4.co.uk https:// link5.com https://link6 .com | https: //link7.com | https: // link8.com")
-console.log("-------------")
-
-linkCheck("Hello world https://link1.com and https://link2.co.uk/link3.com and link4.co.uk https:// link5.com https://link6 .com | https: //link7.com | https: // link8.com | https: // link9 .com ")
-console.log("-------------")
-
-linkCheck("Hello world https://link1.com and https://link2.co.uk/link3.com and link4.co.uk https:// link5.com https://link6 .com | https: //link7.com | https: // link8.com | https: // link9 .com | https: // link10 . com")
-console.log("-------------")
-
-linkCheck("https://link1.com | https://link2.co.uk/link3.com | link4.co.uk https:// link5.com https://link6 .com | https: //link7.com | https: // link8.com | https: // link9 .com | https: // link10 . com | https: // link11. com")
-console.log("-------------")
