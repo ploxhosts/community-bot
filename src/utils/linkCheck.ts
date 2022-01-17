@@ -2,7 +2,7 @@ import axios from 'axios';
 import tlds from './tlds';
 const whois = require('whois');
 
-export const linkCheck = async (text: string): Promise<Number> => {
+export const linkCheck = async (text: string): Promise<Set<String>> => {
 
   const urls: Set<string> = new Set();
 
@@ -64,6 +64,5 @@ export const linkCheck = async (text: string): Promise<Number> => {
     }
   }
   
-  console.log(urls)
-  return 0;
+  return urls;
 }
