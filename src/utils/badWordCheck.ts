@@ -1,4 +1,4 @@
-import { badwords, falsePositives, subsitutes } from '../badwords';
+import { badwords, falsePositives, subsitutes } from '../data/badwords';
 
 function checkNotFalsePositive(word: string): boolean {
   if (falsePositives.indexOf(word) != -1){

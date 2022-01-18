@@ -1,4 +1,4 @@
-import {fakeDiscordAnnc, unicode, shareDeath} from '../copypasta';
+import {fakeDiscordAnnc, unicode, shareDeath} from '../data/copypasta';
 
 export async function copyPastaCheck(text: string) {
   let discordAnnouncementCount = 0;
