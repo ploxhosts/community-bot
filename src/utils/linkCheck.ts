@@ -1,8 +1,8 @@
 import axios from 'axios';
-import tlds from './tlds';
+import tlds from '../tlds';
 const whois = require('whois');
 import cheerio from 'cheerio';
-import {badServers, badTlds} from './badLinks';
+import {badServers, badTlds} from '../badLinks';
 
 export const getLinks = async (text: string): Promise<Set<String>> => {
 
