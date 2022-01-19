@@ -4,7 +4,7 @@ import { RedisClientType } from 'redis';
 
 let redis: RedisClientType;
 
-const createMessage = async (
+export const createMessage = async (
   message_id: string,
   user_id: string,
   message: string,
@@ -47,6 +47,21 @@ const createMessage = async (
   }
   
 }
+
+export const getMessage = async (message_id: string) => {
+  const query = `SELECT * FROM ploxy_messages WHERE message_id = $1`;
+  const values = [message_id];
+  try {
+    const res = await postgres.query(query, values);
+
+    return res.rows[0]
+  } catch (err: any) {
+    log.error(err);
+    return false;
+  }
+
+}
+
 module.exports = {
   setRedis: function(redis: RedisClientType) {
     redis = redis;
