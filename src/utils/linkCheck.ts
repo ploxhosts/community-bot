@@ -4,7 +4,7 @@ const whois = require('whois');
 import cheerio from 'cheerio';
 import {badServers, badTlds} from '../data/badLinks';
 
-export const getLinks = async (text: string): Promise<Set<String>> => {
+export const getLinks = async (text: string): Promise<Set<string>> => {
 
   const urls: Set<string> = new Set();
 
@@ -90,7 +90,7 @@ const analyseWhois = async(text: string, threatScore: number) => {
   return threatScore;
 }
 
-export const checkLink = async (url: string, threatScore: number = 0, round: number = 0): Promise<Number | boolean> => {
+export const checkLink = async (url: string, threatScore: number = 0, round: number = 0): Promise<number | boolean> => {
   let response;
   try {
     response = await axios.get(url);
