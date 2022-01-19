@@ -1,6 +1,8 @@
 import discord from 'discord.js';
 import { badWordCheck } from '../utils/badWordCheck';
 import { copyPastaCheck } from '../utils/copyPastaCheck';
+import { spamCheck } from '../utils/spamCheck';
+
 import { RedisClientType } from 'redis';
 
 let redis: RedisClientType;

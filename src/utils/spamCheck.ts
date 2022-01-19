@@ -4,7 +4,7 @@ import { getLinks, checkLink } from './linkCheck';
 export const spamCheck = async (text: string, author_message_count: number, riskScore: number = 0) => {
   console.log(text);
   if (text.toLowerCase().includes('@everyone') || text.toLowerCase().includes('@here')) {
-    riskScore += 3;
+    riskScore += 5;
   }
 
   const links = await getLinks(text)
