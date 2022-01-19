@@ -62,6 +62,36 @@ export const getMessage = async (message_id: string) => {
 
 }
 
+export const getMessageFromGuild = async (guild_id: string) => {
+  const query = `SELECT * FROM ploxy_messages WHERE guild_id = $1`;
+  const values = [guild_id];
+  try {
+    const res = await postgres.query(query, values);
+
+    return res.rows;
+  } catch (err: any) {
+    log.error(err);
+    return false;
+  }
+
+}
+
+export const getMessageFromUser = async (user_id: string) => {
+  const query = `SELECT * FROM ploxy_messages WHERE user_id = $1`;
+  const values = [user_id];
+  try {
+    const res = await postgres.query(query, values);
+
+    return res.rows;
+  } catch (err: any) {
+    log.error(err);
+    return false;
+  }
+
+}
+
+
+
 module.exports = {
   setRedis: function(redis: RedisClientType) {
     redis = redis;
