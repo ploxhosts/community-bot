@@ -13,7 +13,7 @@ shimLog(log, 'debug');
 dotenv.config();
 
 import connection from './db/postgres';
-
+connection.connect();
 // Stop the bot from running if there is not a valid token
 if (!process.env.token) {
 	log.error("Please specify a token to connect to the Discord API!\n Please create a bot from https://discord.com/developers/applications and copy the token, make sure there are no spaces within the .env");

@@ -17,30 +17,44 @@ pool.on('error', (err, client) => {
   process.exit(-1)
 })
 
-pool.on('connect', client => {
-  log.ok("Connected to postgres database");
-
-  fs.readdir(__dirname + '/db/tables', function (err, files: string[]) {
-    //handling error
-    if (err) {
-      return console.log("\x1b[31m"+ 'Unable to scan directory in attempt to load sql tables: ' + err + "\x1b[0m");
-    } 
-    //listing all files using forEach
-    files.forEach(function (file: string) {
-      fs.readFile(__dirname + '/db/tables/' + file, 'utf8', function (err, data) {
-        if (err) {
-          return console.log("\x1b[31m"+ 'Unable to read file: ' + err + "\x1b[0m");
-        }
-        pool.query(data, function (err, result) { // Run whatever is in the sql file
-          if (err) {
-            return console.log("\x1b[31m"+ 'Unable to run query: ' + err + "\x1b[0m");
-          }
-        });
-      });
-    });
-    // TODO: Create a patches folder within the db folder and put all sql files to update the database in there. Sort of similar to 00-thefirstupdate.sql and 01-thesecondupdate.sql
-    // TODO: Loop through patches
+const arrayRemove = (arr: string[], value: string) => { 
+    
+  return arr.filter(function(ele){ 
+      return ele != value; 
   });
-})
+}
+
+export const updateTables = async () => {
+  let files: {[name: string]: string;} = {}
+
+  console.log("Checking for new db tables")
+  fs.readdirSync(__dirname + '/tables').forEach(file => {
+    if (file.slice(-3) === ".sql") { // Only js files and not test.js
+
+      files[file] = require("./" + file);
+    }
+  });
+  
+  // Now that we have collected all the tests, run them.
+  Object.keys(files).sort(function(a, b) { 
+    return a.localeCompare(b); // Sorting out by number 1 will go infront of 2
+  }).forEach(async function(key) {
+    for (const line of files[key].split(";")) {
+      try {
+        await pool.query(line);
+      } catch (e: any) {
+        if (!e.message.includes("already exists")){
+          log.error(e);
+        }
+      }
+    }
+  });
+  
+  console.log("Finished looking for new tables")
+
+  
+  // TODO: Create a patches folder within the db folder and put all sql files to update the database in there. Sort of similar to 00-thefirstupdate.sql and 01-thesecondupdate.sql
+  // TODO: Loop through patches
+}
 
 export default pool;

@@ -1,4 +1,4 @@
-create table ploxy_messages
+create table if not exists ploxy_messages
 (
     message_id        varchar                   not null
         constraint ploxy_messages_pk
@@ -26,6 +26,6 @@ create unique index ploxy_messages_message_id_uindex
 create index ploxy_messages_user_id_index
     on ploxy_messages (user_id);
 
-CREATE TRIGGER set_timestamp
-BEFORE UPDATE ON ploxy_badwords
-FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
+CREATE EXTENSION IF NOT EXISTS moddatetime;
+CREATE TRIGGER update_timestamp BEFORE UPDATE ON ploxy_messages
+FOR EACH ROW EXECUTE PROCEDURE moddatetime(updated_at);

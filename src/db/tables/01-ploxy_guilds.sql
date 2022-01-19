@@ -48,6 +48,6 @@ create index ploxy_guilds_listing_index
 create index ploxy_guilds_owner_id_index
     on ploxy_guilds (owner_id);
 
-CREATE TRIGGER set_timestamp
-BEFORE UPDATE ON ploxy_guilds
-FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
+CREATE EXTENSION IF NOT EXISTS moddatetime;
+CREATE TRIGGER update_timestamp BEFORE UPDATE ON ploxy_guilds
+FOR EACH ROW EXECUTE PROCEDURE moddatetime(updated_at);

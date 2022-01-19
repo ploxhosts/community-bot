@@ -26,7 +26,7 @@ create index ploxy_users_email_index
 
 create unique index ploxy_users_user_id_uindex
     on ploxy_users (user_id);
-
-CREATE TRIGGER set_timestamp
-BEFORE UPDATE ON ploxy_users
-FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
+    
+CREATE EXTENSION IF NOT EXISTS moddatetime;
+CREATE TRIGGER update_timestamp BEFORE UPDATE ON ploxy_users
+FOR EACH ROW EXECUTE PROCEDURE moddatetime(updated_at);

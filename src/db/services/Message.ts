@@ -11,7 +11,7 @@ export const createMessage = async (
   embed: string,
   channel_id: string,
   guild_id: string,
-  in_thread: string,
+  in_thread: boolean,
   message_id_before: string = "0",
 ) => {
   const query = `INSERT INTO ploxy_messages 

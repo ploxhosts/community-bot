@@ -82,6 +82,6 @@ comment on column ploxy_automod.on_fail_spam is 'What to do when a spam or a pas
 create unique index ploxy_automod_guild_id_uindex
     on ploxy_automod (guild_id);
 
-CREATE TRIGGER set_timestamp
-BEFORE UPDATE ON ploxy_automod
-FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
+CREATE EXTENSION IF NOT EXISTS moddatetime;
+CREATE TRIGGER update_timestamp BEFORE UPDATE ON ploxy_automod
+FOR EACH ROW EXECUTE PROCEDURE moddatetime(updated_at);

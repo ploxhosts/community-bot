@@ -20,6 +20,6 @@ comment on column ploxy_badwords.implicit is 'Overwrite to check to search if th
 create unique index if not exists ploxy_badwords_word_id_uindex
     on ploxy_badwords (word_id);
 
-CREATE TRIGGER set_timestamp
-BEFORE UPDATE ON ploxy_badwords
-FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
+CREATE EXTENSION IF NOT EXISTS moddatetime;
+CREATE TRIGGER update_timestamp BEFORE UPDATE ON ploxy_badwords
+FOR EACH ROW EXECUTE PROCEDURE moddatetime(updated_at);
