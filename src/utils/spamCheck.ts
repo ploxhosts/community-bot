@@ -1,19 +1,24 @@
 import tlds from '../data/tlds';
 import { badWordCheck } from './badWordCheck';
 import { getLinks, checkLink } from './linkCheck';
-export const spamCheck = async (text: string, author_message_count: number, riskScore: number = 0) => {
-  console.log(text);
-  if (text.toLowerCase().includes('@everyone') || text.toLowerCase().includes('@here')) {
+export const spamCheck = async (text: string, author_message_count: number, riskScore: number = 0, is_allowed: boolean = false) => {
+
+  if ((text.toLowerCase().includes('@everyone') || text.toLowerCase().includes('@here')) && !is_allowed) {
     riskScore += 5;
   }
 
   const links = await getLinks(text)
+  if (links.keys.length > 0) {
+    riskScore += 3
+  }
+
   for (const link of links) {
     let result = await checkLink(link);
     if (typeof result === 'number') {
       riskScore += result;
     }
   }
+  
   if (author_message_count <= 3){
     riskScore += 5;
   } else if (author_message_count <= 10){

@@ -13,7 +13,8 @@ module.exports = {
 		console.log("Message sent");
 		const badwords = await badWordCheck(message.content, true);
     const copyPastas = await copyPastaCheck(message.content);
-    console.log(badwords, copyPastas);
+    const spamScore = await spamCheck(message.content, 0)
+    console.log(badwords, copyPastas, spamScore);
 	},
   setRedis(redis: RedisClientType) {
     redis = redis;
