@@ -28,6 +28,17 @@ module.exports = {
     if (guild_data) {
       console.log(guild_data);
     }
+    const botCount = guild.members.cache.filter(member => member.user.bot).size
+    const memberCount = guild.members.cache.filter(member => !member.user.bot).size
+    if (botCount > 50){
+      if (memberCount < 400){
+        await guild.leave();
+        console.log("Left suspicious guild")
+      } else if (memberCount > 1000){
+        console.log("Possible suspicious guild", memberCount, guild.id, guild.ownerId, botCount)
+      }
+    }
+
     const embed = createGuildEmbed();
     
     let sent = false;
@@ -43,7 +54,7 @@ module.exports = {
           await channel.send({ embeds: [embed] });
           sent = true;
         } else {
-          channel.send({ embeds: [embed] });
+          await channel.send({ embeds: [embed] });
           sent = true;
         }
       }
