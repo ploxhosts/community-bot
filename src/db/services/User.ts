@@ -26,7 +26,7 @@ export const createUser = async (
     banned: number = 0
   ) => {
   const res = await getUser(user_id);
-  if (res.rows.length > 0) {
+  if (res.rows) {
     log.debug(`User ${user_id} already exists, createUser failed`);
     return res.rows.length;
   }
@@ -76,7 +76,7 @@ export const getUser = async (
      query += "email = $4";
     values.push(email);
   }
-  if (values.length === 0) {
+  if (!values.length) {
     log.debug("getUser failed, no values in function to search for");
     return false;
   }
@@ -120,7 +120,7 @@ export const updateUser = async (
     banned: number = 0
   ) => {
   const res = await getUser(user_id);
-  if (res.rows.length === 0) {
+  if (!res.rows) {
     log.debug(`User ${user_id} not found, updateUser failed`);
     return false;
   }
@@ -145,7 +145,11 @@ export const deleteUser = async (user_id: string) => {
 }
 
 module.exports = {
-  setRedis: function(redis: RedisClientType) {
-    redis = redis;
-  }
+  setRedis: function(redisIn: RedisClientType) {
+    redis = redisIn;
+  },
+  getUser,
+  createUser,
+  updateUser,
+  deleteUser
 }

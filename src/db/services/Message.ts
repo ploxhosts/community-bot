@@ -93,7 +93,11 @@ export const getMessageFromUser = async (user_id: string) => {
 
 
 module.exports = {
-  setRedis: function(redis: RedisClientType) {
-    redis = redis;
-  }
+  setRedis: function(redisIn: RedisClientType) {
+    redis = redisIn;
+  },
+  createMessage,
+  getMessage,
+  getMessageFromUser,
+  getMessageFromGuild
 }

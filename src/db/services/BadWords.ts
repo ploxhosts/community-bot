@@ -82,7 +82,11 @@ export const getAll = async (guild_id: string) => {
 }
 
 module.exports = {
-  setRedis: function(redis: RedisClientType) {
-    redis = redis;
-  }
+  setRedis: function(redisIn: RedisClientType) {
+    redis = redisIn;
+  },
+  getAllBadWords,
+  getAll,
+  removeBadWord,
+  addBadWord,
 }

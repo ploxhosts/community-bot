@@ -77,6 +77,9 @@ export const getGuildAutoMod = async (guild_id: string) => {
       `SELECT * FROM ploxy_automod WHERE guild_id = $1`,
       [guild_id]
     );
+    if (!data.rows[0]) { // Data does not exist
+      return false;
+    }
     await redis.set(`automod:${guild_id}`, JSON.stringify(data.rows[0]));
     return data.rows[0];
   } catch (error: any) {
@@ -160,7 +163,11 @@ export const deleteGuildAutoMod = async (guild_id: string) => {
 
 
 module.exports = {
-  setRedis: function(redis: RedisClientType) {
-    redis = redis;
-  }
+  setRedis: function(redisIn: RedisClientType) {
+    redis = redisIn;
+  },
+  deleteGuildAutoMod,
+  addGuildAutoMod,
+  getGuildAutoMod,
+  updateGuildAutoMod
 }

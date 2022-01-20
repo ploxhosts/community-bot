@@ -6,6 +6,14 @@ import { shimLog } from '@lvksh/logger';
 import * as redis from 'redis';
 
 let RedisClient = redis.createClient();
+RedisClient.connect();
+
+RedisClient.on('connect', function () {
+  console.log('redis connected');
+  console.log(`connected ${RedisClient}`);
+}).on('error', function (error) {
+  console.log(error);
+});
 
 shimLog(log, 'debug');
 

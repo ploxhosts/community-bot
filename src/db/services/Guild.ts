@@ -37,7 +37,7 @@ export const createGuild = async (
   }
   const query = `INSERT INTO ploxy_guilds (
     guild_id,
-    guild_name,
+    name,
     avatar,
     owner_id,
     premium,
@@ -145,7 +145,7 @@ export const updateGuild = async (
   auto_support_enabled: boolean = false
   ) => {
   const query = `UPDATE ploxy_guilds SET
-    guild_name = $2,
+    name = $2,
     avatar = $3,
     owner_id = $4,
     premium = $5,
@@ -199,7 +199,12 @@ export const deleteGuild = async (guild_id: string) => {
 }
 
 module.exports = {
-  setRedis: function(redis: RedisClientType) {
-    redis = redis;
-  }
+  setRedis: function(redisIn: RedisClientType) {
+    redis = redisIn;
+  },
+  createGuild,
+  deleteGuild,
+  updateGuild,
+  getGuild,
+  getAllGuilds
 }
