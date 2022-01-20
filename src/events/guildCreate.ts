@@ -1,6 +1,7 @@
 import discord from 'discord.js';
 import {createGuild, getGuild} from '../db/services/Guild';
 import { RedisClientType } from 'redis';
+import createGuildEmbed from '../utils/embeds/createGuildEmbed';
 
 let redis: RedisClientType;
 
@@ -27,6 +28,26 @@ module.exports = {
     if (guild_data) {
       console.log(guild_data);
     }
+    const embed = createGuildEmbed();
+    
+    let sent = false;
+
+    if (guild.systemChannel) {
+      await guild.systemChannel.send({ embeds: [embed] });
+      sent = true;
+    }
+
+    guild.channels.cache.forEach(async (channel)=>{
+      if (channel && channel.isText() && !sent){
+        if (guild.me && guild.me.permissionsIn(channel).has("SEND_MESSAGES")){
+          await channel.send({ embeds: [embed] });
+          sent = true;
+        } else {
+          channel.send({ embeds: [embed] });
+          sent = true;
+        }
+      }
+    })
 	},
   setRedis: function(redis: RedisClientType) {
     redis = redis;
