@@ -4,7 +4,7 @@
   "description": "An open-sourced community projected created for our discord server.",
   "main": "index.js",
   "scripts": {
-    "lint": "eslint -c .eslintrc.json --ext .ts ./src",
+    "lint": "eslint -c .eslintrc.json --ext .ts ./src --fix",
     "precommit": "npm run lint",
     "build": "tsc -p .",
     "start": "NODE_ENV=production node ./dist/index.js",

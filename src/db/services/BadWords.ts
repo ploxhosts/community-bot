@@ -1,6 +1,7 @@
-import postgres from '../postgres';
-import log from '../../utils/log';
 import { RedisClientType } from 'redis';
+
+import log from '../../utils/log';
+import postgres from '../postgres';
 
 let redis: RedisClientType;
 
@@ -12,16 +13,17 @@ let redis: RedisClientType;
  *
  */
 export const addBadWord = async (badWord: string, guild_id: string) => {
-  try {
-    return await postgres.query(
-      `INSERT INTO ploxy_badwords (word) WHERE guild_id = $2 VALUES ($1)`,
-      [badWord, guild_id]
-    );
-  } catch (error: any) {
-    log.error(error);
-    return false;
-  }
-}
+    try {
+        return await postgres.query(
+            'INSERT INTO ploxy_badwords (word) WHERE guild_id = $2 VALUES ($1)',
+            [badWord, guild_id]
+        );
+    } catch (error: any) {
+        log.error(error);
+
+        return false;
+    }
+};
 
 /**
  * Removes a bad word from a guild
@@ -32,16 +34,17 @@ export const addBadWord = async (badWord: string, guild_id: string) => {
  */
 
 export const removeBadWord = async (badWord: string, guild_id: string) => {
-  try {
-    return await postgres.query(
-      `DELETE FROM ploxy_badwords WHERE word = $1 WHERE guild_id = $2`,
-      [badWord, guild_id]
-    );
-  } catch (error: any) {
-    log.error(error);
-    return false;
-  }
-}
+    try {
+        return await postgres.query(
+            'DELETE FROM ploxy_badwords WHERE word = $1 WHERE guild_id = $2',
+            [badWord, guild_id]
+        );
+    } catch (error: any) {
+        log.error(error);
+
+        return false;
+    }
+};
 
 /**
  * Gets all badwords from a guild
@@ -51,16 +54,17 @@ export const removeBadWord = async (badWord: string, guild_id: string) => {
  */
 
 export const getAllBadWords = async (guild_id: string) => {
-  try {
-    return await postgres.query(
-      `SELECT word FROM ploxy_badwords WHERE guild_id = $1`,
-      [guild_id]
-    );
-  } catch (error: any) {
-    log.error(error);
-    return false;
-  }
-}
+    try {
+        return await postgres.query(
+            'SELECT word FROM ploxy_badwords WHERE guild_id = $1',
+            [guild_id]
+        );
+    } catch (error: any) {
+        log.error(error);
+
+        return false;
+    }
+};
 
 /**
  * Gets all data from a guild
@@ -70,23 +74,24 @@ export const getAllBadWords = async (guild_id: string) => {
  */
 
 export const getAll = async (guild_id: string) => {
-  try {
-    return await postgres.query(
-      `SELECT * FROM ploxy_badwords WHERE guild_id = $1`,
-      [guild_id]
-    );
-  } catch (error: any) {
-    log.error(error);
-    return false;
-  }
-}
+    try {
+        return await postgres.query(
+            'SELECT * FROM ploxy_badwords WHERE guild_id = $1',
+            [guild_id]
+        );
+    } catch (error: any) {
+        log.error(error);
+
+        return false;
+    }
+};
 
 module.exports = {
-  setRedis: function(redisIn: RedisClientType) {
-    redis = redisIn;
-  },
-  getAllBadWords,
-  getAll,
-  removeBadWord,
-  addBadWord,
-}
+    setRedis: function (redisIn: RedisClientType) {
+        redis = redisIn;
+    },
+    getAllBadWords,
+    getAll,
+    removeBadWord,
+    addBadWord,
+};

@@ -1,6 +1,7 @@
-import postgres from '../postgres';
-import log from '../../utils/log';
 import { RedisClientType } from 'redis';
+
+import log from '../../utils/log';
+import postgres from '../postgres';
 
 let redis: RedisClientType;
 
@@ -22,29 +23,42 @@ export const createUser = async (
     discriminator: string,
     user_avatar: string | null = null,
     email: string | null = null,
-    premium : number,
+    premium: number,
     banned: number = 0
-  ) => {
-  const res = await getUser(user_id);
-  if (res.rows) {
-    log.debug(`User ${user_id} already exists, createUser failed`);
-    return res.rows.length;
-  }
-  let result;
-  try {
-    result = await postgres.query(
-      "INSERT INTO ploxy_users (user_id, username, discriminator, user_avatar, email, premium, banned) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
-      [user_id, username, discriminator, user_avatar, email, premium, banned]
-    );
+) => {
+    const res = await getUser(user_id);
 
-    await redis.set(`user:${user_id}`, JSON.stringify(result.rows[0]));
+    if (res.rows) {
+        log.debug(`User ${user_id} already exists, createUser failed`);
 
-    return result.rows[0];
-  } catch (err: any) {
-    log.error(err);
-    return false;
-  }
-}
+        return res.rows.length;
+    }
+
+    let result;
+
+    try {
+        result = await postgres.query(
+            'INSERT INTO ploxy_users (user_id, username, discriminator, user_avatar, email, premium, banned) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+            [
+                user_id,
+                username,
+                discriminator,
+                user_avatar,
+                email,
+                premium,
+                banned,
+            ]
+        );
+
+        await redis.set(`user:${user_id}`, JSON.stringify(result.rows.at(0)));
+
+        return result.rows.at(0);
+    } catch (error: any) {
+        log.error(error);
+
+        return false;
+    }
+};
 
 /**
  * Fetches a user from the database, user_id or email should be provided. If supplying both username or discriminator, provide both username and discriminator to function.
@@ -60,43 +74,51 @@ export const getUser = async (
     username?: string,
     discriminator?: string,
     email?: string
-  ) => {
-  
-  let query = "SELECT * FROM ploxy_users WHERE ";
-  let values = [];
-  if (user_id) {
-    query += "user_id = $1";
-    values.push(user_id);
-  }
-  if ((username && discriminator) && !user_id) {
-    query += "username = $2 && discriminator = $3";
-    values.push(username, discriminator);
-  }
-  if (email && !(user_id && username && discriminator)) {
-     query += "email = $4";
-    values.push(email);
-  }
-  if (!values.length) {
-    log.debug("getUser failed, no values in function to search for");
-    return false;
-  }
+) => {
+    let query = 'SELECT * FROM ploxy_users WHERE ';
+    const values = [];
 
-  try {
-    const userCache = await redis.get(`user:${user_id}`);
-    if (userCache) {
-      return JSON.parse(userCache);
+    if (user_id) {
+        query += 'user_id = $1';
+        values.push(user_id);
     }
-    const res = await postgres.query(query, values);
-    if (res.rows.length > 0) {
-      return res.rows[0];
+
+    if (username && discriminator && !user_id) {
+        query += 'username = $2 && discriminator = $3';
+        values.push(username, discriminator);
     }
-    log.debug(`User ${user_id} not found, getUser failed`);
-  } catch (error: any) {
-    log.error(error);
-  }
-  return false;
-  
-}
+
+    if (email && !(user_id && username && discriminator)) {
+        query += 'email = $4';
+        values.push(email);
+    }
+
+    if (values.length === 0) {
+        log.debug('getUser failed, no values in function to search for');
+
+        return false;
+    }
+
+    try {
+        const userCache = await redis.get(`user:${user_id}`);
+
+        if (userCache) {
+            return JSON.parse(userCache);
+        }
+
+        const res = await postgres.query(query, values);
+
+        if (res.rows.length > 0) {
+            return res.rows.at(0);
+        }
+
+        log.debug(`User ${user_id} not found, getUser failed`);
+    } catch (error: any) {
+        log.error(error);
+    }
+
+    return false;
+};
 
 /**
  * Updates a user in the database, supply all data and change what is wanted.
@@ -116,40 +138,56 @@ export const updateUser = async (
     discriminator: string,
     user_avatar: string | null = null,
     email: string | null = null,
-    premium : number,
+    premium: number,
     banned: number = 0
-  ) => {
-  const res = await getUser(user_id);
-  if (!res.rows) {
-    log.debug(`User ${user_id} not found, updateUser failed`);
-    return false;
-  }
-  let result;
-  try {
-    result = await postgres.query(
-      "UPDATE ploxy_users SET username = $1, discriminator = $2, user_avatar = $3, email = $4, premium = $5, banned = $6 WHERE user_id = $7 RETURNING *",
-      [username, discriminator, user_avatar, email, premium, banned, user_id])
-    await redis.set(`user:${user_id}`, JSON.stringify(result.rows[0]));
-  } catch (err: any) {
-    log.error(err);
-    return false;
-  }
-  
-  return result.rows[0];
-}
+) => {
+    const res = await getUser(user_id);
 
+    if (!res.rows) {
+        log.debug(`User ${user_id} not found, updateUser failed`);
+
+        return false;
+    }
+
+    let result;
+
+    try {
+        result = await postgres.query(
+            'UPDATE ploxy_users SET username = $1, discriminator = $2, user_avatar = $3, email = $4, premium = $5, banned = $6 WHERE user_id = $7 RETURNING *',
+            [
+                username,
+                discriminator,
+                user_avatar,
+                email,
+                premium,
+                banned,
+                user_id,
+            ]
+        );
+        await redis.set(`user:${user_id}`, JSON.stringify(result.rows.at(0)));
+    } catch (error: any) {
+        log.error(error);
+
+        return false;
+    }
+
+    return result.rows.at(0);
+};
 
 export const deleteUser = async (user_id: string) => {
-  await redis.del(`user:${user_id}`);
-  return postgres.query("DELETE FROM ploxy_users WHERE user_id = $1", [user_id]);
-}
+    await redis.del(`user:${user_id}`);
+
+    return postgres.query('DELETE FROM ploxy_users WHERE user_id = $1', [
+        user_id,
+    ]);
+};
 
 module.exports = {
-  setRedis: function(redisIn: RedisClientType) {
-    redis = redisIn;
-  },
-  getUser,
-  createUser,
-  updateUser,
-  deleteUser
-}
+    setRedis: function (redisIn: RedisClientType) {
+        redis = redisIn;
+    },
+    getUser,
+    createUser,
+    updateUser,
+    deleteUser,
+};
