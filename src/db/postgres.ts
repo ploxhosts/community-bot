@@ -17,13 +17,6 @@ pool.on('error', (err, client) => {
   process.exit(-1)
 })
 
-const arrayRemove = (arr: string[], value: string) => { 
-    
-  return arr.filter(function(ele){ 
-      return ele != value; 
-  });
-}
-
 export const updateTables = async () => {
   let files: {[name: string]: string;} = {}
 

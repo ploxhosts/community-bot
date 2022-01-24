@@ -4,7 +4,7 @@
   "description": "An open-sourced community projected created for our discord server.",
   "main": "index.js",
   "scripts": {
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint": "eslint -c .eslintrc.json --ext .ts ./src",
     "precommit": "npm run lint",
     "build": "tsc -p .",
     "start": "NODE_ENV=production node ./dist/index.js",
@@ -29,6 +29,15 @@
     "@types/pg": "^8.6.3",
     "@types/redis": "^4.0.11",
     "eslint": "^7.32.0",
+    "eslint-plugin-lvksh": "^1.2.3",
+    "@typescript-eslint/parser": "^5.9.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-jest": "^25.3.4",
+    "eslint-plugin-prettier": "^4.0.0",
+    "eslint-plugin-simple-import-sort": "^7.0.0",
+    "eslint-plugin-sonarjs": "^0.11.0",
+    "eslint-plugin-unicorn": "^40.0.0",
+    "prettier": "^2.5.1",
     "typescript": "^4.4.2"
   },
   "dependencies": {
