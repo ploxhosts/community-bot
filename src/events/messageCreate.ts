@@ -46,7 +46,7 @@ module.exports = {
                 message.author.username,
                 message.author.discriminator,
                 message.author.avatarURL(),
-                null,
+                undefined,
                 0,
                 0
             );
@@ -104,9 +104,7 @@ module.exports = {
 
         if (autoModule.message_spam_check) {
             const messagesSent = await getMessageFromUser(message.author.id);
-            let messagesCount;
-
-            messagesCount = messagesSent == false ? 0 : messagesSent.length;
+            const messagesCount = !messagesSent ? 0 : messagesSent.length;
             const spamScore = await spamCheck(message.content, messagesCount);
         }
 

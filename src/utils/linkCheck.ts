@@ -33,8 +33,23 @@ export const getLinks = async (text: string): Promise<Set<string>> => {
 
             const textAfterDot = text.slice(index + 1, indexOfSpace); // Get possible domain
 
-            const rawTld = textAfterDot.split('/').at(0).split('.'); // Accounts for sub domains
-            const tld = rawTld.at(-1).replaceAll(' ', ''); // Get the TLD
+            const indexFirstTld = textAfterDot.split('/').at(0);
+
+            if (indexFirstTld == undefined) {
+                continue;
+            }
+
+            const rawTld = indexFirstTld.split('.').at(-1); // Accounts for sub domains
+
+            if (rawTld == undefined) {
+                continue;
+            }
+
+            const tld = rawTld.replaceAll(' ', ''); // Get the TLD
+
+            if (tld == undefined) {
+                continue;
+            }
 
             const validTld = tlds.includes(tld.toUpperCase()); // check if the tld exists in the list of tlds
 
@@ -45,7 +60,7 @@ export const getLinks = async (text: string): Promise<Set<string>> => {
             // Get all the index of spaces
             const indexOfSpaces = [];
 
-            for (const [ii, element] of url.entries()) {
+            for (const [ii, element] of url.split('').entries()) {
                 if (element === ' ') {
                     indexOfSpaces.push(ii);
                 }
@@ -277,10 +292,14 @@ export const checkLink = async (
     const re = /\.([^.]+?)$/;
 
     const domain = re.exec(hostname);
-    let tld: string;
+    let tld: string | undefined;
 
     if (domain) {
         tld = domain.at(1);
+    }
+
+    if (!tld) {
+        return false;
     }
 
     for (const element of badTlds) {

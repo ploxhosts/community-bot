@@ -29,7 +29,7 @@ const log = createLogger(
         FileLogger({
             mode: 'NEW_FILE',
             path: join(__dirname + '../../', 'logs'),
-            namePattern: `${year}-${month}-${hours}-${minutes}-${seconds}-${milliseconds}.txt`,
+            namePattern: 'test.txt',
         }),
         console.log,
     ]
