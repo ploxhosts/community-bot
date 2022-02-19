@@ -15,13 +15,14 @@ let redis: RedisClientType;
  */
 export const addBadLink = async (
     badLink: string,
-    addedBy: string,
-    score: number
+    addedBy: string | undefined,
+    score: number,
+    process: { type: string; score: number }[]
 ) => {
     try {
         const result = await postgres.query(
-            'INSERT INTO ploxy_badlinks (link, added_by, score) VALUES ($1, $2, $3)',
-            [badLink, addedBy, score]
+            'INSERT INTO ploxy_badlinks (link, added_by, score, process) VALUES ($1, $2, $3)',
+            [badLink, addedBy, score, process.toString()]
         );
 
         await redis.set(

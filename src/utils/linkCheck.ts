@@ -7,7 +7,7 @@ import cheerio from 'cheerio';
 
 import { badServers, badTlds, urlShorteners } from '../data/badLinks';
 import { goodHostnames } from '../data/goodLinks';
-import { checkBadLink } from '../db/services/BadLinks';
+import { addBadLink, checkBadLink } from '../db/services/BadLinks';
 
 export const getLinks = async (text: string): Promise<Set<string>> => {
     const urls: Set<string> = new Set();
@@ -461,6 +461,8 @@ export const checkLink = async (
     threatScore += whoisResult.threatScore;
 
     console.log('threat score: ' + threatScore + ' for domain: ' + url);
+
+    addBadLink(hostname, undefined, threatScore, process);
 
     return {
         type: 'end',
