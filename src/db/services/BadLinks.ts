@@ -19,9 +19,14 @@ export const addBadLink = async (
     score: number
 ) => {
     try {
-        return await postgres.query(
+        const result = await postgres.query(
             'INSERT INTO ploxy_badlinks (link, added_by, score) VALUES ($1, $2, $3)',
             [badLink, addedBy, score]
+        );
+
+        await redis.set(
+            `badLink:${badLink}`,
+            JSON.stringify(result.rows.at(0))
         );
     } catch (error: any) {
         log.error(error);
@@ -39,10 +44,35 @@ export const addBadLink = async (
 
 export const removeBadLink = async (badLink: string) => {
     try {
-        return await postgres.query(
-            'DELETE FROM ploxy_badlinks WHERE link = $1',
-            [badLink]
+        await postgres.query('DELETE FROM ploxy_badlinks WHERE link = $1', [
+            badLink,
+        ]);
+
+        return await redis.del(`badLink:${badLink}`);
+    } catch (error: any) {
+        log.error(error);
+
+        return false;
+    }
+};
+
+/**
+ * Check a link
+ *
+ */
+
+export const checkBadLink = async (link: string): Promise<boolean> => {
+    try {
+        const result = await postgres.query(
+            'SELECT * FROM ploxy_badlinks WHERE link = $1',
+            [link]
         );
+
+        if (result.rowCount > 0) {
+            return true;
+        }
+
+        return false;
     } catch (error: any) {
         log.error(error);
 
