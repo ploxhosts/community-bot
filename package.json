@@ -28,11 +28,11 @@
     "@types/cheerio": "^0.22.30",
     "@types/pg": "^8.6.3",
     "@types/redis": "^4.0.11",
-    "eslint": "^7.32.0",
-    "eslint-plugin-lvksh": "^1.2.3",
     "@typescript-eslint/parser": "^5.9.0",
+    "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-jest": "^25.3.4",
+    "eslint-plugin-lvksh": "^1.2.3",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-simple-import-sort": "^7.0.0",
     "eslint-plugin-sonarjs": "^0.11.0",
@@ -55,6 +55,7 @@
     "puppeteer": "^13.0.1",
     "redis": "^4.0.1",
     "safe-eval": "^0.4.1",
+    "web-whois": "^0.0.6",
     "whois": "^2.13.7"
   }
 }

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 import tlds from '../data/tlds';
-const whois = require('whois');
+const lookup = require('web-whois');
 
 import cheerio from 'cheerio';
 
@@ -106,57 +106,47 @@ export const getLinks = async (text: string): Promise<Set<string>> => {
     return urls;
 };
 
-const analyseWhois = async (text: string, threatScore: number) => {
-    const maliciousDomains = ['nic.ru'];
+const analyseWhois = async (data: any, threatScore: number) => {
+    if (data) {
+        const maliciousDomains = ['nic.ru'];
 
-    for (const maliciousDomain in maliciousDomains) {
-        if (text.includes(maliciousDomain)) {
-            threatScore += 12;
+        for (const domain of maliciousDomains) {
+            if (data.abuse.includes(domain)) {
+                threatScore += 10;
+            }
         }
-    }
 
-    const splitText = text.split('\n');
+        if (data.registrar.includes('RU')) {
+            threatScore += 10;
+        }
 
-    for (const element of splitText) {
-        if (element.includes('Creation Date:')) {
-            const creationDate = element.slice(
-                element.indexOf(':') + 1,
-                element.length
-            );
+        const registrationDate = Date.parse(data.registration) / 1000;
+        const expirationDate = Date.parse(data.expiration) / 1000;
 
-            console.log('Creation date', creationDate);
-            threatScore += 8;
+        const now = Date.now() / 1000;
+
+        console.log(now - registrationDate);
+        console.log(registrationDate - now);
+
+        if (now - registrationDate < 60 * 60 * 24 * 30) {
+            // Domain was registered less than 30 days ago
+            threatScore += 30;
+        }
+
+        if (expirationDate - registrationDate <= 60 * 60 * 24 * 366) {
+            // Domain was registered for less than a year (Normally they don't expect it to last long)
+            threatScore += 30;
         }
     }
 
     return threatScore;
 };
 
-export const checkLink = async (
-    url: string,
-    threatScore: number = 0,
-    round: number = 0
-): Promise<number | boolean> => {
-    let response;
-
-    try {
-        response = await axios.get(url);
-    } catch {
-        console.log('Url issue: ' + url);
-
-        return false;
-    }
-
-    const { headers, data } = response; // get the website's headers
-
-    const badServer = badServers.find((o) => o.name == headers['server']); // Check if the server is a bad server i.e typically used for phishing
-
-    if (badServer !== undefined) {
-        threatScore += badServer.score; // add the threat score
-    }
-
-    const parsedHtml = cheerio.load(data, { xmlMode: false });
-
+const checkHtml = async (
+    parsedHtml: cheerio.Root,
+    threatScore: number,
+    round: number
+) => {
     const scriptUrls = parsedHtml('script').get();
     const linkUrls = parsedHtml('link').get();
     const pageTitle = parsedHtml('head > title').text();
@@ -286,19 +276,50 @@ export const checkLink = async (
         threatScore += 2;
     }
 
+    return threatScore;
+};
+
+export const checkLink = async (
+    url: string,
+    threatScore: number = 0,
+    round: number = 0
+): Promise<number | boolean> => {
+    let response;
+
+    try {
+        response = await axios.get(url);
+    } catch {
+        console.log('Url issue: ' + url);
+
+        return false;
+    }
+
+    const { headers, data } = response; // get the website's headers
+
+    const badServer = badServers.find((o) => o.name == headers['server']); // Check if the server is a bad server i.e typically used for phishing
+
+    if (badServer !== undefined) {
+        threatScore += badServer.score; // add the threat score
+    }
+
+    const parsedHtml = cheerio.load(data, { xmlMode: false });
+
+    threatScore += await checkHtml(parsedHtml, threatScore, round);
+
     const { hostname } = new URL(url);
 
     console.log('hostname', hostname);
     const re = /\.([^.]+?)$/;
 
     const domain = re.exec(hostname);
+
     let tld: string | undefined;
 
     if (domain) {
         tld = domain.at(1);
     }
 
-    if (!tld) {
+    if (!tld || !domain) {
         return false;
     }
 
@@ -309,11 +330,24 @@ export const checkLink = async (
     }
 
     // TODO: Index the site and not do whois again
-    await whois.lookup(hostname, async (error: any, data: any) => {
-        threatScore += await analyseWhois(data, threatScore);
-    });
+
+    const whois = await lookup(domain.input);
+
+    threatScore += await analyseWhois(whois, threatScore);
 
     console.log('threat score: ' + threatScore + ' for domain: ' + url);
 
     return threatScore;
 };
+
+checkLink('http://discoerd.gift/Zg82N4Zemc');
+checkLink('https://xulgos.com/');
+
+// TODO: If the file ends in .png .ico or .css then ignore
+// TODO: If the content url starts with  https://cdn.jsdelivr.net/npm/bulma then ignore
+// TODO: If the content url starts with  https://static.cloudflareinsights.com/
+// TODO: If the content url starts with https://www.google-analytics.com/ then ignore
+// TODO: If the content url starts with https://www.googletagmanager.com/ then ignore
+// TODO: If the content url starts with  https://www.google.com/ then ignore
+// TODO: If the content url starts with  https://kit.fontawesome.com/ then ignore
+// TODO: if the content url starts with https://unpkg.com/react-dom then ignore
