@@ -1,4 +1,4 @@
-import fs from 'node:fs';
+import { promises as fs } from 'node:fs';
 import pg from 'pg';
 
 import log from '../utils/log';
@@ -14,6 +14,7 @@ const pool = new pg.Pool({
 
 pool.on('error', (error, client) => {
     log.error('Unexpected error on postgres connection', error);
+    // eslint-disable-next-line unicorn/no-process-exit
     process.exit(-1);
 });
 
@@ -22,20 +23,27 @@ export const updateTables = async () => {
 
     console.log('Checking for new db tables');
 
-    for (const file of fs.readdirSync(__dirname + '/tables')) {
-        if (file.slice(-3) === '.sql') {
+    for (const file of await fs.readdir(__dirname + '/tables')) {
+        if (file.slice(-4) === '.sql') {
             // Only js files and not test.js
-
-            files[file] = require('./' + file);
+            await fs
+                .readFile(__dirname + '/tables/' + file, 'utf8')
+                .then((data) => {
+                    files[file.slice(0, -4)] = data;
+                });
         }
     }
+    const tables = Object.keys(files);
 
     // Now that we have collected all the tests, run them.
-    Object.keys(files)
+    tables
         .sort((a, b) => {
             return a.localeCompare(b); // Sorting out by number 1 will go infront of 2
         })
+        // eslint-disable-next-line unicorn/no-array-for-each
         .forEach(async (key) => {
+            console.log(key);
+
             for (const line of files[key].split(';')) {
                 try {
                     await pool.query(line);

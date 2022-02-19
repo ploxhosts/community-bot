@@ -17,7 +17,7 @@ module.exports = {
         console.log('Starting to update tables');
         await updateTables();
     },
-    setRedis: function (redis: RedisClientType) {
-        redis = redis;
+    setRedis: function (NewRedis: RedisClientType) {
+        redis = NewRedis;
     },
 };

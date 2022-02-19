@@ -10,7 +10,7 @@
     "start": "NODE_ENV=production node ./dist/index.js",
     "prod": "npm run build && NODE_ENV=production node ./dist/index.js",
     "copy-files": "copyfiles -u 1 src/db/tables/*.sql dist/",
-    "dev": "npm run build && npm run copy-files && node ./dist/index.js",
+    "dev": "nodemon ./src/index.ts",
     "rc": "npx ts-node ./src/deploy-commands.ts"
   },
   "repository": {

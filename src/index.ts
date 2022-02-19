@@ -3,7 +3,9 @@ import discord from 'discord.js';
 import dotenv from 'dotenv';
 import fs from 'node:fs';
 import * as redis from 'redis';
-
+// Load environment variables from .env file
+dotenv.config();
+import connection from './db/postgres';
 import log from './utils/log';
 
 const RedisClient = redis.createClient();
@@ -19,10 +21,6 @@ RedisClient.on('connect', () => {
 
 shimLog(log, 'debug');
 
-// Load environment variables from .env file
-dotenv.config();
-
-import connection from './db/postgres';
 connection.connect();
 
 // Stop the bot from running if there is not a valid token
@@ -52,15 +50,10 @@ const client: any = new discord.Client({
 
 // Load files
 
-const commandFiles = fs
-    .readdirSync(__dirname + '/commands')
-    .filter((file) => file.endsWith('.js'));
-const eventFiles = fs
-    .readdirSync(__dirname + '/events')
-    .filter((file) => file.endsWith('.js'));
-const serviceFiles = fs
-    .readdirSync(__dirname + '/db/services')
-    .filter((file) => file.endsWith('.js'));
+const commandFiles = fs.readdirSync(__dirname + '/commands');
+
+const eventFiles = fs.readdirSync(__dirname + '/events');
+const serviceFiles = fs.readdirSync(__dirname + '/db/services');
 
 // Loop through services files to set redis connection
 for (const file of serviceFiles) {

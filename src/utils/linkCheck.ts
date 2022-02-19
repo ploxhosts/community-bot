@@ -360,7 +360,7 @@ export const checkLink = async (
 };
 
 //checkLink('http://discoerd.gift/Zg82N4Zemc');
-checkLink('https://tinyurl.com/2p8dmmey');
+//checkLink('https://tinyurl.com/2p8dmmey');
 
 // TODO: If the file ends in .png .ico or .css then ignore
 // TODO: If the content url starts with  https://cdn.jsdelivr.net/npm/bulma then ignore
