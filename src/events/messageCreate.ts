@@ -45,7 +45,7 @@ module.exports = {
                 message.author.id,
                 message.author.username,
                 message.author.discriminator,
-                message.author.avatarURL(),
+                message.author.avatarURL() || undefined,
                 undefined,
                 0,
                 0
