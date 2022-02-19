@@ -5,7 +5,8 @@ const lookup = require('web-whois');
 
 import cheerio from 'cheerio';
 
-import { badServers, badTlds } from '../data/badLinks';
+import { badServers, badTlds, urlShorteners } from '../data/badLinks';
+import { goodHostnames } from '../data/goodLinks';
 
 export const getLinks = async (text: string): Promise<Set<string>> => {
     const urls: Set<string> = new Set();
@@ -287,7 +288,16 @@ export const checkLink = async (
     let response;
 
     try {
-        response = await axios.get(url);
+        response = await axios.get(url, {
+            headers: {
+                'User-Agent':
+                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36',
+            },
+        });
+
+        if (response.request._redirectable._redirectCount > 1) {
+            threatScore += 4 * response.request._redirectable._redirectCount;
+        }
     } catch {
         console.log('Url issue: ' + url);
 
@@ -308,7 +318,16 @@ export const checkLink = async (
 
     const { hostname } = new URL(url);
 
+    if (urlShorteners.includes(hostname)) {
+        return true; // Use some sort of code system/object to tell the user shortened links are not allowed, also tie this into checking for redirection
+    }
+
     console.log('hostname', hostname);
+
+    if (goodHostnames.includes(hostname)) {
+        return 0;
+    }
+
     const re = /\.([^.]+?)$/;
 
     const domain = re.exec(hostname);
@@ -340,8 +359,8 @@ export const checkLink = async (
     return threatScore;
 };
 
-checkLink('http://discoerd.gift/Zg82N4Zemc');
-checkLink('https://xulgos.com/');
+//checkLink('http://discoerd.gift/Zg82N4Zemc');
+checkLink('https://tinyurl.com/2p8dmmey');
 
 // TODO: If the file ends in .png .ico or .css then ignore
 // TODO: If the content url starts with  https://cdn.jsdelivr.net/npm/bulma then ignore
