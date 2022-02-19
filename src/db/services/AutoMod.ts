@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/prevent-abbreviations */
 import { RedisClientType } from 'redis';
 
 import log from '../../utils/log';
@@ -161,11 +162,11 @@ export const updateGuildAutoMod = async (
 
 export const deleteGuildAutoMod = async (guild_id: string) => {
     try {
-        return await postgres.query(
-            'DELETE FROM ploxy_automod WHERE guild_id = $1',
-            [guild_id]
-        );
-        await redis.del(`automod:${guild_id}`);
+        await postgres.query('DELETE FROM ploxy_automod WHERE guild_id = $1', [
+            guild_id,
+        ]);
+
+        return await redis.del(`automod:${guild_id}`);
     } catch (error: any) {
         log.error(error);
 

@@ -21,17 +21,17 @@ export const createUser = async (
     user_id: string,
     username: string,
     discriminator: string,
-    user_avatar: string | null = null,
-    email: string | null = null,
+    user_avatar: string | undefined,
+    email: string | undefined,
     premium: number,
     banned: number = 0
 ) => {
-    const res = await getUser(user_id);
+    const response = await getUser(user_id);
 
-    if (res.rows) {
+    if (response.rows) {
         log.debug(`User ${user_id} already exists, createUser failed`);
 
-        return res.rows.length;
+        return response.rows.length;
     }
 
     let result;
@@ -106,10 +106,10 @@ export const getUser = async (
             return JSON.parse(userCache);
         }
 
-        const res = await postgres.query(query, values);
+        const result = await postgres.query(query, values);
 
-        if (res.rows.length > 0) {
-            return res.rows.at(0);
+        if (result.rows.length > 0) {
+            return result.rows.at(0);
         }
 
         log.debug(`User ${user_id} not found, getUser failed`);
@@ -136,14 +136,14 @@ export const updateUser = async (
     user_id: string,
     username: string,
     discriminator: string,
-    user_avatar: string | null = null,
-    email: string | null = null,
+    user_avatar: string | undefined,
+    email: string | undefined,
     premium: number,
     banned: number = 0
 ) => {
-    const res = await getUser(user_id);
+    const UserResult = await getUser(user_id);
 
-    if (!res.rows) {
+    if (!UserResult.rows) {
         log.debug(`User ${user_id} not found, updateUser failed`);
 
         return false;
