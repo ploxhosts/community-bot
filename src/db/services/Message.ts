@@ -39,11 +39,11 @@ export const createMessage = async (
     ];
 
     try {
-        const res = await postgres.query(query, values);
+        const result = await postgres.query(query, values);
 
         await redis.set(`guild:${guild_id}:last_message`, message_id);
 
-        return res.rows.at(0);
+        return result.rows.at(0);
     } catch (error: any) {
         log.error(error);
 
@@ -56,9 +56,9 @@ export const getMessage = async (message_id: string) => {
     const values = [message_id];
 
     try {
-        const res = await postgres.query(query, values);
+        const result = await postgres.query(query, values);
 
-        return res.rows.at(0);
+        return result.rows.at(0);
     } catch (error: any) {
         log.error(error);
 
@@ -71,9 +71,9 @@ export const getMessageFromGuild = async (guild_id: string) => {
     const values = [guild_id];
 
     try {
-        const res = await postgres.query(query, values);
+        const result = await postgres.query(query, values);
 
-        return res.rows;
+        return result.rows;
     } catch (error: any) {
         log.error(error);
 
@@ -86,9 +86,9 @@ export const getMessageFromUser = async (user_id: string) => {
     const values = [user_id];
 
     try {
-        const res = await postgres.query(query, values);
+        const result = await postgres.query(query, values);
 
-        return res.rows;
+        return result.rows;
     } catch (error: any) {
         log.error(error);
 

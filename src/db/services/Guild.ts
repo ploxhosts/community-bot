@@ -66,11 +66,11 @@ export const createGuild = async (
     ];
 
     try {
-        const res = await postgres.query(query, values);
+        const result = await postgres.query(query, values);
 
-        await redis.set(`guild:${guild_id}`, JSON.stringify(res.rows.at(0)));
+        await redis.set(`guild:${guild_id}`, JSON.stringify(result.rows.at(0)));
 
-        return res.rows.at(0);
+        return result.rows.at(0);
     } catch (error: any) {
         log.error(error);
 
@@ -95,11 +95,11 @@ export const getGuild = async (guild_id: string) => {
             return JSON.parse(guildCache);
         }
 
-        const res = await postgres.query(query, values);
+        const result = await postgres.query(query, values);
 
-        await redis.set(`guild:${guild_id}`, JSON.stringify(res.rows.at(0)));
+        await redis.set(`guild:${guild_id}`, JSON.stringify(result.rows.at(0)));
 
-        return res.rows.at(0);
+        return result.rows.at(0);
     } catch (error: any) {
         log.error(error);
 
@@ -116,13 +116,13 @@ export const getAllGuilds = async () => {
     const query = 'SELECT * FROM ploxy_guilds';
 
     try {
-        const res = await postgres.query(query);
+        const result = await postgres.query(query);
 
-        res.rows.forEach(async (guild: any) => {
+        for (const guild of result.rows) {
             await redis.set(`guild:${guild.guild_id}`, JSON.stringify(guild));
-        });
+        }
 
-        return res.rows;
+        return result.rows;
     } catch (error: any) {
         log.error(error);
 
@@ -185,11 +185,11 @@ export const updateGuild = async (
     ];
 
     try {
-        const res = await postgres.query(query, values);
+        const result = await postgres.query(query, values);
 
-        await redis.set(`guild:${guild_id}`, JSON.stringify(res.rows.at(0)));
+        await redis.set(`guild:${guild_id}`, JSON.stringify(result.rows.at(0)));
 
-        return res.rows.at(0);
+        return result.rows.at(0);
     } catch (error: any) {
         log.error(error);
 
@@ -209,9 +209,9 @@ export const deleteGuild = async (guild_id: string) => {
 
     try {
         await redis.del(`guild:${guild_id}`);
-        const res = await postgres.query(query, values);
+        const result = await postgres.query(query, values);
 
-        return res.rows.at(0);
+        return result.rows.at(0);
     } catch (error: any) {
         log.error(error);
 
