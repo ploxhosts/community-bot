@@ -295,7 +295,7 @@ export const checkLink = async (
             },
         });
 
-        if (response.request._redirectable._redirectCount > 1) {
+        if (response.request._redirectable._redirectCount > 0) {
             threatScore += 4 * response.request._redirectable._redirectCount;
         }
     } catch {
