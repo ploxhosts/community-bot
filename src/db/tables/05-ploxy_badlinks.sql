@@ -7,6 +7,7 @@ create table if not exists ploxy_badlinks
     added_by varchar
         constraint ploxy_badlinks_ploxy_users_user_id_fk
             references ploxy_users,
+    score bigint default 0 not null,
     created_at        timestamptz default NOW() not null,
     updated_at        timestamptz default NOW() not null
 );
