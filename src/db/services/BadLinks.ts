@@ -61,7 +61,7 @@ export const removeBadLink = async (badLink: string) => {
  *
  */
 
-export const checkBadLink = async (link: string): Promise<boolean> => {
+export const checkBadLink = async (link: string): Promise<any> => {
     try {
         const result = await postgres.query(
             'SELECT * FROM ploxy_badlinks WHERE link = $1',
@@ -69,7 +69,7 @@ export const checkBadLink = async (link: string): Promise<boolean> => {
         );
 
         if (result.rowCount > 0) {
-            return true;
+            return result.rows.at(0);
         }
 
         return false;
