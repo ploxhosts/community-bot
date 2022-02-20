@@ -135,9 +135,6 @@ const analyseWhois = async (
 
         const now = Date.now() / 1000;
 
-        console.log(now - registrationDate);
-        console.log(registrationDate - now);
-
         if (now - registrationDate < 60 * 60 * 24 * 30) {
             // Domain was registered less than 30 days ago
             threatScore += 30;
@@ -380,11 +377,7 @@ export const checkLink = async (
             ? await checkLinkInDB(hostname, url, guildId)
             : false;
 
-    console.log(LinkCheck);
-
     if (LinkCheck && !LinkCheck.allowed) {
-        console.log('Denied link: ' + hostname);
-
         return {
             type: 'end',
             score: LinkCheck.score,
