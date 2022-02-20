@@ -8,7 +8,7 @@ import HttpsProxyAgent from 'https-proxy-agent';
 
 import { badServers, badTlds, urlShorteners } from '../data/badLinks';
 import { goodHostnames } from '../data/goodLinks';
-import { addLink, checkLinkInDB } from '../db/services/Links';
+import { addLink, checkLinkInDB, checkExistanceByHostname } from '../db/services/Links';
 
 export const getLinks = async (text: string): Promise<Set<string>> => {
     const urls: Set<string> = new Set();
@@ -352,7 +352,7 @@ export const checkLink = async (
     ignore: boolean;
     process: { type: string; score: number }[];
 }> => {
-    if (guildId === false) {
+    if (typeof guildId == 'boolean') {
         guildId = undefined;
     }
 
@@ -383,6 +383,19 @@ export const checkLink = async (
             process,
         };
     }
+
+    const existanceByHostname = await checkExistanceByHostname(hostname, guildId);
+    
+    if (existanceByHostname && existanceByHostname.score < 100) {
+        return {
+            type: 'Existance by hostname',
+            score: existanceByHostname.score,
+            ignore: true,
+            process,
+        };
+    }
+
+    
     console.log('hostname2', hostname);
 
     const LinkCheck =
@@ -508,7 +521,7 @@ export const checkLink = async (
             score: threatScore,
             ignore: false,
             process,
-        }; // Use some sort of code system/object to tell the user shortened links are not allowed, also tie this into checking for redirection
+        };
     }
 
     const re = /\.([^.]+?)$/;
