@@ -68,7 +68,7 @@ export const removeLink = async (link: string, guildId: string | undefined) => {
  *
  */
 
-export const checkLink = async (
+export const checkLinkInDB = async (
     link: string,
     guildId: string | undefined
 ): Promise<any> => {
@@ -138,4 +138,5 @@ module.exports = {
     removeLink,
     addLink,
     getAllLinksByGuildId,
+    checkLinkInDB,
 };

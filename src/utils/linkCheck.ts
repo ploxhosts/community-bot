@@ -7,7 +7,7 @@ import cheerio from 'cheerio';
 
 import { badServers, badTlds, urlShorteners } from '../data/badLinks';
 import { goodHostnames } from '../data/goodLinks';
-import { addBadLink, checkBadLink } from '../db/services/BadLinks';
+import { addLink, checkLinkInDB } from '../db/services/Links';
 
 export const getLinks = async (text: string): Promise<Set<string>> => {
     const urls: Set<string> = new Set();
@@ -164,7 +164,9 @@ const checkHtml = async (
     parsedHtml: cheerio.Root,
     threatScore: number,
     round: number,
-    process: { type: string; score: number }[]
+    process: { type: string; score: number }[],
+    urlShortening: boolean = false,
+    guildId: string | undefined
 ) => {
     const scriptUrls = parsedHtml('script').get();
     const linkUrls = parsedHtml('link').get();
@@ -278,7 +280,13 @@ const checkHtml = async (
             }
 
             round += 1;
-            const returnThreat = await checkLink(scriptUrl, threatScore, round);
+            const returnThreat = await checkLink(
+                scriptUrl,
+                threatScore,
+                round,
+                urlShortening,
+                guildId
+            );
 
             process = process.concat(returnThreat.process);
 
@@ -299,7 +307,13 @@ const checkHtml = async (
             }
 
             round += 1;
-            const returnThreat = await checkLink(scriptUrl, threatScore, round);
+            const returnThreat = await checkLink(
+                scriptUrl,
+                threatScore,
+                round,
+                urlShortening,
+                guildId
+            );
 
             if (typeof returnThreat.score == 'number') {
                 threatScore += returnThreat.score;
@@ -329,7 +343,8 @@ export const checkLink = async (
     url: string,
     threatScore: number = 0,
     round: number = 0,
-    urlShortening: boolean = false
+    urlShortening: boolean = false,
+    guildId: string | undefined
 ): Promise<{
     type: string;
     score: number;
@@ -340,14 +355,14 @@ export const checkLink = async (
     let process: { type: string; score: number }[] = [];
     const { hostname } = new URL(url);
 
-    const badLinkCheck = await checkBadLink(hostname);
+    const LinkCheck = await checkLinkInDB(hostname, guildId);
 
-    if (badLinkCheck) {
+    if (!LinkCheck.allowed && LinkCheck.score > 0) {
         return {
             type: 'end',
-            score: badLinkCheck.score,
+            score: LinkCheck.score,
             ignore: false,
-            process: [{ type: 'badLink', score: badLinkCheck.score }],
+            process: [{ type: 'badLink', score: LinkCheck.score }],
         };
     }
 
@@ -395,7 +410,9 @@ export const checkLink = async (
         parsedHtml,
         threatScore,
         round,
-        process
+        process,
+        urlShortening,
+        guildId
     );
 
     threatScore += htmlCheckResult.threatScore;
@@ -462,11 +479,19 @@ export const checkLink = async (
 
     console.log('threat score: ' + threatScore + ' for domain: ' + url);
 
-    addBadLink(hostname, undefined, threatScore, process);
+    // TODO: Work out average score of a normal site + all spam sites
+
+    let trust = true;
+
+    if (threatScore > 100) {
+        trust = false;
+    }
+
+    addLink(hostname, undefined, threatScore, process, undefined, trust);
 
     return {
         type: 'end',
-        ignore: false,
+        ignore: trust,
         score: threatScore,
         process,
     };
@@ -476,10 +501,3 @@ export const checkLink = async (
 //checkLink('https://tinyurl.com/2p8dmmey');
 
 // TODO: If the file ends in .png .ico or .css then ignore
-// TODO: If the content url starts with  https://cdn.jsdelivr.net/npm/bulma then ignore
-// TODO: If the content url starts with  https://static.cloudflareinsights.com/
-// TODO: If the content url starts with https://www.google-analytics.com/ then ignore
-// TODO: If the content url starts with https://www.googletagmanager.com/ then ignore
-// TODO: If the content url starts with  https://www.google.com/ then ignore
-// TODO: If the content url starts with  https://kit.fontawesome.com/ then ignore
-// TODO: if the content url starts with https://unpkg.com/react-dom then ignore
