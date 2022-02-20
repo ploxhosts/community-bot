@@ -115,19 +115,22 @@ const analyseWhois = async (
     process: { type: string; score: number }[]
 ) => {
     if (data) {
-        const maliciousDomains = ['nic.ru'];
-
+        const maliciousDomains = ["ru"];
         for (const domain of maliciousDomains) {
-            if (data.abuse.includes(domain)) {
+            if (data.abuse && data.abuse.toLowerCase().includes(domain)) {
                 threatScore += 30;
 
                 process.push({ type: 'Abuse email is Russian', score: 30 });
             }
         }
 
-        if (data.registrar.includes('RU')) {
+        if (data.registrar && data.registrar.includes('RU')) {
             threatScore += 30;
             process.push({ type: 'Registra is Russian', score: 30 });
+        } else if (data.registrar && data.registrar == "CloudFlare, Inc."){
+            process.push({ type: 'Using cloudflare for registar', score: 0 });
+        } else if (!data.abuse) {
+            process.push({ type: `No abuse email ${JSON.stringify(data)}`, score: 0 });
         }
 
         const registrationDate = Date.parse(data.registration) / 1000;
@@ -203,10 +206,10 @@ const checkHtml = async (
     for (const titleWord in splitTitle) {
         // loop through page title to check if it contains anything that is known spam
         if (spamLikelyWords.has(titleWord.toLowerCase())) {
-            threatScore += 4;
+            threatScore += 6;
             process.push({
                 type: `Title contains spam ${titleWord.toLowerCase()}`,
-                score: 4,
+                score: 6,
             });
         }
     }
@@ -337,9 +340,6 @@ const checkHtml = async (
     return { threatScore, process };
 };
 
-function rand(items: any) {
-    return items[Math.trunc(items.length * Math.random())];
-}
 export const checkLink = async (
     url: string,
     threatScore: number = 0,
@@ -359,7 +359,7 @@ export const checkLink = async (
     let response;
     let process: { type: string; score: number }[] = [];
     let hostname = '';
-
+    
     try {
         // eslint-disable-next-line prefer-destructuring
         hostname = new URL(url).hostname;
@@ -371,6 +371,19 @@ export const checkLink = async (
             process,
         };
     }
+
+    
+    console.log('hostname', hostname);
+
+    if (goodHostnames.includes(hostname)) {
+        return {
+            type: 'good hostname',
+            score: 0,
+            ignore: true,
+            process,
+        };
+    }
+    console.log('hostname2', hostname);
 
     const LinkCheck =
         typeof guildId == 'string' || guildId == undefined
@@ -472,7 +485,7 @@ export const checkLink = async (
 
     const getLastFileType = url.split('.').pop();
 
-    if (getLastFileType && !fileTypes.includes(getLastFileType)) {
+    if (getLastFileType && !fileTypes.includes(getLastFileType) && !url.includes('cdn')) {
         const htmlCheckResult =
             typeof guildId == 'string' || guildId == undefined
                 ? await checkHtml(
@@ -496,17 +509,6 @@ export const checkLink = async (
             ignore: false,
             process,
         }; // Use some sort of code system/object to tell the user shortened links are not allowed, also tie this into checking for redirection
-    }
-
-    console.log('hostname', hostname);
-
-    if (goodHostnames.includes(hostname)) {
-        return {
-            type: 'good hostname',
-            score: 0,
-            ignore: true,
-            process,
-        };
     }
 
     const re = /\.([^.]+?)$/;
@@ -567,5 +569,9 @@ export const checkLink = async (
     };
 };
 
-checkLink('http://discoerd.gift/Zg82N4Zemc', 0, 0, true, false);
+checkLink('https://discoerd.gift/Zg82N4Zemc', 0, 0, true, false);
+checkLink('https://Churton.uk', 0, 0, true, false);
+checkLink('https://marketplace.visualstudio.com/items?itemName=dsznajder.es7-react-js-snippets&ssr=false#review-details', 0, 0, true, false);
+checkLink('https://eslint.org/docs/rules/prefer-destructuring', 0, 0, true, false);
+checkLink('https://weston.ac.uk', 0, 0, true, false);
 // TODO: If the file ends in .png .ico or .css then ignore

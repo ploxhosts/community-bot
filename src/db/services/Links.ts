@@ -32,11 +32,18 @@ export const addLink = async (
             databaseCheck &&
             databaseCheck.score < score &&
             databaseCheck.allowed
-        ) {
+        ) { // if it exists, if the stored score is lower than the new score and it's currently allowed
             await removeLink(link, hostname, guildId);
+            console.log('removed from link db', link, hostname, guildId);
         } else if (databaseCheck && databaseCheck.score >= score) {
-            console.log('Already exists in database', hostname);
+            return;
+        } else if (databaseCheck) {
+            return;
+        }
+        
+        const hostnameCheck = await checkExistanceByHostname(hostname, guildId);
 
+        if (hostnameCheck) {
             return;
         }
 
@@ -92,6 +99,40 @@ export const removeLink = async (
         log.error(error);
 
         return false;
+    }
+};
+
+/**
+ * Check existance by hostname
+ *
+ */
+
+ export const checkExistanceByHostname = async (
+    hostname: string,
+    guildId: string | undefined
+): Promise<any> => {
+    try {
+        const redisResult = await redis.get(`link:${hostname}:${guildId}`);
+
+        if (redisResult) {
+            return JSON.parse(redisResult);
+        }
+
+        const result = await (guildId
+            ? postgres.query(
+                  'SELECT * FROM ploxy_links WHERE hostname = $1 AND guild_id = $2',
+                  [hostname, guildId]
+              )
+            : postgres.query(
+                  'SELECT * FROM ploxy_links WHERE hostname = $1 AND guild_id is NULL',
+                  [hostname]
+              ));
+
+        return result.rowCount > 0 ? result.rows.at(0) : undefined;
+    } catch (error: any) {
+        log.error(error);
+
+        return undefined;
     }
 };
 
