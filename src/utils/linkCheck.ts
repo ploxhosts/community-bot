@@ -386,6 +386,38 @@ export const checkLink = async (
         };
     }
 
+    const fileTypes = [
+        'jpg',
+        'jpeg',
+        'png',
+        'gif',
+        'svg',
+        'webp',
+        'ico',
+        'bmp',
+        'css',
+        'js',
+        'json',
+        'xml',
+        'txt',
+        'pdf',
+        'doc',
+        'docx',
+        'xls',
+        'xlsx',
+        'ppt',
+        'pptx',
+        'mp3',
+        'mp4',
+    ];
+
+    const getLastFileType = hostname.split('.').pop();
+
+    if (getLastFileType && fileTypes.includes(getLastFileType)) {
+        threatScore += 2;
+        process.push({ type: 'JS file', score: 2 });
+    }
+
     try {
         response = await axios.get(url, {
             headers: {
