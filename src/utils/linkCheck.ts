@@ -419,7 +419,6 @@ export const checkLink = async (
     process = process.concat(htmlCheckResult.process);
 
     if (!urlShortening && urlShorteners.includes(hostname)) {
-        // TODO check if url shortening is disallowed
         return {
             type: 'Shortened URL',
             score: threatScore,
