@@ -17,6 +17,7 @@ let redis: RedisClientType;
  *
  */
 export const addLink = async (
+    hostname: string,
     link: string,
     addedBy: string | undefined,
     score: number,
@@ -25,13 +26,35 @@ export const addLink = async (
     allowed: boolean
 ) => {
     try {
+        const databaseCheck = await checkLinkInDB(link, hostname, guildId);
+
+        if (
+            databaseCheck &&
+            databaseCheck.score < score &&
+            databaseCheck.allowed
+        ) {
+            await removeLink(link, hostname, guildId);
+        } else if (databaseCheck && databaseCheck.score >= score) {
+            console.log('Already exists in database', hostname);
+
+            return;
+        }
+
         const result = await postgres.query(
-            'INSERT INTO ploxy_links (link, added_by, score, process, guild_id, allowed) VALUES ($1, $2, $3, $4, $5)',
-            [link, addedBy, score, process.toString(), guildId, allowed]
+            'INSERT INTO ploxy_links (hostname, added_by, score, process, guild_id, allowed, link) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+            [
+                hostname,
+                addedBy,
+                score,
+                JSON.stringify(process),
+                guildId,
+                allowed,
+                link,
+            ]
         );
 
         await redis.set(
-            `link:${link}:${guildId}`,
+            `link:${hostname}:${guildId}`,
             JSON.stringify(result.rows.at(0))
         );
     } catch (error: any) {
@@ -48,14 +71,23 @@ export const addLink = async (
  * @param guildId - The guild id that set the link or set undefined if done by system
  */
 
-export const removeLink = async (link: string, guildId: string | undefined) => {
+export const removeLink = async (
+    hostname: string,
+    link: string,
+    guildId: string | undefined
+) => {
     try {
-        await postgres.query(
-            'DELETE FROM ploxy_links WHERE link = $1 AND guild_id = $2',
-            [link, guildId]
-        );
+        await (guildId
+            ? postgres.query(
+                  'DELETE FROM ploxy_links WHERE (link = $1 OR hostname = $2) AND guild_id = $3',
+                  [link, hostname, guildId]
+              )
+            : postgres.query(
+                  'DELETE FROM ploxy_links WHERE (link = $1 OR hostname = $2) AND guild_id is NULL',
+                  [link, hostname]
+              ));
 
-        return await redis.del(`link:${link}:${guildId}`);
+        return await redis.del(`link:${hostname}:${guildId}`);
     } catch (error: any) {
         log.error(error);
 
@@ -70,29 +102,31 @@ export const removeLink = async (link: string, guildId: string | undefined) => {
 
 export const checkLinkInDB = async (
     link: string,
+    hostname: string,
     guildId: string | undefined
 ): Promise<any> => {
     try {
-        const redisResult = await redis.get(`link:${link}:${guildId}`);
+        const redisResult = await redis.get(`link:${hostname}:${guildId}`);
 
         if (redisResult) {
             return JSON.parse(redisResult);
         }
 
-        const result = await postgres.query(
-            'SELECT * FROM ploxy_links WHERE link = $1 AND guild_id = $2',
-            [link, guildId]
-        );
+        const result = await (guildId
+            ? postgres.query(
+                  'SELECT * FROM ploxy_links WHERE (link = $1 OR hostname = $2) AND guild_id = $3',
+                  [link, hostname, guildId]
+              )
+            : postgres.query(
+                  'SELECT * FROM ploxy_links WHERE (link = $1 OR hostname = $2) AND guild_id is NULL',
+                  [link, hostname]
+              ));
 
-        if (result.rowCount > 0) {
-            return result.rows.at(0);
-        }
-
-        return false;
+        return result.rowCount > 0 ? result.rows.at(0) : undefined;
     } catch (error: any) {
         log.error(error);
 
-        return false;
+        return undefined;
     }
 };
 

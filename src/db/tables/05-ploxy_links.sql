@@ -3,6 +3,7 @@ create table if not exists ploxy_links
     id       bigserial
         constraint ploxy_links_pk
             primary key,
+    hostname     text not null,
     link     text not null,
     added_by varchar
         constraint ploxy_links_ploxy_users_user_id_fk

@@ -105,7 +105,14 @@ module.exports = {
         if (autoModule.message_spam_check) {
             const messagesSent = await getMessageFromUser(message.author.id);
             const messagesCount = !messagesSent ? 0 : messagesSent.length;
-            const spamScore = await spamCheck(message.content, messagesCount);
+            const spamScore = await spamCheck(
+                message.content,
+                messagesCount,
+                0,
+                false,
+                false,
+                message.guild.id
+            );
         }
 
         if (autoModule.message_pasta_check) {

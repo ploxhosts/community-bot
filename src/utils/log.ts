@@ -1,5 +1,4 @@
 import { createLogger, shimLog } from '@lvksh/logger';
-import { FileLogger } from '@lvksh/logger/lib/FileLog';
 import chalk from 'chalk';
 import { join } from 'node:path';
 
@@ -25,14 +24,7 @@ const log = createLogger(
         error: chalk.bgRed.white.bold`[ERROR]`,
     },
     { padding: 'PREPEND' },
-    [
-        FileLogger({
-            mode: 'NEW_FILE',
-            path: join(__dirname + '../../', 'logs'),
-            namePattern: 'test.txt',
-        }),
-        console.log,
-    ]
+    [console.log]
 );
 
 shimLog(log, 'debug');

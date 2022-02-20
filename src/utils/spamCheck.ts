@@ -5,7 +5,9 @@ export const spamCheck = async (
     text: string,
     author_message_count: number,
     riskScore: number = 0,
-    is_allowed: boolean = false
+    is_allowed: boolean = false,
+    linkShorterning: boolean = false,
+    guildId: string | undefined
 ) => {
     if (
         (text.toLowerCase().includes('@everyone') ||
@@ -18,7 +20,13 @@ export const spamCheck = async (
     const links = await getLinks(text);
 
     for (const link of links) {
-        const result = await checkLink(link);
+        const result = await checkLink(
+            link,
+            riskScore,
+            0,
+            linkShorterning,
+            guildId
+        );
 
         if (typeof result === 'number') {
             riskScore += result;
