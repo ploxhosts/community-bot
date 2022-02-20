@@ -60,16 +60,15 @@ module.exports = {
             result = 'You lose!';
         }
 
-        const Embed = new discord.MessageEmbed()
-            .setTitle('Rock Paper Scissors')
-            .setColor(process.env.themeColor as discord.ColorResolvable)
-            .setDescription(
-                `You chose ${userChoice}, I chose ${botChoice}.\n**${result}**`
-            )
-            .setFooter(
-                `${process.env.brandName} - Commands`,
-                interaction.client.user?.displayAvatarURL()
-            );
+        const Embed = new discord.MessageEmbed({
+            title: 'Rock Paper Scissors',
+            color: process.env.themeColor as discord.ColorResolvable,
+            description: `You chose ${userChoice}, I chose ${botChoice}.\n**${result}**`,
+            footer: {
+                text: `${process.env.brandName} - Commands`,
+                iconURL: interaction.client.user?.displayAvatarURL(),
+            },
+        })
 
         await interaction.reply({ embeds: [Embed] });
     },

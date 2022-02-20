@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import discord from 'discord.js';
-const safeEval = require('safe-eval');
+import math from 'mathjs';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -13,46 +13,42 @@ module.exports = {
                 .setRequired(true)
         ),
     async execute(interaction: any) {
-        const dangerousKeywords = [
-            'eval',
-            'exec',
-            'system',
-            'shell',
-            'token',
-            'env',
-            'process',
-            'throw',
-        ];
 
-        if (interaction.options.get('expression').value.length > 500) {
-            await interaction.reply('I can\'t do that, too long.');
+        const expression = interaction.options.get('expression').value;
+        // calculate the expression without eval
+        
+
+        if (expression.length > 300) {
+            await interaction.reply('I can\'t do that, it\'s too long.');
 
             return;
         }
+        const limitedEvaluate = math.evaluate
 
-        if (
-            dangerousKeywords.some((word: string) =>
-                interaction.options.get('expression').value.includes(word)
-            )
-        ) {
-            await interaction.reply('I am sorry I cannot do that!');
-
-            return;
-        }
-
-        const Embed = new discord.MessageEmbed()
-            .setTitle('Calculate maths command')
-            .setColor(process.env.themeColor as discord.ColorResolvable)
-            .setDescription(
-                `:abacus:  \`${
-                    interaction.options.get('expression').value
-                } = ${safeEval(interaction.options.get('expression').value)}\``
-            )
-            .setFooter(
-                `${process.env.brandName} - Commands`,
+        math.import({
+          import: function () { throw new Error('Function import is disabled') },
+          createUnit: function () { throw new Error('Function createUnit is disabled') },
+          evaluate: function () { throw new Error('Function evaluate is disabled') },
+          parse: function () { throw new Error('Function parse is disabled') },
+          simplify: function () { throw new Error('Function simplify is disabled') },
+          derivative: function () { throw new Error('Function derivative is disabled') }
+        }, { override: true })
+        
+        
+        const Embed = new discord.MessageEmbed({
+            title: 'Maths',
+            description: `:abacus:  \`${
+                expression
+            } = ${limitedEvaluate(expression)}\``,
+            color: process.env.themeColor as discord.ColorResolvable,
+            footer: {
+                text: `${process.env.brandName} - Commands`,
+                iconURL: 
                 interaction.client.user?.displayAvatarURL()
-            );
+            },
+        });
 
         await interaction.reply({ embeds: [Embed] });
     },
 };
+

@@ -15,4 +15,6 @@ export const goodHostnames = [
     'www.google-analytics.com',
     'www.googletagmanager.com',
     'unpkg.com',
+    'discord.com',
+    'nertivia.net',
 ];

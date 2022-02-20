@@ -17,14 +17,17 @@ module.exports = {
             },
         });
 
-        const Embed = new discord.MessageEmbed()
-            .setTitle(':man_red_haired: Dad Joke')
-            .setDescription(`${dadJoke.data.joke}`)
-            .setColor(process.env.themeColor as discord.ColorResolvable)
-            .setFooter(
-                `${process.env.brandName} - Commands`,
-                interaction.client.user?.displayAvatarURL()
-            );
+        const Embed = new discord.MessageEmbed(
+            {
+                title: ':man_red_haired: Dad Joke',
+                description: `${dadJoke.data.joke}`,
+                color:process.env.themeColor as discord.ColorResolvable,
+                footer: {
+                    text: `${process.env.brandName} - Commands`,
+                    iconURL: interaction.client.user?.displayAvatarURL(),
+                }
+            }
+        )
 
         await interaction.reply({ embeds: [Embed] });
     },

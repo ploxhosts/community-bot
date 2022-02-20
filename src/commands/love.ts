@@ -23,16 +23,18 @@ module.exports = {
         const choice = crypto.randomInt(1, 100);
         const user1: discord.User = interaction.options.getUser('user1');
         const user2: discord.User = interaction.options.getUser('user2');
-        const Embed = new discord.MessageEmbed()
-            .setTitle('Love calculator')
-            .setColor(process.env.themeColor as discord.ColorResolvable)
-            .setDescription(
-                `:heart:  <@${user1.id}> and <@${user2.id}> have a ${choice}% chance of love!`
-            )
-            .setFooter(
-                `${process.env.brandName} - Commands`,
-                interaction.client.user?.displayAvatarURL()
-            );
+
+        // TODO: use user's chat history to check if they are friends or like the same things
+        const Embed = new discord.MessageEmbed({
+            title: 'Love calculator',
+            color: process.env.themeColor as discord.ColorResolvable,
+            description: 
+            `:heart:  <@${user1.id}> and <@${user2.id}> have a ${choice}% chance of love!`,
+            footer: {
+                text: `${process.env.brandName} - Commands`,
+                iconURL: interaction.client.user?.displayAvatarURL(),
+            },
+        })
 
         await interaction.reply({ embeds: [Embed] });
     },

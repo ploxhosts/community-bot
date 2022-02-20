@@ -42,14 +42,17 @@ module.exports = {
             'No',
         ];
         const answer = answers.at(Math.floor(Math.random() * answers.length));
-        const Embed = new discord.MessageEmbed()
-            .setTitle('8ball')
-            .setDescription(`:question: ${question}\n:8ball: ${answer}`)
-            .setColor(process.env.themeColor as discord.ColorResolvable)
-            .setFooter(
-                `${process.env.brandName} - Commands`,
-                interaction.client.user?.displayAvatarURL()
-            );
+        const Embed = new discord.MessageEmbed(
+            {
+                title: '8ball',
+                description: `:question: ${question}\n:8ball: ${answer}`,
+                color: process.env.themeColor as discord.ColorResolvable,
+                footer: {
+                    text: `${process.env.brandName} - Commands`,
+                    iconURL: interaction.client.user?.displayAvatarURL(),
+                },
+            }
+        );
 
         await interaction.reply({ embeds: [Embed] });
     },

@@ -9,17 +9,21 @@ module.exports = {
             'Gives you the ability to flip a coin giving Heads or Tails.'
         ),
     async execute(interaction: any) {
-        const Embed = new discord.MessageEmbed()
-            .setTitle('Coin Flip')
-            .setColor(process.env.themeColor as discord.ColorResolvable)
-            .setFooter(
-                `${process.env.brandName} - Commands`,
-                interaction.client.user?.displayAvatarURL()
-            );
+        const random = crypto.randomInt(1, 2);
+        const Embed = new discord.MessageEmbed(
+            {
+                title: 'Coin Flip',
+                description: random === 1
+                ? ':coin: The coin shows Heads'
+                : ':coin: The coin shows Tails',
+                color: process.env.themeColor as discord.ColorResolvable,
+                footer: {
+                    text: `${process.env.brandName} - Commands`,
+                    iconURL: interaction.client.user?.displayAvatarURL(),
+                },
 
-        crypto.randomInt(1, 2) === 1
-            ? Embed.setDescription(':coin: The coin shows Heads')
-            : Embed.setDescription(':coin: The coin shows Tails');
+            }
+        )
         await interaction.reply({ embeds: [Embed] });
     },
 };
