@@ -411,11 +411,15 @@ export const checkLink = async (
         'mp4',
     ];
 
-    const getLastFileType = hostname.split('.').pop();
+    const getLastFileType = url.split('.').pop();
 
     if (getLastFileType && fileTypes.includes(getLastFileType)) {
-        threatScore += 2;
-        process.push({ type: 'JS file', score: 2 });
+        return {
+            type: 'end',
+            score: 0,
+            ignore: false,
+            process: [{ type: 'fileType', score: 0 }],
+        };
     }
 
     try {
@@ -561,5 +565,5 @@ export const checkLink = async (
     };
 };
 
-//checkLink('http://discoerd.gift/Zg82N4Zemc', 0, 0, true, false);
+checkLink('http://discoerd.gift/Zg82N4Zemc', 0, 0, true, false);
 // TODO: If the file ends in .png .ico or .css then ignore
