@@ -1,7 +1,7 @@
 export const badServers = [
     {
         name: 'ddos-guard',
-        score: 4,
+        score: 8,
     },
 ];
 

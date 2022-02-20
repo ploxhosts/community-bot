@@ -119,15 +119,15 @@ const analyseWhois = async (
 
         for (const domain of maliciousDomains) {
             if (data.abuse.includes(domain)) {
-                threatScore += 10;
+                threatScore += 30;
 
-                process.push({ type: 'Abuse email is Russian', score: 10 });
+                process.push({ type: 'Abuse email is Russian', score: 30 });
             }
         }
 
         if (data.registrar.includes('RU')) {
-            threatScore += 10;
-            process.push({ type: 'Registra is Russian', score: 10 });
+            threatScore += 30;
+            process.push({ type: 'Registra is Russian', score: 30 });
         }
 
         const registrationDate = Date.parse(data.registration) / 1000;
@@ -137,10 +137,10 @@ const analyseWhois = async (
 
         if (now - registrationDate < 60 * 60 * 24 * 30) {
             // Domain was registered less than 30 days ago
-            threatScore += 30;
+            threatScore += 50;
             process.push({
                 type: 'registration was under 30 days ago',
-                score: 30,
+                score: 50,
             });
         }
 
@@ -411,14 +411,12 @@ export const checkLink = async (
         'mp4',
     ];
 
-    const getLastFileType = url.split('.').pop();
-
-    if (getLastFileType && fileTypes.includes(getLastFileType)) {
+    if (url.at(0) == '/') {
         return {
             type: 'end',
             score: 0,
             ignore: false,
-            process: [{ type: 'fileType', score: 0 }],
+            process: [{ type: 'local file type', score: 0 }],
         };
     }
 
@@ -472,20 +470,24 @@ export const checkLink = async (
 
     const parsedHtml = cheerio.load(data, { xmlMode: false });
 
-    const htmlCheckResult =
-        typeof guildId == 'string' || guildId == undefined
-            ? await checkHtml(
-                  parsedHtml,
-                  threatScore,
-                  round,
-                  process,
-                  urlShortening,
-                  guildId
-              )
-            : { threatScore: 0, process: [] };
+    const getLastFileType = url.split('.').pop();
 
-    threatScore += htmlCheckResult.threatScore;
-    process = process.concat(htmlCheckResult.process);
+    if (getLastFileType && !fileTypes.includes(getLastFileType)) {
+        const htmlCheckResult =
+            typeof guildId == 'string' || guildId == undefined
+                ? await checkHtml(
+                      parsedHtml,
+                      threatScore,
+                      round,
+                      process,
+                      urlShortening,
+                      guildId
+                  )
+                : { threatScore: 0, process: [] };
+
+        threatScore += htmlCheckResult.threatScore;
+        process = process.concat(htmlCheckResult.process);
+    }
 
     if (!urlShortening && urlShorteners.includes(hostname)) {
         return {
