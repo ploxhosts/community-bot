@@ -395,7 +395,7 @@ export const checkLink = async (
 
         if (diffDays <  Math.floor(Math.random() * (7 - 3 + 1)) + 3) {
 
-            return existanceByHostname.threatScore > 100 ? {
+            return existanceByHostname.threatScore > 105 ? {
                 type: 'Existance by hostname',
                 score: existanceByHostname.score,
                 ignore: true,
@@ -583,7 +583,7 @@ export const checkLink = async (
 
     let trust = true;
 
-    if (threatScore > 100) {
+    if (threatScore > 105) {
         trust = false;
     }
 
