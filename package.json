@@ -26,8 +26,8 @@
   "homepage": "https://github.com/PloxHost-LLC/community-bot#readme",
   "devDependencies": {
     "@types/cheerio": "^0.22.30",
+    "@types/mysql": "^2.15.19",
     "@types/pg": "^8.6.3",
-    "@types/redis": "^4.0.11",
     "@typescript-eslint/parser": "^5.9.0",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
@@ -43,7 +43,7 @@
   "dependencies": {
     "@discordjs/rest": "^0.1.0-canary.0",
     "@lvksh/logger": "^1.5.2",
-    "@types/mysql": "^2.15.19",
+    "@node-redis/json": "^1.0.2",
     "axios": "^0.21.3",
     "cheerio": "^1.0.0-rc.10",
     "copyfiles": "^2.4.1",
@@ -54,7 +54,7 @@
     "node-libcurl": "^2.3.4",
     "pg": "^8.7.1",
     "puppeteer": "^13.0.1",
-    "redis": "^4.0.1",
+    "redis": "^4.0.3",
     "safe-eval": "^0.4.1",
     "web-whois": "^0.0.6",
     "whois": "^2.13.7"
