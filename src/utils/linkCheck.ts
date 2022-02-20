@@ -385,14 +385,29 @@ export const checkLink = async (
     }
 
     const existanceByHostname = await checkExistanceByHostname(hostname, guildId);
-    
-    if (existanceByHostname && existanceByHostname.score < 100) {
-        return {
-            type: 'Existance by hostname',
-            score: existanceByHostname.score,
-            ignore: true,
-            process,
-        };
+
+    // use existanceByHostname.updated_at to check if hostname was updated more than 7 days ago
+    if (existanceByHostname && existanceByHostname.updated_at) {
+        const updated_at = new Date(existanceByHostname.updated_at);
+        const now = new Date();
+        const diff = now.getTime() - updated_at.getTime();
+        const diffDays = Math.ceil(diff / (1000 * 3600 * 24));
+
+        if (diffDays <  Math.floor(Math.random() * (7 - 3 + 1)) + 3) {
+
+            return existanceByHostname.threatScore > 100 ? {
+                type: 'Existance by hostname',
+                score: existanceByHostname.score,
+                ignore: true,
+                process,
+            } : {
+                type: 'Existance by hostname',
+                score: existanceByHostname.score,
+                ignore: false,
+                process,
+            };
+
+        }
     }
 
     
@@ -581,10 +596,3 @@ export const checkLink = async (
         process,
     };
 };
-
-checkLink('https://discoerd.gift/Zg82N4Zemc', 0, 0, true, false);
-checkLink('https://Churton.uk', 0, 0, true, false);
-checkLink('https://marketplace.visualstudio.com/items?itemName=dsznajder.es7-react-js-snippets&ssr=false#review-details', 0, 0, true, false);
-checkLink('https://eslint.org/docs/rules/prefer-destructuring', 0, 0, true, false);
-checkLink('https://weston.ac.uk', 0, 0, true, false);
-// TODO: If the file ends in .png .ico or .css then ignore

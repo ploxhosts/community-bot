@@ -214,4 +214,5 @@ module.exports = {
     addLink,
     getAllLinksByGuildId,
     checkLinkInDB,
+    checkExistanceByHostname,
 };
