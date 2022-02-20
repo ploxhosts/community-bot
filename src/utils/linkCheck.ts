@@ -108,6 +108,30 @@ export const getLinks = async (text: string): Promise<Set<string>> => {
     return urls;
 };
 
+const getProxy = async () => {
+    return await axios
+        .get(
+            'https://api.proxyscrape.com/?request=getproxies&proxytype=http&timeout=10000&country=all&ssl=all&anonymity=all'
+        )
+        .then((response) => {
+            const proxies = [];
+
+            for (const proxy of JSON.parse(response.data)['data']) {
+                if (proxy.length > 0) {
+                    proxies.push({
+                        ip: proxy.ip,
+                        port: proxy.port,
+                    });
+                }
+            }
+
+            return proxies;
+        })
+        .catch((error) => {
+            console.log(error);
+        });
+};
+
 const analyseWhois = async (
     data: any,
     threatScore: number,
@@ -339,6 +363,9 @@ const checkHtml = async (
     return { threatScore, process };
 };
 
+function rand(items: any) {
+    return items[Math.trunc(items.length * Math.random())];
+}
 export const checkLink = async (
     url: string,
     threatScore: number = 0,
@@ -366,24 +393,52 @@ export const checkLink = async (
         };
     }
 
-    try {
-        response = await axios.get(url, {
-            headers: {
-                'User-Agent':
-                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36',
-            },
-        });
+    const proxies = await getProxy();
 
-        if (response.request._redirectable._redirectCount > 0) {
-            threatScore += 4 * response.request._redirectable._redirectCount;
-            process.push({
-                type: `redirect ${hostname}`,
-                score: 4 * response.request._redirectable._redirectCount,
+    const proxy = rand(proxies);
+    let attemptsWithProxy = 0;
+
+    // random number between 5 and 15
+    const maxAttemptsWithProxy = Math.trunc(Math.random() * 10) + 5;
+
+    while (attemptsWithProxy < maxAttemptsWithProxy) {
+        try {
+            response = await axios.get(url, {
+                headers: {
+                    'User-Agent':
+                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36',
+                },
+                proxy: {
+                    host: proxy.ip,
+                    port: proxy.port,
+                },
             });
-        }
-    } catch {
-        console.log('Url issue: ' + url);
 
+            if (response.request._redirectable._redirectCount > 0) {
+                threatScore +=
+                    4 * response.request._redirectable._redirectCount;
+                process.push({
+                    type: `redirect ${hostname}`,
+                    score: 4 * response.request._redirectable._redirectCount,
+                });
+            }
+
+            attemptsWithProxy = 100;
+        } catch {
+            console.log('Url issue: ' + url);
+            attemptsWithProxy++;
+
+            return {
+                type: 'error',
+                score: threatScore,
+                ignore: true,
+                process,
+            };
+        }
+    }
+
+    if (response == undefined) {
+        // Could be sus unsure, might change
         return {
             type: 'error',
             score: threatScore,
