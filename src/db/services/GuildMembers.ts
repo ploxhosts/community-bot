@@ -127,7 +127,6 @@ export const updateGuildMember = async (
     avatar?: string,
     muted?: boolean,
 ) => {
-    const original = await getGuildMember(guild_id, user_id);
 
     const update: any = {};
 
@@ -192,6 +191,57 @@ export const deleteGuildMember = async (guild_id: string, user_id: string) => {
     }
 };
 
+const memberJoin = async (
+    guild_id: string,
+    user_id: string,
+    invite_link: string,
+) => {
+    const member = await getGuildMember(guild_id, user_id);
+    const query = `INSERT INTO ploxy_guild_members (
+        id,
+        user_guild_id,
+        guild_id,
+        user_id,
+        invite_link ) VALUES ($1, $2, $3, $4, $5)`;
+    const values = [
+        nanoid(),
+        member.id,
+        guild_id,
+        user_id,
+        invite_link,
+    ];
+    try {
+        const result = await postgres.query(query, values);
+
+        return result.rows.at(0);
+    } catch (error: any) {
+        log.error(error);
+
+        return false;
+        
+    }
+};
+
+const memberLeave = async (guild_id: string, user_id: string) => {
+    let query = `UPDATE ploxy_guild_members SET verified = false WHERE guild_id = $1 AND user_id = $2`;
+    const values = [guild_id, user_id];
+
+    try {
+        const result = await postgres.query(query, values);
+
+        query = `UPDATE ploxy_guild_joins SET left_at = NOW() WHERE guild_id = $1 AND user_id = $2 AND user_guild_id = $3`;
+        values.push(result.rows.at(0).id);
+        const finalResult = await postgres.query(query, values);
+
+        return finalResult.rows.at(0);
+    }
+    catch (error: any) {
+        log.error(error);
+
+        return false;
+    }
+
+};
 module.exports = {
     setRedis: function (redisIn: RedisClientType) {
         redis = redisIn;
