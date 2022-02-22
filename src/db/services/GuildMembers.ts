@@ -251,4 +251,6 @@ module.exports = {
     updateGuildMember,
     getGuildMember,
     getGuildsMembers,
+    memberJoin,
+    memberLeave,
 };
