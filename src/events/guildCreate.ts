@@ -2,6 +2,9 @@ import discord from 'discord.js';
 import { RedisClientType } from 'redis';
 
 import GuildClass from '../db/services/Guild';
+import UserClass from '../db/services/User';
+import GuildMemberClass from '../db/services/GuildMembers';
+
 import createGuildEmbed from '../utils/embeds/createGuildEmbed';
 import log from '../utils/log';
 let redis: RedisClientType;
@@ -23,6 +26,8 @@ module.exports = {
     name: 'guildCreate',
     async execute(guild: discord.Guild) {
         const Guild = new GuildClass();
+        const User = new UserClass();
+        const GuildMember = new GuildMemberClass();
         log.debug('Joined guild 1');
 
         const guildData = await Guild.createGuild(
@@ -39,9 +44,32 @@ module.exports = {
             false
         );
 
-        if (!guildData) {
-            log.error(`Failed to create guild ${guild.id}`);
+        const guildOwnerDiscord = await guild.fetchOwner();
+        await User.createUser(
+            guildOwnerDiscord.id,
+            guildOwnerDiscord.user.username,
+            guildOwnerDiscord.user.discriminator,
+            guildOwnerDiscord.user.avatarURL() || `https://cdn.discordapp.com/embed/avatars/${Number.parseInt(guildOwnerDiscord.user.discriminator) % 5}.png`,
+            undefined,
+            guildOwnerDiscord.premiumSince ? 1 : 0,
+            0
+        );
+
+        await GuildMember.createGuildMember(
+            guild.id,
+            guildOwnerDiscord.id,
+            false,
+            guildOwnerDiscord.roles.cache.map((role) => role.id),
+            guildOwnerDiscord.nickname || guildOwnerDiscord.user.username,
+            guildOwnerDiscord.avatarURL() || `https://cdn.discordapp.com/embed/avatars/${Number.parseInt(guildOwnerDiscord.user.discriminator) % 5}.png`,
+            false
+        );
+
+
+        if (guildData == false) {
+            return log.error(`Failed to create guild ${guild.id}`);
         }
+        
         const botCount = guild.members.cache.filter(
             (member) => member.user.bot
         ).size; // Amount of bots that are in a guild

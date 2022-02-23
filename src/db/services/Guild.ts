@@ -87,7 +87,7 @@ class Guild {
     
             await redis.set(`guild:${guild_id}`, JSON.stringify(result.rows.at(0)));
     
-            return result.rows.at(0);
+            return result.rows.at(0) as GuildData;
         } catch (error: any) {
             log.error(error);
     
