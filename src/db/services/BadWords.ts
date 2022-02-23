@@ -99,6 +99,21 @@ class BadWords{
             return false;
         }
     };
+
+    deleteAll = async (guild_id: string): Promise<BadWordData[] | false> => {
+        try {
+            const result = await postgres.query(
+                'DELETE FROM ploxy_badwords WHERE guild_id = $1',
+                [guild_id]
+            );
+            return result.rows;
+        } catch (error: any) {
+            log.error(error);
+
+            return false;
+        }
+    }
+    
 }
 
 

@@ -1,10 +1,10 @@
 import discord from 'discord.js';
 import { RedisClientType } from 'redis';
 
-import { getGuildAutoMod as getGuildAutoModule } from '../db/services/AutoMod';
-import { createGuild } from '../db/services/Guild';
-import { createMessage, getMessageFromUser } from '../db/services/Message';
-import { createUser } from '../db/services/User';
+import AutoModClass from '../db/services/AutoMod';
+import GuildClass from '../db/services/Guild';
+import MessageClass from '../db/services/Message';
+import UserClass from '../db/services/User';
 import { badWordCheck } from '../utils/badWordCheck';
 import { copyPastaCheck } from '../utils/copyPastaCheck';
 import { spamCheck } from '../utils/spamCheck';
@@ -28,7 +28,10 @@ module.exports = {
     name: 'messageCreate',
     async execute(message: discord.Message) {
         console.log('Message sent');
-
+        const Guild = new GuildClass();
+        const User = new UserClass();
+        const Message = new MessageClass();
+        const AutoMod = new AutoModClass();
         if (!message.guild) {
             return;
         }
@@ -41,7 +44,7 @@ module.exports = {
             );
 
         if (!data) {
-            await createUser(
+            await User.createUser(
                 message.author.id,
                 message.author.username,
                 message.author.discriminator,
@@ -66,7 +69,7 @@ module.exports = {
             );
 
         if (!data) {
-            await createGuild(
+            await Guild.createGuild(
                 message.guild.id,
                 message.guild.name,
                 message.guild.iconURL(),
@@ -87,7 +90,7 @@ module.exports = {
                 );
         }
 
-        await createMessage(
+        await Message.createMessage(
             message.id,
             message.author.id,
             message.content,
@@ -96,14 +99,14 @@ module.exports = {
             message.guild.id,
             message.hasThread
         );
-        const autoModule = await getGuildAutoModule(message.guild.id);
+        const autoModule = await AutoMod.getGuildAutoMod(message.guild.id);
 
         if (!autoModule) {
             return;
         }
 
         if (autoModule.message_spam_check) {
-            const messagesSent = await getMessageFromUser(message.author.id);
+            const messagesSent = await Message.getMessagesFromUser(message.author.id);
             const messagesCount = !messagesSent ? 0 : messagesSent.length;
             const spamScore = await spamCheck(
                 message.content,

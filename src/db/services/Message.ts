@@ -27,7 +27,7 @@ class Message {
         guild_id: string,
         in_thread: boolean,
         message_id_before: string = '0'
-    ): Promise<MessageData | boolean> => {
+    ): Promise<MessageData | false> => {
         const query = `INSERT INTO ploxy_messages 
     (message_id, user_id, message, embed, channel_id, guild_id, in_thread, message_id_before) 
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`;
@@ -64,7 +64,7 @@ class Message {
         }
     };
 
-    getMessage = async (message_id: string): Promise<MessageData | boolean> => {
+    getMessage = async (message_id: string): Promise<MessageData | false> => {
         const query = 'SELECT * FROM ploxy_messages WHERE message_id = $1';
         const values = [message_id];
 
@@ -79,7 +79,7 @@ class Message {
         }
     };
 
-    getMessagesFromGuild = async (guild_id: string): Promise<MessageData[] | boolean> => {
+    getMessagesFromGuild = async (guild_id: string): Promise<MessageData[] | false> => {
         const query = 'SELECT * FROM ploxy_messages WHERE guild_id = $1';
         const values = [guild_id];
 
@@ -94,7 +94,7 @@ class Message {
         }
     };
 
-    getMessagesFromUser = async (user_id: string): Promise<MessageData[] | boolean> => {
+    getMessagesFromUser = async (user_id: string): Promise<MessageData[] | false> => {
         const query = 'SELECT * FROM ploxy_messages WHERE user_id = $1';
         const values = [user_id];
 

@@ -196,6 +196,24 @@ class GuildMember {
         }
     };
 
+    /**
+     * @param {string} guild_id - The guild id
+     * 
+     * @description Deletes all Guild Members
+     */
+    deleteGuildMembers = async (guild_id: string): Promise<GuildMemberData[] | false> => {
+        const query = 'DELETE FROM ploxy_guild_members WHERE guild_id = $1';
+        const values = [guild_id];
+
+        try {
+            const result = await postgres.query(query, values);
+
+            return result.rows;
+        } catch (error) {
+            return false;
+        }
+    };
+    
     memberJoin = async (
         guild_id: string,
         user_id: string,

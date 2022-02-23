@@ -221,6 +221,22 @@ class Links {
             return false;
         }
     };
+    
+    
+    deleteAll = async (guildId: string): Promise<boolean> => {
+        try {
+            const result = await postgres.query(
+                'DELETE FROM ploxy_links WHERE guild_id = $1',
+                [guildId]
+            );
+            return true;
+        } catch (error: any) {
+            log.error(error);
+
+            return false;
+        }
+    };
+
 }
 module.exports = {
     setRedis: function (redisIn: RedisClientType) {
