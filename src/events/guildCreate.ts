@@ -5,7 +5,7 @@ import GuildClass from '../db/services/Guild';
 import UserClass from '../db/services/User';
 import GuildMemberClass from '../db/services/GuildMembers';
 
-import createGuildEmbed from '../utils/embeds/createGuildEmbed';
+import guildEmbeds from '../utils/embeds/GuildEmbeds';
 import log from '../utils/log';
 let redis: RedisClientType;
 
@@ -93,7 +93,7 @@ module.exports = {
             }
         }
 
-        const embed = createGuildEmbed(); // Get the default guild embed
+        const embed = new guildEmbeds().createGuildEmbed(); // Get the default guild embed
 
         let sent = false;
 

@@ -25,6 +25,7 @@ interface AutoModData {
     warn_reset_time: number,
     on_fail_spam: boolean,
     duplicated_message_check: boolean,
+    log_channel: string
     created_at: string,
     updated_at: string,
 }
@@ -48,7 +49,8 @@ class AutoMod {
         mute_time_increment: number,
         warn_reset_time: number,
         on_fail_spam: number,
-        duplicated_message_check: boolean
+        duplicated_message_check: boolean,
+        log_channel: string
     ): Promise<AutoModData | false> => {
         try {
             const res = await postgres.query(
@@ -60,7 +62,7 @@ class AutoMod {
             max_warns_before_kick, max_warns_before_temp_ban, 
             max_warns_before_perm_ban, mute_time, 
             mute_time_increment, warn_reset_time, 
-            on_fail_spam, duplicated_message_check) VALUES ($1, $2, $3, $4, $5. $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
+            on_fail_spam, duplicated_message_check, log_channel) VALUES ($1, $2, $3, $4, $5. $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
                 [
                     guild_id,
                     bad_word_check,
@@ -80,6 +82,7 @@ class AutoMod {
                     warn_reset_time,
                     on_fail_spam,
                     duplicated_message_check,
+                    log_channel,
                 ]
             );
     
@@ -139,7 +142,8 @@ class AutoMod {
         mute_time_increment: number,
         warn_reset_time: number,
         on_fail_spam: number,
-        duplicated_message_check: boolean
+        duplicated_message_check: boolean,
+        log_channel: string
     ): Promise<AutoModData | false> => {
         try {
             const res = await postgres.query(
@@ -151,7 +155,7 @@ class AutoMod {
             max_warns_before_kick = $10, max_warns_before_temp_ban = $11, 
             max_warns_before_perm_ban = $12, mute_time = $13, 
             mute_time_increment = $14, warn_reset_time = $15, 
-            on_fail_spam = $16, duplicated_message_check = $17 WHERE guild_id = $18`,
+            on_fail_spam = $16, duplicated_message_check = $17, log_channel = $18 WHERE guild_id = $19`,
                 [
                     bad_word_check,
                     user_date_check,
@@ -170,6 +174,7 @@ class AutoMod {
                     warn_reset_time,
                     on_fail_spam,
                     duplicated_message_check,
+                    log_channel,
                     guild_id,
                 ]
             );

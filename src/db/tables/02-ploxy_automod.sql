@@ -22,6 +22,7 @@ create table if not exists ploxy_automod
     warn_reset_time           bigint default 0,
     on_fail_spam              int    default 1     not null,
     duplicated_message_check  bool   default false not null,
+    log_channel              varchar, 
     created_at timestamptz NOT NULL DEFAULT NOW(),
     updated_at timestamptz NOT NULL DEFAULT NOW()
 );
