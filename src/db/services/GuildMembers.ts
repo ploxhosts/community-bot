@@ -5,252 +5,252 @@ import postgres from '../postgres';
 import { nanoid } from 'nanoid';
 
 let redis: RedisClientType;
-/**
- * @param {string} guild_id - The guild id
- * @param {string} user_id - The user id
- * @param {string[]} panel_settings - The panel settings
- * @param {boolean} verified - Used if server entry protection is enabled
- * @param {string[]}  roles - The roles
- * @param {string}  nickname - The nickname
- * @param {string}  avatar - The avatar
- * @param {boolean} muted - If they are muted or not
- * @description Creates a guild
- **/
 
-export const createGuildMember = async (
-    guild_id: string,
-    user_id: string,
-    panel_settings: string[],
-    verified: boolean,
-    roles: string[],
-    nickname: string,
-    avatar: string,
-    muted: boolean,
-) => {
-    const id = nanoid();
+class GuildMember {
+    /**
+     * @param {string} guild_id - The guild id
+     * @param {string} user_id - The user id
+     * @param {string[]} panel_settings - The panel settings
+     * @param {boolean} verified - Used if server entry protection is enabled
+     * @param {string[]}  roles - The roles
+     * @param {string}  nickname - The nickname
+     * @param {string}  avatar - The avatar
+     * @param {boolean} muted - If they are muted or not
+     * @description Creates a guild
+     **/
 
-    const query = `INSERT INTO ploxy_guild_members (
-        id,
-        user_id,
-        guild_id,
-        panel_settings,
-        roles,
-        verified,
-        nickname,
-        avatar,
-        muted
-  ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`;
-    const values = [
-        id,
-        user_id,
-        guild_id,
-        JSON.stringify(panel_settings),
-        JSON.stringify(roles),
-        verified,
-        nickname,
-        avatar,
-        muted,
-    ];
+    createGuildMember = async (
+        guild_id: string,
+        user_id: string,
+        panel_settings: string[],
+        verified: boolean,
+        roles: string[],
+        nickname: string,
+        avatar: string,
+        muted: boolean,
+    ) => {
+        const id = nanoid();
 
-    try {
-        const result = await postgres.query(query, values);
+        const query = `INSERT INTO ploxy_guild_members (
+            id,
+            user_id,
+            guild_id,
+            panel_settings,
+            roles,
+            verified,
+            nickname,
+            avatar,
+            muted
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`;
+        const values = [
+            id,
+            user_id,
+            guild_id,
+            JSON.stringify(panel_settings),
+            JSON.stringify(roles),
+            verified,
+            nickname,
+            avatar,
+            muted,
+        ];
 
-        return result.rows.at(0);
-    } catch (error: any) {
-        log.error(error);
+        try {
+            const result = await postgres.query(query, values);
 
-        return false;
-    }
-};
+            return result.rows.at(0);
+        } catch (error: any) {
+            log.error(error);
 
-/**
- * @param {string} guild_id - The guild id
- * @param {string} user_id - The user id
- * 
- * @description Gets a guild member
- */
+            return false;
+        }
+    };
 
-export const getGuildMember = async (guild_id: string, user_id: string) => {
-    const query = 'SELECT * FROM ploxy_guild_members WHERE guild_id = $1 AND user_id = $2';
-    const values = [guild_id, user_id];
+    /**
+     * @param {string} guild_id - The guild id
+     * @param {string} user_id - The user id
+     * 
+     * @description Gets a guild member
+     */
 
-    try {
-        const result = await postgres.query(query, values);
+    getGuildMember = async (guild_id: string, user_id: string) => {
+        const query = 'SELECT * FROM ploxy_guild_members WHERE guild_id = $1 AND user_id = $2';
+        const values = [guild_id, user_id];
 
-        return result.rows.at(0);
-    } catch (error: any) {
-        log.error(error);
+        try {
+            const result = await postgres.query(query, values);
 
-        return false;
-    }
-};
+            return result.rows.at(0);
+        } catch (error: any) {
+            log.error(error);
 
-/**
- *
- * @description Gets a guilds Members
- */
+            return false;
+        }
+    };
 
-export const getGuildsMembers = async (guild_id: string) => {
-    const query = 'SELECT * FROM ploxy_guilds WHERE guild_id = $1';
-    const values = [guild_id];
+    /**
+     *
+     * @description Gets a guilds Members
+     */
 
-    try {
-        const result = await postgres.query(query, values);
+    getGuildsMembers = async (guild_id: string) => {
+        const query = 'SELECT * FROM ploxy_guilds WHERE guild_id = $1';
+        const values = [guild_id];
 
-        return result.rows;
-    } catch (error: any) {
-        log.error(error);
+        try {
+            const result = await postgres.query(query, values);
 
-        return false;
-    }
-};
+            return result.rows;
+        } catch (error: any) {
+            log.error(error);
 
-/**
- * @param {string} guild_id - The guild id
- * @param {string} user_id - The user id
- * @param {string[]} panel_settings - The panel settings
- * @param {boolean} verified - Used if server entry protection is enabled
- * @param {string[]}  roles - The roles
- * @param {string}  nickname - The nickname
- * @param {string}  avatar - The avatar
- * @param {boolean} muted - If they are muted or not
- * @description Updates a guild member
- **/
+            return false;
+        }
+    };
 
-export const updateGuildMember = async (
-    guild_id: string,
-    user_id: string,
-    panel_settings?: string[],
-    verified?: boolean,
-    roles?: string[],
-    nickname?: string,
-    avatar?: string,
-    muted?: boolean,
-) => {
+    /**
+     * @param {string} guild_id - The guild id
+     * @param {string} user_id - The user id
+     * @param {string[]} panel_settings - The panel settings
+     * @param {boolean} verified - Used if server entry protection is enabled
+     * @param {string[]}  roles - The roles
+     * @param {string}  nickname - The nickname
+     * @param {string}  avatar - The avatar
+     * @param {boolean} muted - If they are muted or not
+     * @description Updates a guild member
+     **/
 
-    const update: any = {};
+    updateGuildMember = async (
+        guild_id: string,
+        user_id: string,
+        panel_settings?: string[],
+        verified?: boolean,
+        roles?: string[],
+        nickname?: string,
+        avatar?: string,
+        muted?: boolean,
+    ) => {
 
-    if (panel_settings) {
-        update.panel_settings = JSON.stringify(panel_settings);
-    }
+        const update: any = {};
 
-    if (verified) {
-        update.verified = verified;
-    }
+        if (panel_settings) {
+            update.panel_settings = JSON.stringify(panel_settings);
+        }
 
-    if (roles) {
-        update.roles = JSON.stringify(roles);
-    }
+        if (verified) {
+            update.verified = verified;
+        }
 
-    if (nickname) {
-        update.nickname = nickname;
-    }
+        if (roles) {
+            update.roles = JSON.stringify(roles);
+        }
 
-    if (avatar) {
-        update.avatar = avatar;
-    }
+        if (nickname) {
+            update.nickname = nickname;
+        }
 
-    if (muted) {
-        update.muted = muted;
-    }
+        if (avatar) {
+            update.avatar = avatar;
+        }
 
-    const query = `UPDATE ploxy_guild_members SET ${Object.keys(update).map(
-        (key) => `${key} = $${Object.keys(update).indexOf(key) + 2}`,
-    )} WHERE guild_id = $1 AND user_id = $2`;
-    const values = [guild_id, user_id, ...Object.values(update)];
+        if (muted) {
+            update.muted = muted;
+        }
 
-    try {
-        const result = await postgres.query(query, values);
-        return result.rows.at(0);
-    } catch (error: any) {
-        log.error(error);
+        const query = `UPDATE ploxy_guild_members SET ${Object.keys(update).map(
+            (key) => `${key} = $${Object.keys(update).indexOf(key) + 2}`,
+        )} WHERE guild_id = $1 AND user_id = $2`;
+        const values = [guild_id, user_id, ...Object.values(update)];
 
-        return false;
-    }
-};
+        try {
+            const result = await postgres.query(query, values);
+            return result.rows.at(0);
+        } catch (error: any) {
+            log.error(error);
 
-/**
- * @param {string} guild_id - The guild id
- * @param {string} user_id - The user id
- *
- * @description Deletes a Guild Member
- */
+            return false;
+        }
+    };
 
-export const deleteGuildMember = async (guild_id: string, user_id: string) => {
-    const query = 'DELETE FROM ploxy_guilds WHERE guild_id = $1 AND user_id = $2';
-    const values = [guild_id, user_id];
+    /**
+     * @param {string} guild_id - The guild id
+     * @param {string} user_id - The user id
+     *
+     * @description Deletes a Guild Member
+     */
 
-    try {
-        const result = await postgres.query(query, values);
+    deleteGuildMember = async (guild_id: string, user_id: string) => {
+        const query = 'DELETE FROM ploxy_guilds WHERE guild_id = $1 AND user_id = $2';
+        const values = [guild_id, user_id];
 
-        return result.rows.at(0);
-    } catch (error: any) {
-        log.error(error);
+        try {
+            const result = await postgres.query(query, values);
 
-        return false;
-    }
-};
+            return result.rows.at(0);
+        } catch (error: any) {
+            log.error(error);
 
-const memberJoin = async (
-    guild_id: string,
-    user_id: string,
-    invite_link: string,
-) => {
-    const member = await getGuildMember(guild_id, user_id);
-    const query = `INSERT INTO ploxy_guild_members (
-        id,
-        user_guild_id,
-        guild_id,
-        user_id,
-        invite_link ) VALUES ($1, $2, $3, $4, $5)`;
-    const values = [
-        nanoid(),
-        member.id,
-        guild_id,
-        user_id,
-        invite_link,
-    ];
-    try {
-        const result = await postgres.query(query, values);
+            return false;
+        }
+    };
 
-        return result.rows.at(0);
-    } catch (error: any) {
-        log.error(error);
+    memberJoin = async (
+        guild_id: string,
+        user_id: string,
+        invite_link: string,
+    ) => {
+        const member = await this.getGuildMember(guild_id, user_id);
+        const query = `INSERT INTO ploxy_guild_members (
+            id,
+            user_guild_id,
+            guild_id,
+            user_id,
+            invite_link ) VALUES ($1, $2, $3, $4, $5)`;
+        const values = [
+            nanoid(),
+            member.id,
+            guild_id,
+            user_id,
+            invite_link,
+        ];
+        try {
+            const result = await postgres.query(query, values);
 
-        return false;
-        
-    }
-};
+            return result.rows.at(0);
+        } catch (error: any) {
+            log.error(error);
 
-const memberLeave = async (guild_id: string, user_id: string) => {
-    let query = `UPDATE ploxy_guild_members SET verified = false WHERE guild_id = $1 AND user_id = $2`;
-    const values = [guild_id, user_id];
+            return false;
+            
+        }
+    };
 
-    try {
-        const result = await postgres.query(query, values);
+    memberLeave = async (guild_id: string, user_id: string) => {
+        let query = `UPDATE ploxy_guild_members SET verified = false WHERE guild_id = $1 AND user_id = $2`;
+        const values = [guild_id, user_id];
 
-        query = `UPDATE ploxy_guild_joins SET left_at = NOW() WHERE guild_id = $1 AND user_id = $2 AND user_guild_id = $3`;
-        values.push(result.rows.at(0).id);
-        const finalResult = await postgres.query(query, values);
+        try {
+            const result = await postgres.query(query, values);
 
-        return finalResult.rows.at(0);
-    }
-    catch (error: any) {
-        log.error(error);
+            query = `UPDATE ploxy_guild_joins SET left_at = NOW() WHERE guild_id = $1 AND user_id = $2 AND user_guild_id = $3`;
+            values.push(result.rows.at(0).id);
+            const finalResult = await postgres.query(query, values);
 
-        return false;
-    }
+            return finalResult.rows.at(0);
+        }
+        catch (error: any) {
+            log.error(error);
 
-};
+            return false;
+        }
+
+    };
+
+}
 module.exports = {
     setRedis: function (redisIn: RedisClientType) {
         redis = redisIn;
     },
-    createGuildMember,
-    deleteGuildMember,
-    updateGuildMember,
-    getGuildMember,
-    getGuildsMembers,
-    memberJoin,
-    memberLeave,
+    GuildMember
 };
+
+export default GuildMember;

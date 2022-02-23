@@ -1,9 +1,9 @@
 import discord from 'discord.js';
 import { RedisClientType } from 'redis';
 
-import { createGuild, getGuild } from '../db/services/Guild';
+import GuildClass from '../db/services/Guild';
 import createGuildEmbed from '../utils/embeds/createGuildEmbed';
-
+import log from '../utils/log';
 let redis: RedisClientType;
 
 const getTier = (tier: string): number => {
@@ -22,8 +22,10 @@ const getTier = (tier: string): number => {
 module.exports = {
     name: 'guildCreate',
     async execute(guild: discord.Guild) {
-        console.log('Joined guild');
-        await createGuild(
+        const Guild = new GuildClass();
+        log.debug('Joined guild 1');
+
+        const guildData = await Guild.createGuild(
             guild.id,
             guild.name,
             guild.iconURL(),
@@ -36,25 +38,24 @@ module.exports = {
             false,
             false
         );
-        const guild_data = await getGuild(guild.id);
 
-        if (guild_data) {
-            console.log(guild_data);
+        if (!guildData) {
+            log.error(`Failed to create guild ${guild.id}`);
         }
-
         const botCount = guild.members.cache.filter(
             (member) => member.user.bot
-        ).size;
+        ).size; // Amount of bots that are in a guild
+
         const memberCount = guild.members.cache.filter(
             (member) => !member.user.bot
-        ).size;
+        ).size; // Amount of members excluding bots that are in a guild
 
         if (botCount > 50) {
-            if (memberCount < 400) {
+            if (memberCount < 400) { // If bot count is greater than 50 and member count is less than 400
                 await guild.leave();
-                console.log('Left suspicious guild');
-            } else if (memberCount > 1000) {
-                console.log(
+                log.info('Left suspicious guild', guild.name, guild.id);
+            } else if (memberCount > 1000) { // If bot count is greater than 50 and member count is greater than 1000
+                log.info(
                     'Possible suspicious guild',
                     memberCount,
                     guild.id,
@@ -64,28 +65,48 @@ module.exports = {
             }
         }
 
-        const embed = createGuildEmbed();
+        const embed = createGuildEmbed(); // Get the default guild embed
 
         let sent = false;
 
-        if (guild.systemChannel) {
-            await guild.systemChannel.send({ embeds: [embed] });
-            sent = true;
-        }
-
-        // eslint-disable-next-line unicorn/no-array-for-each
-        guild.channels.cache.forEach(async (channel) => {
-            if (
-                channel &&
-                channel.isText() &&
-                !sent &&
-                guild.me &&
-                guild.me.permissionsIn(channel).has('SEND_MESSAGES')
-            ) {
-                await channel.send({ embeds: [embed] });
+        try {
+            if (guild.systemChannel) { // If the guild has a system channel such as where it welcomes members
+                await guild.systemChannel.send({ embeds: [embed] });
                 sent = true;
             }
-        });
+        } catch (error) {
+            // eslint-disable-next-line unicorn/no-array-for-each
+            guild.channels.cache.forEach(async (channel) => {
+                if (
+                    channel &&
+                    channel.isText() &&
+                    !sent &&
+                    guild.me &&
+                    guild.me.permissionsIn(channel).has('SEND_MESSAGES')
+                ) {
+                    try {
+                        
+                        await channel.send({ embeds: [embed] });
+                        sent = true;
+                    } catch (error: any) {
+                       log.error("Error sending guild embed", error);
+                    }
+                }
+            });
+        }
+        
+        if (!sent) {
+            log.info('Could not find channel', guild.id);
+            try {    
+                guild.fetchOwner().then((owner) => {
+                    owner.send({ embeds: [embed] });
+                });
+            } catch {
+                log.info('Could not direct message owner', guild.id, guild.ownerId);
+            }
+        }
+        
+        log.info('Joined guild', guild.name, guild.id);
     },
     setRedis: function (redisIn: RedisClientType) {
         redis = redisIn;
