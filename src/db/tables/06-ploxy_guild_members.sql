@@ -9,7 +9,6 @@ create table if not exists ploxy_guild_members
     guild_id       varchar not null
         constraint ploxy_guild_members_ploxy_guilds_guild_id_fk
             references ploxy_guilds,
-    panel_settings text,
     roles         text,
     nickname text,
     avatar text,

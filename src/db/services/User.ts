@@ -5,6 +5,18 @@ import postgres from '../postgres';
 
 let redis: RedisClientType;
 
+interface UserData {
+    user_id: string;
+    username: string;
+    discriminator: string;
+    user_avatar: string;
+    email: string | undefined;
+    premium: number,
+    banned: number,
+    created_at: string,
+    updated_at: string,
+}
+
 class User {
     /**
      * Creates a new user
@@ -26,13 +38,13 @@ class User {
         email: string | undefined,
         premium: number,
         banned: number = 0
-    ) => {
+    ): Promise<UserData | Boolean> => {
         const response = await this.getUser(user_id);
 
-        if (response.rows) {
+        if (response) {
             log.debug(`User ${user_id} already exists, createUser failed`);
 
-            return response.rows.length;
+            return response;
         }
 
         let result;
@@ -53,7 +65,7 @@ class User {
 
             await redis.set(`user:${user_id}`, JSON.stringify(result.rows.at(0)));
 
-            return result.rows.at(0);
+            return result.rows.at(0) as UserData;
         } catch (error: any) {
             log.error(error);
 
@@ -75,7 +87,7 @@ class User {
         username?: string,
         discriminator?: string,
         email?: string
-    ) => {
+    ): Promise<UserData | boolean> => {
         let query = 'SELECT * FROM ploxy_users WHERE ';
         const values = [];
 
@@ -141,10 +153,10 @@ class User {
         email: string | undefined,
         premium: number,
         banned: number = 0
-    ) => {
+    ): Promise<UserData | boolean> => {
         const UserResult = await this.getUser(user_id);
 
-        if (!UserResult.rows) {
+        if (!UserResult) {
             log.debug(`User ${user_id} not found, updateUser failed`);
 
             return false;
@@ -166,6 +178,8 @@ class User {
                 ]
             );
             await redis.set(`user:${user_id}`, JSON.stringify(result.rows.at(0)));
+
+            return result.rows.at(0) as UserData;
         } catch (error: any) {
             log.error(error);
 

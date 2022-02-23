@@ -6,6 +6,29 @@ import postgres from '../postgres';
 
 let redis: RedisClientType;
 
+interface AutoModData {
+    guild_id: string,
+    bad_word_check: boolean,
+    user_date_check: boolean,
+    minimum_user_age: number,
+    bad_word_limit: number,
+    message_spam_check: boolean,
+    message_pasta_check: boolean,
+    on_fail_bad_word: number,
+    tempban_time: number,
+    tempban_time_increment: number,
+    max_warns_before_kick: number,
+    max_warns_before_temp_ban: number,
+    max_warns_before_perm_ban: number,
+    mute_time: number,
+    mute_time_increment: number,
+    warn_reset_time: number,
+    on_fail_spam: boolean,
+    duplicated_message_check: boolean,
+    created_at: string,
+    updated_at: string,
+}
+
 class AutoMod {
     addGuildAutoMod = async (
         guild_id: string,
@@ -15,7 +38,7 @@ class AutoMod {
         bad_word_limit: number,
         message_spam_check: boolean,
         message_pasta_check: boolean,
-        on_fail_bad_word: boolean,
+        on_fail_bad_word: number,
         tempban_time: number,
         tempban_time_increment: number,
         max_warns_before_kick: number,
@@ -26,7 +49,7 @@ class AutoMod {
         warn_reset_time: number,
         on_fail_spam: number,
         duplicated_message_check: boolean
-    ) => {
+    ): Promise<AutoModData | false> => {
         try {
             const res = await postgres.query(
                 `INSERT INTO ploxy_automod (
@@ -70,7 +93,7 @@ class AutoMod {
         }
     };
 
-    getGuildAutoMod = async (guild_id: string) => {
+    getGuildAutoMod = async (guild_id: string): Promise<AutoModData | false> => {
         try {
             const res = await redis.get(`automod:${guild_id}`);
     
@@ -117,7 +140,7 @@ class AutoMod {
         warn_reset_time: number,
         on_fail_spam: number,
         duplicated_message_check: boolean
-    ) => {
+    ): Promise<AutoModData | false> => {
         try {
             const res = await postgres.query(
                 `UPDATE ploxy_automod SET
@@ -161,7 +184,7 @@ class AutoMod {
         }
     };
 
-    deleteGuildAutoMod = async (guild_id: string) => {
+    deleteGuildAutoMod = async (guild_id: string): Promise<number | false> => {
         try {
             await postgres.query('DELETE FROM ploxy_automod WHERE guild_id = $1', [
                 guild_id,

@@ -6,11 +6,23 @@ import { nanoid } from 'nanoid';
 
 let redis: RedisClientType;
 
+interface GuildMemberData {
+    id: string,
+    guild_id: string,
+    user_id: string,
+    nickname: string,
+    created_at: string,
+    updated_at: string,
+    verified: boolean,
+    muted: boolean,
+    avatar: string,
+    roles: string
+}
+
 class GuildMember {
     /**
      * @param {string} guild_id - The guild id
      * @param {string} user_id - The user id
-     * @param {string[]} panel_settings - The panel settings
      * @param {boolean} verified - Used if server entry protection is enabled
      * @param {string[]}  roles - The roles
      * @param {string}  nickname - The nickname
@@ -22,31 +34,28 @@ class GuildMember {
     createGuildMember = async (
         guild_id: string,
         user_id: string,
-        panel_settings: string[],
         verified: boolean,
         roles: string[],
         nickname: string,
         avatar: string,
         muted: boolean,
-    ) => {
+    ): Promise<GuildMemberData | boolean> => {
         const id = nanoid();
 
         const query = `INSERT INTO ploxy_guild_members (
             id,
             user_id,
             guild_id,
-            panel_settings,
             roles,
             verified,
             nickname,
             avatar,
             muted
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`;
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`;
         const values = [
             id,
             user_id,
             guild_id,
-            JSON.stringify(panel_settings),
             JSON.stringify(roles),
             verified,
             nickname,
@@ -72,7 +81,7 @@ class GuildMember {
      * @description Gets a guild member
      */
 
-    getGuildMember = async (guild_id: string, user_id: string) => {
+    getGuildMember = async (guild_id: string, user_id: string): Promise<GuildMemberData | false> => {
         const query = 'SELECT * FROM ploxy_guild_members WHERE guild_id = $1 AND user_id = $2';
         const values = [guild_id, user_id];
 
@@ -92,7 +101,7 @@ class GuildMember {
      * @description Gets a guilds Members
      */
 
-    getGuildsMembers = async (guild_id: string) => {
+    getGuildsMembers = async (guild_id: string): Promise<GuildMemberData[] | boolean> => {
         const query = 'SELECT * FROM ploxy_guilds WHERE guild_id = $1';
         const values = [guild_id];
 
@@ -110,7 +119,6 @@ class GuildMember {
     /**
      * @param {string} guild_id - The guild id
      * @param {string} user_id - The user id
-     * @param {string[]} panel_settings - The panel settings
      * @param {boolean} verified - Used if server entry protection is enabled
      * @param {string[]}  roles - The roles
      * @param {string}  nickname - The nickname
@@ -122,19 +130,14 @@ class GuildMember {
     updateGuildMember = async (
         guild_id: string,
         user_id: string,
-        panel_settings?: string[],
         verified?: boolean,
         roles?: string[],
         nickname?: string,
         avatar?: string,
         muted?: boolean,
-    ) => {
+    ): Promise<GuildMemberData | boolean> => {
 
         const update: any = {};
-
-        if (panel_settings) {
-            update.panel_settings = JSON.stringify(panel_settings);
-        }
 
         if (verified) {
             update.verified = verified;
@@ -178,7 +181,7 @@ class GuildMember {
      * @description Deletes a Guild Member
      */
 
-    deleteGuildMember = async (guild_id: string, user_id: string) => {
+    deleteGuildMember = async (guild_id: string, user_id: string): Promise<GuildMemberData | false> => {
         const query = 'DELETE FROM ploxy_guilds WHERE guild_id = $1 AND user_id = $2';
         const values = [guild_id, user_id];
 
@@ -197,8 +200,11 @@ class GuildMember {
         guild_id: string,
         user_id: string,
         invite_link: string,
-    ) => {
+    ): Promise<GuildMemberData | false> => {
         const member = await this.getGuildMember(guild_id, user_id);
+        if (member == false){ // If the member doesn't exist, prevents errors from bad code
+            return false;
+        }
         const query = `INSERT INTO ploxy_guild_members (
             id,
             user_guild_id,
@@ -224,7 +230,7 @@ class GuildMember {
         }
     };
 
-    memberLeave = async (guild_id: string, user_id: string) => {
+    memberLeave = async (guild_id: string, user_id: string): Promise<GuildMemberData | false> => {
         let query = `UPDATE ploxy_guild_members SET verified = false WHERE guild_id = $1 AND user_id = $2`;
         const values = [guild_id, user_id];
 

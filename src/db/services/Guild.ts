@@ -5,6 +5,21 @@ import postgres from '../postgres';
 
 let redis: RedisClientType;
 
+interface GuildData {
+    guild_id: string;
+    name: string,
+    avatar: string,
+    owner_id: string,
+    premium: number,
+    banned: number,
+    payment_level: number,
+    listing: boolean,
+    has_setup: boolean,
+    support_packages_enabled: boolean,
+    auto_support_enabled: boolean,
+    created_at: string,
+    updated_at: string,
+}
 
 class Guild {
     /**
@@ -33,7 +48,7 @@ class Guild {
         has_setup: boolean = false,
         support_packages_enabled: boolean = false,
         auto_support_enabled: boolean = false
-    ) => {
+    ): Promise<GuildData | false> => {
         if (await this.getGuild(guild_id)) {
             log.debug(`Guild ${guild_id} already exists, createGuild failed`);
     
@@ -85,7 +100,7 @@ class Guild {
      * @description Gets a guild
      */
 
-    getGuild = async (guild_id: string) => {
+    getGuild = async (guild_id: string): Promise<GuildData | false> => {
         const query = 'SELECT * FROM ploxy_guilds WHERE guild_id = $1';
         const values = [guild_id];
 
@@ -113,7 +128,7 @@ class Guild {
      *
      * @description Gets all guilds
      */
-    getAllGuilds = async () => {
+    getAllGuilds = async (): Promise<GuildData[] | false> => {
         const query = 'SELECT * FROM ploxy_guilds';
     
         try {
@@ -157,7 +172,7 @@ class Guild {
         has_setup: boolean = false,
         support_packages_enabled: boolean = false,
         auto_support_enabled: boolean = false
-    ) => {
+    ): Promise<GuildData | false> => {
         const query = `UPDATE ploxy_guilds SET
         name = $2,
         avatar = $3,
@@ -204,7 +219,7 @@ class Guild {
      * @description Deletes a guild
      */
 
-    deleteGuild = async (guild_id: string) => {
+    deleteGuild = async (guild_id: string): Promise<GuildData | false> => {
         const query = 'DELETE FROM ploxy_guilds WHERE guild_id = $1';
         const values = [guild_id];
     

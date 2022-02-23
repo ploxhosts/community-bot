@@ -5,6 +5,18 @@ import postgres from '../postgres';
 
 let redis: RedisClientType;
 
+interface LinkData {
+    hostname: string;
+    link: string;
+    guild_id: string;
+    added_by: string,
+    allowed: boolean,
+    score: number,
+    process: string,
+    created_at: string,
+    updated_at: string,
+    
+}
 class Links {
     /**
      * Adds a link
@@ -25,7 +37,7 @@ class Links {
         process: { type: string; score: number }[],
         guildId: string | undefined,
         allowed: boolean
-    ) => {
+    ): Promise<LinkData | void | boolean> => {
         try {
             const databaseCheck = await this.checkLinkInDB(link, hostname, guildId);
 
@@ -65,6 +77,8 @@ class Links {
                 `link:${hostname}:${guildId}`,
                 JSON.stringify(result.rows.at(0))
             );
+
+            return result.rows.at(0) as LinkData;
         } catch (error: any) {
             log.error(error);
 
@@ -83,7 +97,7 @@ class Links {
         hostname: string,
         link: string,
         guildId: string | undefined
-    ) => {
+    ): Promise<number | boolean> => {
         try {
             await (guildId
                 ? postgres.query(
@@ -111,7 +125,7 @@ class Links {
     checkExistanceByHostname = async (
         hostname: string,
         guildId: string | undefined
-    ): Promise<any> => {
+    ): Promise<LinkData | undefined> => {
         try {
             const redisResult = await redis.get(`link:${hostname}:${guildId}`);
 
@@ -146,7 +160,7 @@ class Links {
         link: string,
         hostname: string,
         guildId: string | undefined
-    ): Promise<any> => {
+    ): Promise<LinkData | undefined> => {
         try {
             const redisResult = await redis.get(`link:${hostname}:${guildId}`);
 
@@ -177,9 +191,10 @@ class Links {
      *
      */
 
-    getAllLinks = async () => {
+    getAllLinks = async (): Promise<LinkData[] | boolean> => {
         try {
-            return await postgres.query('SELECT * FROM ploxy_links');
+            const result = await postgres.query('SELECT * FROM ploxy_links');
+            return result.rows;
         } catch (error: any) {
             log.error(error);
 
@@ -193,12 +208,13 @@ class Links {
      * @param guildId - The guild id that set the link or set undefined if done by system
      */
 
-    getAllLinksByGuildId = async (guildId: string) => {
+    getAllLinksByGuildId = async (guildId: string): Promise<LinkData[] | boolean> => {
         try {
-            return await postgres.query(
+            const result = await postgres.query(
                 'SELECT * FROM ploxy_links WHERE guild_id = $1',
                 [guildId]
             );
+            return result.rows;
         } catch (error: any) {
             log.error(error);
 
