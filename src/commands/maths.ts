@@ -24,13 +24,23 @@ module.exports = {
             return;
         }
         const limitedEvaluate = math.parser();
-        
+
+        let description;
+        try {
+            description = `:abacus:  \`${
+                expression
+            } = ${limitedEvaluate.evaluate(expression)}\``
+        } catch (error: unknown) {
+            if (typeof error === "string") {
+                description = `:x:  \`${error}\``
+            } else if (error instanceof Error) {
+                description = `:x:  \`${error.message}\``
+            }
+        }
         
         const Embed = new discord.MessageEmbed({
             title: 'Maths',
-            description: `:abacus:  \`${
-                expression
-            } = ${limitedEvaluate.evaluate(expression)}\``,
+            description,
             color: process.env.themeColor as discord.ColorResolvable,
             footer: {
                 text: `${process.env.brandName} - Commands`,
