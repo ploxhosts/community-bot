@@ -1,12 +1,12 @@
 import discord from 'discord.js';
 import { RedisClientType } from 'redis';
 
-import GuildClass from '../db/services/Guild';
-import AutoModClass from '../db/services/AutoMod';
-import BadWordsClass from '../db/services/BadWords';
-import LinksClass from '../db/services/Links';
+import Guild from '../db/services/Guild';
+import AutoMod from '../db/services/AutoMod';
+import BadWords from '../db/services/BadWords';
+import Links from '../db/services/Links';
 
-import GuildMemberClass from '../db/services/GuildMembers';
+import GuildMember from '../db/services/GuildMembers';
 
 import log from '../utils/log';
 let redis: RedisClientType;
@@ -14,11 +14,6 @@ let redis: RedisClientType;
 module.exports = {
     name: 'guildDelete',
     async execute(guild: discord.Guild) {
-        const Guild = new GuildClass();
-        const AutoMod = new AutoModClass();
-        const BadWords = new BadWordsClass();
-        const Links = new LinksClass();
-        const GuildMember = new GuildMemberClass();
 
         log.debug('Left guild 1');
 

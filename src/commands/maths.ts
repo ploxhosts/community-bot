@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import discord from 'discord.js';
-import math from 'mathjs';
+import * as math from 'mathjs';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -23,23 +23,14 @@ module.exports = {
 
             return;
         }
-        const limitedEvaluate = math.evaluate
-
-        math.import({
-          import: function () { throw new Error('Function import is disabled') },
-          createUnit: function () { throw new Error('Function createUnit is disabled') },
-          evaluate: function () { throw new Error('Function evaluate is disabled') },
-          parse: function () { throw new Error('Function parse is disabled') },
-          simplify: function () { throw new Error('Function simplify is disabled') },
-          derivative: function () { throw new Error('Function derivative is disabled') }
-        }, { override: true })
+        const limitedEvaluate = math.parser();
         
         
         const Embed = new discord.MessageEmbed({
             title: 'Maths',
             description: `:abacus:  \`${
                 expression
-            } = ${limitedEvaluate(expression)}\``,
+            } = ${limitedEvaluate.evaluate(expression)}\``,
             color: process.env.themeColor as discord.ColorResolvable,
             footer: {
                 text: `${process.env.brandName} - Commands`,

@@ -48,4 +48,4 @@ class GuildEmbeds {
 
 }
 
-export default GuildEmbeds;
+export default new GuildEmbeds();

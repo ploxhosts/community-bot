@@ -1,11 +1,11 @@
 import discord from 'discord.js';
 import { RedisClientType } from 'redis';
 
-import GuildClass from '../db/services/Guild';
-import UserClass from '../db/services/User';
-import GuildMemberClass from '../db/services/GuildMembers';
+import Guild from '../db/services/Guild';
+import User from '../db/services/User';
+import GuildMember from '../db/services/GuildMembers';
 
-import guildEmbeds from '../utils/embeds/GuildEmbeds';
+import GuildEmbeds from '../utils/embeds/GuildEmbeds';
 import log from '../utils/log';
 let redis: RedisClientType;
 
@@ -25,9 +25,6 @@ const getTier = (tier: string): number => {
 module.exports = {
     name: 'guildCreate',
     async execute(guild: discord.Guild) {
-        const Guild = new GuildClass();
-        const User = new UserClass();
-        const GuildMember = new GuildMemberClass();
         log.debug('Joined guild 1');
 
         const guildData = await Guild.createGuild(
@@ -93,7 +90,7 @@ module.exports = {
             }
         }
 
-        const embed = new guildEmbeds().createGuildEmbed(); // Get the default guild embed
+        const embed = GuildEmbeds.createGuildEmbed(); // Get the default guild embed
 
         let sent = false;
 

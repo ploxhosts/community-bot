@@ -1,10 +1,10 @@
 import discord from 'discord.js';
 import { RedisClientType } from 'redis';
 
-import AutoModClass from '../db/services/AutoMod';
-import GuildClass from '../db/services/Guild';
-import MessageClass from '../db/services/Message';
-import UserClass from '../db/services/User';
+import AutoMod from '../db/services/AutoMod';
+import Guild from '../db/services/Guild';
+import Message from '../db/services/Message';
+import User from '../db/services/User';
 import { badWordCheck } from '../utils/badWordCheck';
 import { copyPastaCheck } from '../utils/copyPastaCheck';
 import { spamCheck } from '../utils/spamCheck';
@@ -28,10 +28,6 @@ module.exports = {
     name: 'messageCreate',
     async execute(message: discord.Message) {
         console.log('Message sent');
-        const Guild = new GuildClass();
-        const User = new UserClass();
-        const Message = new MessageClass();
-        const AutoMod = new AutoModClass();
         if (!message.guild) {
             return;
         }
@@ -89,7 +85,6 @@ module.exports = {
                     'true'
                 );
         }
-
         await Message.createMessage(
             message.id,
             message.author.id,

@@ -15,6 +15,9 @@ interface BadWordData {
     created_by: string,
 }
 class BadWords{
+    constructor(){
+        
+    }
     /**
      * Adds a guild bad word
      *
@@ -118,11 +121,5 @@ class BadWords{
 
 
 
-module.exports = {
-    setRedis: function (redisIn: RedisClientType) {
-        redis = redisIn;
-    },
-    BadWords
-};
-
-export default BadWords;
+export const setRedis = function (redisIn: RedisClientType) {redis = redisIn};
+export default new BadWords();

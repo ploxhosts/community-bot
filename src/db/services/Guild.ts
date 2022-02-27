@@ -22,6 +22,9 @@ interface GuildData {
 }
 
 class Guild {
+    constructor(){
+
+    }
     /**
      * @param {string} guild_id - The guild id
      * @param {string} guild_name - The guild name
@@ -236,11 +239,5 @@ class Guild {
     };
 }
 
-module.exports = {
-    setRedis: function (redisIn: RedisClientType) {
-        redis = redisIn;
-    },
-    Guild
-};
-
-export default Guild;
+export const setRedis = function (redisIn: RedisClientType) {redis = redisIn};
+export default new Guild();

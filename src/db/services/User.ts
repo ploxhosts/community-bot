@@ -18,6 +18,9 @@ interface UserData {
 }
 
 class User {
+    constructor(){
+        
+    }
     /**
      * Creates a new user
      *
@@ -197,11 +200,5 @@ class User {
         ]);
     };
 }
-module.exports = {
-    setRedis: function (redisIn: RedisClientType) {
-        redis = redisIn;
-    },
-    User,
-};
-
-export default User;
+export const setRedis = function (redisIn: RedisClientType) {redis = redisIn};
+export default new User();

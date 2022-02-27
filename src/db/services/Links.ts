@@ -18,6 +18,9 @@ interface LinkData {
     
 }
 class Links {
+    constructor(){
+        
+    }
     /**
      * Adds a link
      *
@@ -238,11 +241,6 @@ class Links {
     };
 
 }
-module.exports = {
-    setRedis: function (redisIn: RedisClientType) {
-        redis = redisIn;
-    },
-    Links
-};
+export const setRedis = function (redisIn: RedisClientType) {redis = redisIn};
 
-export default Links;
+export default new Links();

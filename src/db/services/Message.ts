@@ -18,6 +18,9 @@ interface MessageData {
     updated_at: string,
 }
 class Message {
+    constructor(){
+        
+    }
     createMessage = async (
         message_id: string,
         user_id: string,
@@ -111,11 +114,6 @@ class Message {
 
 }
 
-module.exports = {
-    setRedis: function (redisIn: RedisClientType) {
-        redis = redisIn;
-    },
-    Message
-};
+export const setRedis = function (redisIn: RedisClientType) {redis = redisIn};
 
-export default Message;
+export default new Message();

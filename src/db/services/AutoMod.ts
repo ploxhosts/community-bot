@@ -31,6 +31,9 @@ interface AutoModData {
 }
 
 class AutoMod {
+    constructor(){
+        
+    }
     addGuildAutoMod = async (
         guild_id: string,
         bad_word_check: boolean,
@@ -204,11 +207,6 @@ class AutoMod {
     };
 }
 
-module.exports = {
-    setRedis: function (redisIn: RedisClientType) {
-        redis = redisIn;
-    },
-    AutoMod
-};
+export const setRedis = function (redisIn: RedisClientType) {redis = redisIn};
 
-export default AutoMod;
+export default new AutoMod();

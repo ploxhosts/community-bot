@@ -1,21 +1,17 @@
 import discord from 'discord.js';
 import { RedisClientType } from 'redis';
 
-import AutoModClass from '../db/services/AutoMod';
-import UserClass from '../db/services/User';
-import GuildMemberClass from '../db/services/GuildMembers';
+import AutoMod from '../db/services/AutoMod';
+import User from '../db/services/User';
+import GuildMember from '../db/services/GuildMembers';
 
 import log from '../utils/log';
-import GuildEmbedsClass from '../utils/embeds/GuildEmbeds';
+import GuildEmbeds from '../utils/embeds/GuildEmbeds';
 let redis: RedisClientType;
 
 module.exports = {
     name: 'guildMemberAdd',
     async execute(member: discord.GuildMember) {
-        const AutoMod = new AutoModClass();
-        const GuildMember = new GuildMemberClass();
-        const User = new UserClass();
-        const guildEmbeds = new GuildEmbedsClass();
         
         log.debug("Member joined", member.user.username, member.user.id);
 
@@ -52,7 +48,7 @@ module.exports = {
             if (minimumUserAgeDate < new Date()) {
                 if (member.kickable) {
                     if (AutoModSettings.log_channel){
-                        const embed = guildEmbeds.createUnderageKickEmbed(member.user);
+                        const embed = GuildEmbeds.createUnderageKickEmbed(member.user);
                         const channel = member.guild.channels.cache.get(AutoModSettings.log_channel);
                         channel && (channel as discord.TextChannel).send({embeds: [embed]});
                         return await member.kick("User is too young");
@@ -60,7 +56,7 @@ module.exports = {
                 } else {
                     log.info("Member is not kickable", member.user.username, member.user.id, member.guild.id);
                     if (AutoModSettings.log_channel){
-                        const embed = guildEmbeds.MissingPermissionsEmbed(["KICK_MEMBERS"]);
+                        const embed = GuildEmbeds.MissingPermissionsEmbed(["KICK_MEMBERS"]);
                         const channel = member.guild.channels.cache.get(AutoModSettings.log_channel);
                         channel && (channel as discord.TextChannel).send({embeds: [embed]});
                     } 

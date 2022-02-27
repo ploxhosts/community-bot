@@ -8,7 +8,7 @@ import HttpsProxyAgent from 'https-proxy-agent';
 
 import { badServers, badTlds, urlShorteners } from '../data/badLinks';
 import { goodHostnames } from '../data/goodLinks';
-import LinksClass from '../db/services/Links';
+import Links from '../db/services/Links';
 
 export const getLinks = async (text: string): Promise<Set<string>> => {
     const urls: Set<string> = new Set();
@@ -352,7 +352,6 @@ export const checkLink = async (
     ignore: boolean;
     process: { type: string; score: number }[];
 }> => {
-    const Links = new LinksClass();
     if (typeof guildId == 'boolean') {
         guildId = undefined;
     }
