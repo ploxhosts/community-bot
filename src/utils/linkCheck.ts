@@ -8,7 +8,7 @@ import HttpsProxyAgent from 'https-proxy-agent';
 
 import { badServers, badTlds, urlShorteners } from '../data/badLinks';
 import { goodHostnames } from '../data/goodLinks';
-import { addLink, checkLinkInDB, checkExistanceByHostname } from '../db/services/Links';
+import LinksClass from '../db/services/Links';
 
 export const getLinks = async (text: string): Promise<Set<string>> => {
     const urls: Set<string> = new Set();
@@ -352,6 +352,7 @@ export const checkLink = async (
     ignore: boolean;
     process: { type: string; score: number }[];
 }> => {
+    const Links = new LinksClass();
     if (typeof guildId == 'boolean') {
         guildId = undefined;
     }
@@ -384,7 +385,7 @@ export const checkLink = async (
         };
     }
 
-    const existanceByHostname = await checkExistanceByHostname(hostname, guildId);
+    const existanceByHostname = await Links.checkExistanceByHostname(hostname, guildId);
 
     // use existanceByHostname.updated_at to check if hostname was updated more than 7 days ago
     if (existanceByHostname && existanceByHostname.updated_at) {
@@ -395,7 +396,7 @@ export const checkLink = async (
 
         if (diffDays <  Math.floor(Math.random() * (7 - 3 + 1)) + 3) {
 
-            return existanceByHostname.threatScore > 105 ? {
+            return existanceByHostname.score > 105 ? {
                 type: 'Existance by hostname',
                 score: existanceByHostname.score,
                 ignore: true,
@@ -415,7 +416,7 @@ export const checkLink = async (
 
     const LinkCheck =
         typeof guildId == 'string' || guildId == undefined
-            ? await checkLinkInDB(hostname, url, guildId)
+            ? await Links.checkLinkInDB(hostname, url, guildId)
             : false;
 
     if (LinkCheck && !LinkCheck.allowed) {
@@ -587,7 +588,7 @@ export const checkLink = async (
         trust = false;
     }
 
-    addLink(hostname, url, undefined, threatScore, process, undefined, trust);
+    Links.addLink(hostname, url, undefined, threatScore, process, undefined, trust);
 
     return {
         type: 'end',
