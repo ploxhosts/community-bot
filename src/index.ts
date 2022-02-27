@@ -111,7 +111,14 @@ client.on(
 
         try {
             // Run code here to execute the command
-            await command.execute(interaction);
+            try {
+                await command.execute(interaction);
+            } catch (error) {
+                console.log(error);
+                interaction.reply(
+                    'Something went wrong, please try again later.'
+                );
+            }
         } catch (error: any) {
             log.error(error);
             await interaction.reply({
