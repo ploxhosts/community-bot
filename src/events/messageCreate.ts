@@ -102,7 +102,7 @@ module.exports = {
             }
         }
 
-        if (message.member) {
+        if (message.member && !message.member.user.bot) {
             data = undefined;
 
             if (redis){

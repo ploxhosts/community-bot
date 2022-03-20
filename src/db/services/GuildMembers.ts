@@ -52,12 +52,11 @@ class GuildMember {
 
         try {
             const result = await postgres.query(fetch_query, fetch_values);
-            if (result) {
+            if (result.rows.length > 0) {
                 return result.rows.at(0);
-            } 
+            }
         } catch (error: any) {
             log.error(error);
-
             return false;
         }
 
@@ -85,11 +84,9 @@ class GuildMember {
         try {
 
             const result = await postgres.query(query, values);
-
             return result.rows.at(0);
         } catch (error: any) {
             log.error(error);
-
             return false;
         }
     };
@@ -240,7 +237,7 @@ class GuildMember {
         invite_link: string,
     ): Promise<GuildMemberData | false> => {
         const member = await this.getGuildMember(guild_id, user_id);
-        if (member == false){ // If the member doesn't exist, prevents errors from bad code
+        if (!member){ // If the member doesn't exist, prevents errors from bad code
             return false;
         }
         const query = `INSERT INTO ploxy_guild_members (

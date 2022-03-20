@@ -27,7 +27,7 @@ module.exports = {
     async execute(guild: discord.Guild) {
         log.debug('Joined guild 1');
         const guildOwnerDiscord = await guild.fetchOwner();
-        
+
         await User.createUser(
             guildOwnerDiscord.id,
             guildOwnerDiscord.user.username,
@@ -52,7 +52,7 @@ module.exports = {
             false
         );
 
-        await GuildMember.createGuildMember(
+        const guildMemberResult = await GuildMember.createGuildMember(
             guild.id,
             guildOwnerDiscord.id,
             false,
@@ -61,7 +61,6 @@ module.exports = {
             guildOwnerDiscord.avatarURL() || `https://cdn.discordapp.com/embed/avatars/${Number.parseInt(guildOwnerDiscord.user.discriminator) % 5}.png`,
             false
         );
-
 
         if (guildData == false) {
             return log.error(`Failed to create guild ${guild.id}`);
