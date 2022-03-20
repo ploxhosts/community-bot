@@ -10,6 +10,7 @@ create table if not exists ploxy_messages
     guild_id          varchar                   not null,
     in_thread         bool        default false not null,
     message_id_before varchar                   not null,
+    deleted          bool        default false not null,
     created_at        timestamptz default NOW() not null,
     updated_at        timestamptz default NOW() not null
 );

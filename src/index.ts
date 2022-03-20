@@ -3,10 +3,13 @@ import discord from 'discord.js';
 import dotenv from 'dotenv';
 import fs from 'node:fs';
 import * as redis from 'redis';
+import cron from 'node-cron';
+
 // Load environment variables from .env file
 dotenv.config();
 import connection from './db/postgres';
 import log from './utils/log';
+import Message from './db/services/Message';
 
 const RedisClient = redis.createClient();
 
@@ -128,6 +131,11 @@ client.on(
         }
     }
 );
+
+// Delete messages every last day of the month
+cron.schedule('0 0 * * 5', async () => {
+    await Message.permDeletedAllDeleted();
+})
 
 // Login to the api
 client.login(process.env.token);

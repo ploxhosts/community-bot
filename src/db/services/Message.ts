@@ -14,6 +14,7 @@ interface MessageData {
     guild_id: string,
     in_thread: boolean,
     message_id_before: string,
+    deleted: boolean,
     created_at: string,
     updated_at: string,
 }
@@ -112,6 +113,64 @@ class Message {
         }
     };
 
+    deleteMessage = async (message_id: string): Promise<boolean> => {
+        const query = 'UPDATE ploxy_messages SET deleted = true WHERE message_id = $1';
+        const values = [message_id];
+
+        try {
+            const result = await postgres.query(query, values);
+
+            return true;
+        } catch (error: any) {
+            log.error(error);
+
+            return false;
+        }
+    }
+
+    permDeleteAllDeletedGuild = async (guild_id: string): Promise<boolean> => {
+        const query = 'DELETE FROM ploxy_messages WHERE guild_id = $1 AND deleted = true';
+        const values = [guild_id];
+
+        try {
+            const result = await postgres.query(query, values);
+
+            return true;
+        } catch (error: any) {
+            log.error(error);
+
+            return false;
+        }
+    }
+
+    permDeleteAllDeletedUser = async (user_id: string): Promise<boolean> => {
+        const query = 'DELETE FROM ploxy_messages WHERE user_id = $1 AND deleted = true';
+        const values = [user_id];
+
+        try {
+            const result = await postgres.query(query, values);
+
+            return true;
+        } catch (error: any) {
+            log.error(error);
+
+            return false;
+        }
+    }
+    
+    permDeletedAllDeleted = async (): Promise<boolean> => {
+        const query = 'DELETE FROM ploxy_messages WHERE deleted = true AND created_at < NOW() - INTERVAL \'7 day\'';
+
+        try {
+            const result = await postgres.query(query);
+
+            return true;
+        } catch (error: any) {
+            log.error(error);
+
+            return false;
+        }
+    }
 }
 
 export const setRedis = function (redisIn: RedisClientType) {redis = redisIn};
