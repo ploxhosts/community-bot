@@ -26,7 +26,6 @@ const getTier = (tier: string): number => {
 };
 const checkTimes = (storedDate: number, currentDate: number): boolean => {
     const timeDifference = currentDate - storedDate;
-    console.log(timeDifference);
     if (timeDifference < 60000 * 60) {
         return false;
     }
@@ -80,7 +79,6 @@ module.exports = {
         }
 
         if (checkTimes(Number(data), Date.now())) {
-            console.log("guild", message.guild.id);
             await Guild.createGuild(
                 message.guild.id,
                 message.guild.name,
@@ -141,6 +139,7 @@ module.exports = {
             message.guild.id,
             message.hasThread
         );
+        console.log('Message created', message.id);
 
         const autoModule = await AutoMod.getGuildAutoMod(message.guild.id);
 

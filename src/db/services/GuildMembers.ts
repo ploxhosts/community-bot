@@ -45,6 +45,22 @@ class GuildMember {
     ): Promise<GuildMemberData | boolean> => {
         const id = nanoid();
 
+        
+
+        let fetch_query = 'SELECT * FROM ploxy_guild_members WHERE guild_id = $1 AND user_id = $2';
+        let fetch_values = [guild_id, user_id];
+
+        try {
+            const result = await postgres.query(fetch_query, fetch_values);
+            if (result) {
+                return result.rows.at(0);
+            } 
+        } catch (error: any) {
+            log.error(error);
+
+            return false;
+        }
+
         const query = `INSERT INTO ploxy_guild_members (
             id,
             user_id,
@@ -67,6 +83,7 @@ class GuildMember {
         ];
 
         try {
+
             const result = await postgres.query(query, values);
 
             return result.rows.at(0);
