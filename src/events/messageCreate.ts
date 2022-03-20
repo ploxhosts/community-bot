@@ -50,7 +50,8 @@ module.exports = {
             );
         }
 
-        if (checkTimes(Number(data), Date.now())) {
+        // If the user has been checked in the last 60 minutes, don't check again and it's not a bot
+        if (checkTimes(Number(data), Date.now()) && message.author.bot === false) {
             await User.createUser(
                 message.author.id,
                 message.author.username,
@@ -134,12 +135,11 @@ module.exports = {
             message.id,
             message.author.id,
             message.content,
-            message.embeds.toString(),
+            JSON.stringify(message.embeds),
             message.channel.id,
             message.guild.id,
             message.hasThread
         );
-        console.log('Message created', message.id);
 
         const autoModule = await AutoMod.getGuildAutoMod(message.guild.id);
 
