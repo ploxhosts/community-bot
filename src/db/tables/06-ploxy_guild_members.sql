@@ -3,12 +3,8 @@ create table if not exists ploxy_guild_members
     id             varchar
         constraint ploxy_guild_members_pk
             primary key,
-    user_id        varchar not null
-        constraint ploxy_guild_members_ploxy_users_user_id_fk
-            references ploxy_users,
-    guild_id       varchar not null
-        constraint ploxy_guild_members_ploxy_guilds_guild_id_fk
-            references ploxy_guilds,
+    user_id        varchar not null,
+    guild_id       varchar not null,
     roles         text,
     nickname text,
     avatar text,

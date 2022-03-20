@@ -5,12 +5,8 @@ create table if not exists ploxy_links
             primary key,
     hostname     text not null,
     link     text not null,
-    added_by varchar
-        constraint ploxy_links_ploxy_users_user_id_fk
-            references ploxy_users,
-    guild_id varchar
-        constraint ploxy_links_ploxy_guilds_guild_id_fk
-            references ploxy_guilds,
+    added_by varchar,
+    guild_id varchar,
     allowed boolean
         default false
         not null,

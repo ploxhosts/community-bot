@@ -2,9 +2,7 @@ create table if not exists ploxy_automod
 (
     guild_id                  varchar              not null
         constraint ploxy_automod_pk
-            primary key
-        constraint ploxy_automod_ploxy_guilds_guild_id_fk
-            references ploxy_guilds,
+            primary key,
     bad_word_check            bool   default false not null,
     user_date_check           bool   default false not null,
     minimum_user_age          bigint default 0     not null,

@@ -5,9 +5,7 @@ create table if not exists ploxy_guilds
             primary key,
     name                     text                   not null,
     avatar                   text,
-    owner_id                 varchar                not null
-        constraint ploxy_guilds_ploxy_users_user_id_fk
-            references ploxy_users,
+    owner_id                 varchar                not null,
     premium                  smallint default 0     not null,
     banned                   smallint default 0     not null,
     payment_level            int      default 0     not null,

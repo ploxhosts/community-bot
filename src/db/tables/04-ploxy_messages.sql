@@ -2,18 +2,13 @@ create table if not exists ploxy_messages
 (
     message_id        varchar                   not null
         constraint ploxy_messages_pk
-            primary key
-        constraint ploxy_messages_ploxy_messages_message_id_fk
-            references ploxy_messages,
-    user_id           varchar                   not null
-        constraint ploxy_messages_ploxy_users_user_id_fk
-            references ploxy_users,
+            primary key,
+    user_id           varchar                   not null,
     message           text        default null,
     embed             text        default null,
     channel_id        varchar                   not null,
     guild_id          varchar                   not null
-        constraint ploxy_messages_ploxy_guilds_guild_id_fk
-            references ploxy_guilds,
+        constraint ploxy_messages_ploxy_guilds_guild_id_fk,
     in_thread         bool        default false not null,
     message_id_before varchar                   not null,
     created_at        timestamptz default NOW() not null,
