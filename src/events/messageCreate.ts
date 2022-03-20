@@ -5,6 +5,7 @@ import AutoMod from '../db/services/AutoMod';
 import Guild from '../db/services/Guild';
 import Message from '../db/services/Message';
 import User from '../db/services/User';
+import GuildMembers from '../db/services/GuildMembers';
 import { badWordCheck } from '../utils/badWordCheck';
 import { copyPastaCheck } from '../utils/copyPastaCheck';
 import { spamCheck } from '../utils/spamCheck';
@@ -23,6 +24,14 @@ const getTier = (tier: string): number => {
             return 0;
     }
 };
+const checkTimes = (storedDate: number, currentDate: number): boolean => {
+    const timeDifference = currentDate - storedDate;
+    console.log(timeDifference);
+    if (timeDifference < 60000 * 60) {
+        return false;
+    }
+    return true;
+};
 
 module.exports = {
     name: 'messageCreate',
@@ -32,14 +41,17 @@ module.exports = {
             return;
         }
 
+
+        // Creates a user if they don't exist
         let data;
 
-        if (redis)
+        if (redis){
             data = await redis.get(
                 `user:${message.author.id}:has_been_checked`
             );
+        }
 
-        if (!data) {
+        if (checkTimes(Number(data), Date.now())) {
             await User.createUser(
                 message.author.id,
                 message.author.username,
@@ -50,21 +62,25 @@ module.exports = {
                 0
             );
 
-            if (redis)
+            if (redis){
                 await redis.set(
                     `user:${message.author.id}:has_been_checked`,
-                    'true'
+                    Date.now()
                 );
+            }
         }
 
+        // Creates a guild if they don't exist
         data = undefined;
 
-        if (redis)
+        if (redis){
             data = await redis.get(
                 `guild:${message.guild.id}:guild:has_been_checked`
             );
+        }
 
-        if (!data) {
+        if (checkTimes(Number(data), Date.now())) {
+            console.log("guild", message.guild.id);
             await Guild.createGuild(
                 message.guild.id,
                 message.guild.name,
@@ -79,12 +95,43 @@ module.exports = {
                 false
             );
 
-            if (redis)
+            if (redis){
                 await redis.set(
                     `guild:${message.guild.id}:guild:has_been_checked`,
-                    'true'
+                    Date.now()
                 );
+            }
         }
+
+        if (message.member) {
+            data = undefined;
+
+            if (redis){
+                data = await redis.get(
+                    `guild:${message.guild.id}:${message.author.id}:guild:has_been_checked`
+                );
+            }
+
+            if (checkTimes(Number(data), Date.now())) {
+                await GuildMembers.createGuildMember(
+                    message.guild.id,
+                    message.author.id,
+                    false,
+                    message.member.roles.cache.map((role) => role.id),
+                    message.member.nickname || message.author.username,
+                    message.author.avatarURL() || `https://cdn.discordapp.com/embed/avatars/${Number.parseInt(message.author.discriminator) % 5}.png` ,
+                    false
+                );
+
+                if (redis){
+                    await redis.set(
+                        `user:${message.author.id}:${message.author.id}:has_been_checked`,
+                        Date.now()
+                    );
+                }
+            }
+        }
+
         await Message.createMessage(
             message.id,
             message.author.id,
@@ -94,10 +141,11 @@ module.exports = {
             message.guild.id,
             message.hasThread
         );
+
         const autoModule = await AutoMod.getGuildAutoMod(message.guild.id);
 
         if (!autoModule) {
-            return;
+            return console.log('No auto mod found', message.guild.id);
         }
 
         if (autoModule.message_spam_check) {

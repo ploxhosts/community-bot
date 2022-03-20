@@ -7,8 +7,7 @@ create table if not exists ploxy_messages
     message           text        default null,
     embed             text        default null,
     channel_id        varchar                   not null,
-    guild_id          varchar                   not null
-        constraint ploxy_messages_ploxy_guilds_guild_id_fk,
+    guild_id          varchar                   not null,
     in_thread         bool        default false not null,
     message_id_before varchar                   not null,
     created_at        timestamptz default NOW() not null,

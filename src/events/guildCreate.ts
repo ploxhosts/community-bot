@@ -26,6 +26,17 @@ module.exports = {
     name: 'guildCreate',
     async execute(guild: discord.Guild) {
         log.debug('Joined guild 1');
+        const guildOwnerDiscord = await guild.fetchOwner();
+        
+        await User.createUser(
+            guildOwnerDiscord.id,
+            guildOwnerDiscord.user.username,
+            guildOwnerDiscord.user.discriminator,
+            guildOwnerDiscord.user.avatarURL() || `https://cdn.discordapp.com/embed/avatars/${Number.parseInt(guildOwnerDiscord.user.discriminator) % 5}.png`,
+            undefined,
+            guildOwnerDiscord.premiumSince ? 1 : 0,
+            0
+        );
 
         const guildData = await Guild.createGuild(
             guild.id,
@@ -39,17 +50,6 @@ module.exports = {
             false,
             false,
             false
-        );
-
-        const guildOwnerDiscord = await guild.fetchOwner();
-        await User.createUser(
-            guildOwnerDiscord.id,
-            guildOwnerDiscord.user.username,
-            guildOwnerDiscord.user.discriminator,
-            guildOwnerDiscord.user.avatarURL() || `https://cdn.discordapp.com/embed/avatars/${Number.parseInt(guildOwnerDiscord.user.discriminator) % 5}.png`,
-            undefined,
-            guildOwnerDiscord.premiumSince ? 1 : 0,
-            0
         );
 
         await GuildMember.createGuildMember(

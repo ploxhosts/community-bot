@@ -40,7 +40,7 @@ module.exports = {
         const AutoModSettings = await AutoMod.getGuildAutoMod(member.guild.id);
 
         // User date check
-        if (AutoModSettings != false && AutoModSettings.user_date_check) {
+        /*if (AutoModSettings != false && AutoModSettings.user_date_check) {
             const userCreatedDate = new Date(member.user.createdAt);
             const minimumUserAgeDate = new Date(
                 userCreatedDate.getTime() + AutoModSettings.minimum_user_age * 24 * 60
@@ -62,7 +62,7 @@ module.exports = {
                     } 
                 }
             }   
-        }
+        }*/
         
 
 

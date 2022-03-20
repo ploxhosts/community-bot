@@ -5,6 +5,7 @@ create table if not exists ploxy_automod
             primary key,
     bad_word_check            bool   default false not null,
     user_date_check           bool   default false not null,
+    user_web_check           bool   default false not null,
     minimum_user_age          bigint default 0     not null,
     bad_word_limit            int    default 0     not null,
     message_spam_check        bool   default false not null,
