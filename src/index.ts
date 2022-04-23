@@ -4,12 +4,8 @@ import dotenv from 'dotenv';
 import fs from 'node:fs';
 import * as redis from 'redis';
 import cron from 'node-cron';
-
-// Load environment variables from .env file
-dotenv.config();
-import connection from './db/postgres';
+import env from './env';
 import log from './utils/log';
-import Message from './db/services/Message';
 
 const RedisClient = redis.createClient();
 
@@ -36,12 +32,14 @@ if (!process.env.token) {
 
 // Fill the environment variables if non existant
 
-if (process.env.brandName === undefined || process.env.brandName === '') {
+if (env.brandName === undefined || env.brandName === '') {
     process.env.brandName = 'Ploxy Community Bot';
+    env.brandName = 'Ploxy Community Bot';
 }
 
-if (process.env.themeColor === undefined || process.env.themeColor === '') {
+if (env.themeColor === undefined || env.themeColor === '') {
     process.env.themeColor = '#39b5af';
+    env.themeColor = '#39b5af';
 }
 
 const client: any = new discord.Client({
@@ -132,10 +130,4 @@ client.on(
     }
 );
 
-// Delete messages every last day of the month
-cron.schedule('0 0 * * 5', async () => {
-    await Message.permDeletedAllDeleted();
-})
-
-// Login to the api
-client.login(process.env.token);
+client.login(env.token);
