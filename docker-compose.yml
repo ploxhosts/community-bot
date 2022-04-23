@@ -4,23 +4,22 @@ services:
         build: .
         restart: unless-stopped
         depends_on:
-            - postgres
+            - mariadb
         links:
-            - postgres
+            - mariadb
         networks:
             - backend
         env_file:
             - .env
-    postgres:
-        image: postgres:14.1
+    mariadb:
+        image: mariadb:10.7.3
         restart: always
-        ports:
-            # <Port exposed> : < Port inside container>
-            - '5432:5432'
         expose:
-            # Opens port 5432 on the container
-            - '5432'
+            # Opens port 3306 on the container
+            - '3306'
         volumes:
+            - "/var/lib/mysql/data:${MARIADB_DATA_DIR}"
+            - "/var/lib/mysql/logs:${MARIADB_LOG_DIR}"
             - db:/data/ploxy
         env_file: 
             - .env
@@ -29,6 +28,3 @@ services:
 networks:
     backend:
         driver: bridge
-
-volumes:
-    db: {}
