@@ -87,3 +87,5 @@ Message.init({
   sequelize,
   modelName: 'Message'
 });
+
+export default Message;

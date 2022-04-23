@@ -5,7 +5,7 @@ class GuildJoins extends Model {
     declare id: number;
     declare user_id: string;
     declare invite_link: string;
-    declare left_at: string;
+    declare left_at: Date;
     declare last_message_id: string;
 }
 
@@ -24,7 +24,7 @@ GuildJoins.init({
         allowNull: false
     },
     left_at: {
-        type: DataTypes.STRING,
+        type: DataTypes.DATE,
         allowNull: true
     },
     last_message_id: {
@@ -35,3 +35,6 @@ GuildJoins.init({
   sequelize,
   modelName: 'GuildJoins'
 });
+
+
+export default GuildJoins;

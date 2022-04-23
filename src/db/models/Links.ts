@@ -45,3 +45,6 @@ Link.init({
   sequelize,
   modelName: 'Link'
 });
+
+
+export default Link;

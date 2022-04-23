@@ -1,12 +1,9 @@
 import discord from 'discord.js';
 import { RedisClientType } from 'redis';
-
-import AutoMod from '../db/services/AutoMod';
-import User from '../db/services/User';
-import GuildMember from '../db/services/GuildMembers';
-
+import User from '../db/models/User';
 import log from '../utils/log';
 import GuildEmbeds from '../utils/embeds/GuildEmbeds';
+import GuildJoins from '../db/models/GuildJoins';
 let redis: RedisClientType;
 
 module.exports = {
@@ -15,56 +12,27 @@ module.exports = {
         
         log.debug("Member joined", member.user.username, member.user.id);
 
-        await User.createUser(
-            member.user.id,
-            member.user.username,
-            member.user.discriminator,
-            member.user.avatarURL() || `https://cdn.discordapp.com/embed/avatars/${Number.parseInt(member.user.discriminator) % 5}.png`,
-            undefined,
-            0,
-            0
-        );
-
-        await GuildMember.createGuildMember(
-            member.guild.id,
-            member.user.id,
-            false,
-            [],
-            member.nickname || member.user.username,
-            member.user.avatarURL() || `https://cdn.discordapp.com/embed/avatars/${Number.parseInt(member.user.discriminator) % 5}.png`,
-            false,
-        );
-
-        await GuildMember.memberJoin(member.guild.id, member.user.id, ""); // TODO: Invite manager here
-
-        const AutoModSettings = await AutoMod.getGuildAutoMod(member.guild.id);
-
-        // User date check
-        /*if (AutoModSettings != false && AutoModSettings.user_date_check) {
-            const userCreatedDate = new Date(member.user.createdAt);
-            const minimumUserAgeDate = new Date(
-                userCreatedDate.getTime() + AutoModSettings.minimum_user_age * 24 * 60
-            );
-            if (minimumUserAgeDate < new Date()) {
-                if (member.kickable) {
-                    if (AutoModSettings.log_channel){
-                        const embed = GuildEmbeds.createUnderageKickEmbed(member.user);
-                        const channel = member.guild.channels.cache.get(AutoModSettings.log_channel);
-                        channel && (channel as discord.TextChannel).send({embeds: [embed]});
-                        return await member.kick("User is too young");
-                    }
-                } else {
-                    log.info("Member is not kickable", member.user.username, member.user.id, member.guild.id);
-                    if (AutoModSettings.log_channel){
-                        const embed = GuildEmbeds.MissingPermissionsEmbed(["KICK_MEMBERS"]);
-                        const channel = member.guild.channels.cache.get(AutoModSettings.log_channel);
-                        channel && (channel as discord.TextChannel).send({embeds: [embed]});
-                    } 
-                }
-            }   
-        }*/
-        
-
+        let user = await User.findOne({ where: { id: member.user.id }});
+        if (!user) {
+            user = User.build({
+                id: member.user.id,
+                username: member.user.username,
+                discriminator: member.user.discriminator,
+                avatar: member.user.avatarURL() || `https://cdn.discordapp.com/embed/avatars/${Number.parseInt(member.user.discriminator) % 5}.png`,
+                premium: 0,
+                banned: false,
+                verified: false,
+                timedOut: false,
+                lastSeen: Date.now(),
+                nickname: member.nickname || member.user.username,
+            });
+            await user.save();
+        }
+    
+        GuildJoins.build({
+            user_id: member.user.id,
+            invite_link: "", // TODO: Check what invite link they used
+        }).save();
 
 
     },

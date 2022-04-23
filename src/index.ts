@@ -1,9 +1,7 @@
 import { shimLog } from '@lvksh/logger';
 import discord from 'discord.js';
-import dotenv from 'dotenv';
 import fs from 'node:fs';
 import * as redis from 'redis';
-import cron from 'node-cron';
 import env from './env';
 import log from './utils/log';
 

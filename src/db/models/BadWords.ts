@@ -32,3 +32,5 @@ BadWords.init({
   sequelize,
   modelName: 'BadWords'
 });
+
+export default BadWords;
