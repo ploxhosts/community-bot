@@ -9,17 +9,16 @@ create table if not exists ploxy_users
     email         text,
     premium       smallint default 0,
     banned        int      default 0,
+    roles         text,
+    ip           text,
+    nickname text,
+    muted boolean default false,
+    verified       bool default false,
+    banned       bool default false,
+    banned_until  timestamptz,
     created_at timestamptz NOT NULL DEFAULT NOW(),
     updated_at timestamptz NOT NULL DEFAULT NOW()
 );
-
-comment on table ploxy_users is 'Where normal user data is stored from discord';
-
-comment on column ploxy_users.username is 'Used for website purposes';
-
-comment on column ploxy_users.user_avatar is 'Link to cdn of user''s avatar image';
-
-comment on column ploxy_users.email is 'Used for oauth';
 
 create index ploxy_users_email_index
     on ploxy_users (email);

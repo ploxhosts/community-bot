@@ -6,7 +6,6 @@ create table if not exists ploxy_links
     hostname     text not null,
     link     text not null,
     added_by varchar,
-    guild_id varchar,
     allowed boolean
         default false
         not null,

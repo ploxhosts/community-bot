@@ -1,7 +1,6 @@
 create table if not exists ploxy_badwords
 (
     word_id    serial,
-    guild_id   varchar        not null,
     word       text           not null,
     implicit   bool default false not null,
     created_by varchar        not null
