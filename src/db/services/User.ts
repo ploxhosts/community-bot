@@ -4,17 +4,28 @@ import { DataTypes, Model } from 'sequelize';
 class User extends Model {
     declare id: number;
     declare username: string;
+    declare discriminator: string;
+    declare avatar: string;
+    declare premium: number;
+    declare banned: boolean;
+    declare timedOut: boolean;
+    declare lastSeen: Date;
+    declare roles: string[];
+    declare email: string;
+    declare verified: boolean;
+    declare ip: string;
+    declare nickname: string;
 }
 
 User.init({
-  id: {
-    type: DataTypes.STRING,
-    primaryKey: true
-  },
-  username: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
+    id: {
+        type: DataTypes.STRING,
+        primaryKey: true
+    },
+    username: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
     discriminator: {
         type: DataTypes.STRING,
         allowNull: false
