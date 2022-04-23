@@ -3,7 +3,22 @@ import { DataTypes, Model } from 'sequelize';
 
 class Message extends Model {
     declare id: number;
-    declare username: string;
+    declare user_id: string;
+    declare channel_id: string;
+    declare message: string;
+    declare embed: string;
+    declare in_thread: boolean;
+    declare thread_id: string;
+    declare in_response_to: string;
+    declare response_to: string;
+    declare is_pinned: boolean;
+    declare is_deleted: boolean;
+    declare is_edited: boolean;
+    declare reported: boolean;
+    declare reactions: string[];
+    declare attachments: string[];
+    declare message_id_before: string;
+    declare edits: string[];
 }
 
 Message.init({
