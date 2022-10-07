@@ -67,7 +67,7 @@ func Book(client *discordgo.Session, interaction *discordgo.InteractionCreate) {
 
 	responseEmbed := &discordgo.MessageEmbed{
 		Title:       "Search Results",
-		Description: "Found " + strconv.Itoa(len(results)) + " results`\n\n" + strings.Join(results, ""),
+		Description: "Found " + strconv.Itoa(len(results)) + " results\n\n" + strings.Join(results, ""),
 	}
 
 	err = client.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
