@@ -6,6 +6,7 @@ import (
 	"github.com/joho/godotenv"
 	"os"
 	"os/signal"
+	"ploxy/commands"
 	"ploxy/events"
 	"syscall"
 )
@@ -17,7 +18,6 @@ var (
 	BotToken    string
 	BotId       string
 	TestGuildId string
-	Commands    []*discordgo.ApplicationCommand
 )
 
 func loadEnv() *error {
@@ -46,13 +46,13 @@ func main() {
 		return
 	}
 
-	events.RegisterEvents(Client)
-
 	err = Client.Open()
 	if err != nil {
 		fmt.Println("error opening connection to Discord,", err)
 		return
 	}
+	events.RegisterEvents(Client)
+	commands.RegisterCommands(Client, TestGuildId)
 
 	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
 	sc := make(chan os.Signal, 1)
