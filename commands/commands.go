@@ -13,9 +13,22 @@ func RegisterCommands(client *discordgo.Session, TestGuildId string) {
 			Name:        "ping",
 			Description: "Ping the bot",
 		},
+		{
+			Name:        "book",
+			Description: "Search the knowledge base",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "query",
+					Description: "The query to search for",
+					Required:    true,
+				},
+			},
+		},
 	}
 
 	CommandHandlers["ping"] = PingCommand
+	CommandHandlers["book"] = Book
 
 	client.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if h, ok := CommandHandlers[i.ApplicationCommandData().Name]; ok {
