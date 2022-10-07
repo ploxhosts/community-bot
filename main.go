@@ -46,9 +46,7 @@ func main() {
 		return
 	}
 
-	Client.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
-		events.OnReadyEvent(s)
-	})
+	events.RegisterEvents(Client)
 
 	err = Client.Open()
 	if err != nil {
