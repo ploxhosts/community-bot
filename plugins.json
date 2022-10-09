@@ -1,0 +1,132 @@
+{
+  "paper": [
+    {
+      "name": "ClearLag",
+      "warning": "❌",
+      "reason": "Plugins that claim to remove lag actually cause more lag."
+    },
+    {
+      "name": "LagAssist",
+      "warning": "❌",
+      "reason": "Should only be used for analytics and preventative measures.\nAll other features of the plugin should be disabled."
+    },
+    {
+      "name": "NoChunkLag",
+      "warning": "❌",
+      "reason": "Plugins that claim to remove lag actually cause more lag."
+    },
+    {
+      "name": "NoMobLag",
+      "warning": "❌",
+      "reason": "Plugins that claim to remove lag actually cause more lag."
+    },
+    {
+      "name": "ServerBooster",
+      "warning": "❌",
+      "reason": "Plugins that claim to remove lag actually cause more lag."
+    },
+    {
+      "name": "AntiLag",
+      "warning": "❌",
+      "reason": "Plugins that claim to remove lag actually cause more lag."
+    },
+    {
+      "name": "BookLimiter",
+      "warning": "❌",
+      "reason": "Paper already fixes all crash bugs."
+    },
+    {
+      "name": "LimitPillagers",
+      "warning": "❌",
+      "reason": "Not useful in 1.15 and above."
+    },
+    {
+      "name": "StackMob",
+      "warning": "❌",
+      "reason": "Stacking mobs causes more lag."
+    },
+    {
+      "name": "Stacker",
+      "warning": "❌",
+      "reason": "Stacking mobs causes more lag."
+    },
+    {
+      "name": "MobStacker",
+      "warning": "❌",
+      "reason": "Stacking mobs causes more lag."
+    },
+    {
+      "name": "WildStacker",
+      "warning": "❌",
+      "reason": "Stacking mobs causes more lag."
+    },
+    {
+      "name": "RoseStacker",
+      "warning": "❌",
+      "reason": "Stacking mobs causes more lag."
+    },
+    {
+      "name": "FastAsyncWorldEdit",
+      "warning": "❌",
+      "reason": "FAWE has some issues, replace it with [WorldEdit](https://enginehub.org/worldedit/#downloads)"
+    },
+    {
+      "name": "IllegalStack",
+      "warning": "❌",
+      "reason": "Paper already fixes all dupe and crash bugs."
+    },
+    {
+      "name": "ExploitFixer",
+      "warning": "❌",
+      "reason": "Paper already fixes all dupe and crash bugs."
+    },
+    {
+      "name": "EntityTrackerFixer",
+      "warning": "❌",
+      "reason": "Paper already has it's features"
+    },
+    {
+      "name": "Orebfuscator",
+        "warning": "❌",
+        "reason": "Paper already has it's features"
+    }, {
+      "name": "GroupManager",
+        "warning": "❌",
+        "reason": "Outdated. Use [LuckPerms](https://luckperms.net/) instead"
+    },
+    {
+      "name": "PermissionsEx",
+        "warning": "❌",
+        "reason": "Outdated. Use [LuckPerms](https://luckperms.net/) instead"
+    }, {
+      "name": "bPermissions",
+        "warning": "❌",
+        "reason": "Outdated. Use [LuckPerms](https://luckperms.net/) instead"
+    }, {
+      "name": "PhantomSMP",
+        "warning": "❌",
+        "reason": "Paper already has its features. You can enable this in paper.yml under the `phantoms-only-attack-insomniacs` option."
+    }, {
+      "name": "PacketLimiter",
+        "warning": "❌",
+        "reason": "Paper already has its features."
+    }
+  ],
+  "purpur": [
+    {
+      "name": "SilkSpawners",
+        "warning": "❌",
+        "reason": "Purpur already has its features."
+    },
+    {
+      "name": "MineableSpawners",
+        "warning": "❌",
+        "reason": "Purpur already has its features."
+    },
+    {
+      "name": "    VillagerLobotomizatornator",
+        "warning": "❌",
+        "reason": "Purpur already has its features. You can enable this in the purpur.yml under the `villager.lobotomize.enabled` option."
+    }
+  ]
+}
