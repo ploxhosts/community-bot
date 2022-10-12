@@ -490,7 +490,7 @@ func TimingsAnalysis(url string) ([]EmbedField, error) {
 		}
 	}
 
-	append(concerns, getPaperAdvice(timingsData, concerns)...)
+	concerns = append(concerns, getPaperAdvice(timingsData, concerns)...)
 
 	return concerns, nil
 }
