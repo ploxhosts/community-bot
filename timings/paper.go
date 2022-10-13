@@ -249,17 +249,53 @@ func getPaperAdvice(data Timings, advice []EmbedField) []EmbedField {
 		})
 	}
 
-	DespawnRangesFishSoft, err := strconv.Atoi(data.TimingsMaster.Config.Paper.WorldSettings.Default.DespawnRanges.Fish.Soft)
-	if err != nil {
-		DespawnRangesFishSoft = 0
-	}
-	if DespawnRangesFishSoft >= 32 {
+	if data.TimingsMaster.Config.Paper.WorldSettings.Default.Hopper.DisableMoveEvent == "false" {
 		advice = append(advice, EmbedField{
-			Name:   "❌️ despawn-ranges.fish.soft",
-			Value:  "Decrease this in `config/paper-world-defaults.yml`\nRecommended: 28.",
+			Name:   "❌️ hopper.disable-move-event",
+			Value:  "Set this to `true` in `config/paper-world-defaults.yml`",
 			Inline: true,
 		})
 	}
-	
+
+	NonPlayerArrowDespawnRate, err := strconv.Atoi(data.TimingsMaster.Config.Paper.WorldSettings.Default.NonPlayerArrowDespawnRate)
+	if err != nil {
+		NonPlayerArrowDespawnRate = 0
+	}
+	if NonPlayerArrowDespawnRate == -1 {
+		advice = append(advice, EmbedField{
+			Name:   "❌️ non-player-arrow-despawn-rate",
+			Value:  "Set a value or the recommended default `60` in `config/paper-world-defaults.yml`",
+			Inline: true,
+		})
+	}
+
+	CreativeArrowDespawnRate, err := strconv.Atoi(data.TimingsMaster.Config.Paper.WorldSettings.Default.CreativeArrowDespawnRate)
+	if err != nil {
+		CreativeArrowDespawnRate = 0
+	}
+	if CreativeArrowDespawnRate == -1 {
+		advice = append(advice, EmbedField{
+			Name:   "❌️ creative-arrow-despawn-rate",
+			Value:  "Set a value or the recommended default `60` in `config/paper-world-defaults.yml`",
+			Inline: true,
+		})
+	}
+
+	if data.TimingsMaster.Config.Paper.WorldSettings.Default.PreventMovingIntoUnloadedChunks == "false" {
+		advice = append(advice, EmbedField{
+			Name:   "❌️ prevent-moving-into-unloaded-chunks",
+			Value:  "Set this to `true` in `config/paper-world-defaults.yml`",
+			Inline: true,
+		})
+	}
+
+	if data.TimingsMaster.Config.Paper.WorldSettings.Default.RedstoneImplementation != "ALTERNATE_CURRENT" {
+		advice = append(advice, EmbedField{
+			Name:   "❌️ redstone-implementation",
+			Value:  "Set this to `ALTERNATE_CURRENT` in `config/paper-world-defaults.yml`",
+			Inline: true,
+		})
+	}
+
 	return advice
 }
