@@ -2,7 +2,7 @@ package timings
 
 import "strconv"
 
-func getPaperAdvice(data Timings, advice []EmbedField) []EmbedField {
+func getPaperAdvice(data Timings, advice []EmbedField, plugins []string) []EmbedField {
 
 	maxAutoSaveChunksPerTick, err := strconv.Atoi(data.TimingsMaster.Config.Paper.WorldSettings.Default.MaxAutoSaveChunksPerTick)
 	if err != nil {
@@ -293,6 +293,30 @@ func getPaperAdvice(data Timings, advice []EmbedField) []EmbedField {
 		advice = append(advice, EmbedField{
 			Name:   "❌️ redstone-implementation",
 			Value:  "Set this to `ALTERNATE_CURRENT` in `config/paper-world-defaults.yml`",
+			Inline: true,
+		})
+	}
+
+	if data.TimingsMaster.Config.Paper.WorldSettings.Default.FixClimbingBypassingCrammingRule == "false" {
+		advice = append(advice, EmbedField{
+			Name:   "❌️ fix-climbing-bypassing-cramming-rule",
+			Value:  "Set this to `true` in `config/paper-world-defaults.yml`",
+			Inline: true,
+		})
+	}
+
+	if data.TimingsMaster.Config.Paper.WorldSettings.Default.ArmorStandsDoCollisionEntityLookups == "true" {
+		advice = append(advice, EmbedField{
+			Name:   "❌️ armor-stands-do-collision-entity-lookups",
+			Value:  "Set this to `false` in `config/paper-world-defaults.yml`",
+			Inline: true,
+		})
+	}
+
+	if data.TimingsMaster.Config.Paper.WorldSettings.Default.ArmorStandsTick == "true" && (CheckIfPluginInUse("PetBlocks", plugins) || CheckIfPluginInUse("BlockBalls", plugins) || CheckIfPluginInUse("ArmorStandTools", plugins)) {
+		advice = append(advice, EmbedField{
+			Name:   "❌️ armor-stands-tick",
+			Value:  "Set this to `false` in `config/paper-world-defaults.yml`",
 			Inline: true,
 		})
 	}

@@ -223,6 +223,15 @@ func arrayContains(s []string, str string) bool {
 	return false
 }
 
+func CheckIfPluginInUse(plugin string, plugins []string) bool {
+	for _, v := range plugins {
+		if strings.Contains(v, plugin) {
+			return true
+		}
+	}
+	return false
+}
+
 func TimingsAnalysis(url string) ([]EmbedField, error) {
 	if url == "" {
 		return nil, nil
@@ -468,7 +477,7 @@ func TimingsAnalysis(url string) ([]EmbedField, error) {
 
 	// Check for plugins
 	for _, plugin := range plugins.Paper {
-		if arrayContains(pluginsInUse, plugin.Name) {
+		if CheckIfPluginInUse(plugin.Name, pluginsInUse) {
 			concerns = append(concerns, EmbedField{
 				Name:   "❌️ " + plugin.Name,
 				Value:  plugin.Reason,
@@ -490,7 +499,7 @@ func TimingsAnalysis(url string) ([]EmbedField, error) {
 		}
 	}
 
-	concerns = append(concerns, getPaperAdvice(timingsData, concerns)...)
+	concerns = append(concerns, getPaperAdvice(timingsData, concerns, pluginsInUse)...)
 
 	return concerns, nil
 }
