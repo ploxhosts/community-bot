@@ -499,7 +499,8 @@ func TimingsAnalysis(url string) ([]EmbedField, error) {
 		}
 	}
 
-	concerns = append(concerns, getPaperAdvice(timingsData, concerns, pluginsInUse)...)
+	paperAdvice := getPaperAdvice(timingsData, concerns, pluginsInUse)
+	concerns = append(concerns, paperAdvice...)
 
 	return concerns, nil
 }
