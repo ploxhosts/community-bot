@@ -424,6 +424,9 @@ type Timings struct {
 									Validatenearbypoi string `json:"validatenearbypoi"`
 								} `json:"villager"`
 							} `json:"behavior"`
+							ContainerUpdate int `json:"container-update"`
+							GrassSpread     int `json:"grass-spread"`
+							MobSpawner      int `json:"mob-spawner"`
 						} `json:"tick-rates"`
 						DuplicateUuidSaferegenDeleteRange    string `json:"duplicate-uuid-saferegen-delete-range"`
 						ContainerUpdateTickRate              string `json:"container-update-tick-rate"`
