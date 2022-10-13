@@ -321,5 +321,77 @@ func getPaperAdvice(data Timings, advice []EmbedField, plugins []string) []Embed
 		})
 	}
 
+	if data.TimingsMaster.Config.Paper.WorldSettings.Default.PerPlayerMobSpawns == "false" {
+		advice = append(advice, EmbedField{
+			Name:   "❌️ per-player-mob-spawns",
+			Value:  "Set this to `true` in `config/paper-world-defaults.yml`",
+			Inline: true,
+		})
+	}
+
+	if data.TimingsMaster.Config.Paper.WorldSettings.Default.AltItemDespawnRate.Enabled == "false" {
+		advice = append(advice, EmbedField{
+			Name:   "❌️ alt-item-despawn-rate.enabled",
+			Value:  "Set this to `true` in `config/paper-world-defaults.yml`",
+			Inline: true,
+		})
+	}
+
+	EntityPerChunkSaveLimit, err := strconv.Atoi(data.TimingsMaster.Config.Paper.WorldSettings.Default.EntityPerChunkSaveLimit.ExperienceOrb)
+
+	if err != nil {
+		EntityPerChunkSaveLimit = 0
+	}
+
+	if EntityPerChunkSaveLimit == 1 {
+		advice = append(advice, EmbedField{
+			Name:   "❌️ entity-per-chunk-save-limit.experience-orb",
+			Value:  "Set this to `16` or lower in `config/paper-world-defaults.yml`",
+			Inline: true,
+		})
+	}
+
+	EntityPerChunkSaveLimit, err = strconv.Atoi(data.TimingsMaster.Config.Paper.WorldSettings.Default.EntityPerChunkSaveLimit.Snowball)
+
+	if err != nil {
+		EntityPerChunkSaveLimit = 0
+	}
+
+	if EntityPerChunkSaveLimit == 1 {
+		advice = append(advice, EmbedField{
+			Name:   "❌️ entity-per-chunk-save-limit.snowball",
+			Value:  "Set this to `16` or lower in `config/paper-world-defaults.yml`",
+			Inline: true,
+		})
+	}
+
+	EntityPerChunkSaveLimit, err = strconv.Atoi(data.TimingsMaster.Config.Paper.WorldSettings.Default.EntityPerChunkSaveLimit.EnderPearl)
+
+	if err != nil {
+		EntityPerChunkSaveLimit = 0
+	}
+
+	if EntityPerChunkSaveLimit == 1 {
+		advice = append(advice, EmbedField{
+			Name:   "❌️ entity-per-chunk-save-limit.ender-pearl",
+			Value:  "Set this to `16` or lower in `config/paper-world-defaults.yml`",
+			Inline: true,
+		})
+	}
+
+	EntityPerChunkSaveLimit, err = strconv.Atoi(data.TimingsMaster.Config.Paper.WorldSettings.Default.EntityPerChunkSaveLimit.Arrow)
+
+	if err != nil {
+		EntityPerChunkSaveLimit = 0
+	}
+
+	if EntityPerChunkSaveLimit == 1 {
+		advice = append(advice, EmbedField{
+			Name:   "❌️ entity-per-chunk-save-limit.arrow",
+			Value:  "Set this to `16` or lower in `config/paper-world-defaults.yml`",
+			Inline: true,
+		})
+	}
+
 	return advice
 }
