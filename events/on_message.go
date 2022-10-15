@@ -16,6 +16,7 @@ func OnMessage(client *discordgo.Session, message *discordgo.MessageCreate) {
 		fmt.Println(err)
 		return
 	}
+	fmt.Println(analysis)
 	if len(analysis) >= 1 {
 		// get the first 20 resulsts
 		if len(analysis) > 20 {
@@ -43,7 +44,7 @@ func OnMessage(client *discordgo.Session, message *discordgo.MessageCreate) {
 			fmt.Println(err)
 			return
 		}
-		
+
 	}
 
 }

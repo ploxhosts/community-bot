@@ -315,6 +315,7 @@ func TimingsAnalysis(url string) ([]EmbedField, error) {
 	}
 
 	if versionData.isOutdated {
+		println("Server is outdated")
 		if versionData.fixOutdated > 0 {
 			concerns = append(concerns, EmbedField{
 				Name:   "⚠️ Outdated Fix Version",
@@ -499,14 +500,11 @@ func TimingsAnalysis(url string) ([]EmbedField, error) {
 		}
 	}
 
-	paperAdvice := getPaperAdvice(timingsData, concerns, pluginsInUse)
-	concerns = append(concerns, paperAdvice...)
+	concerns = getPaperAdvice(timingsData, concerns, pluginsInUse)
 
-	bukkitAdvice := getBukkitAdvice(timingsData, concerns, pluginsInUse)
-	concerns = append(concerns, bukkitAdvice...)
+	concerns = getBukkitAdvice(timingsData, concerns, pluginsInUse)
 
-	spigotAdvice := getSpigotAdvice(timingsData, concerns, pluginsInUse)
-	concerns = append(concerns, spigotAdvice...)
-	
+	concerns = getSpigotAdvice(timingsData, concerns, pluginsInUse)
+
 	return concerns, nil
 }
