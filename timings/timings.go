@@ -505,5 +505,8 @@ func TimingsAnalysis(url string) ([]EmbedField, error) {
 	bukkitAdvice := getBukkitAdvice(timingsData, concerns, pluginsInUse)
 	concerns = append(concerns, bukkitAdvice...)
 
+	spigotAdvice := getSpigotAdvice(timingsData, concerns, pluginsInUse)
+	concerns = append(concerns, spigotAdvice...)
+	
 	return concerns, nil
 }
