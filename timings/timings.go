@@ -502,5 +502,8 @@ func TimingsAnalysis(url string) ([]EmbedField, error) {
 	paperAdvice := getPaperAdvice(timingsData, concerns, pluginsInUse)
 	concerns = append(concerns, paperAdvice...)
 
+	bukkitAdvice := getBukkitAdvice(timingsData, concerns, pluginsInUse)
+	concerns = append(concerns, bukkitAdvice...)
+
 	return concerns, nil
 }
