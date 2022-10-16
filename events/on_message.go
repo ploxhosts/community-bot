@@ -3,6 +3,7 @@ package events
 import (
 	"fmt"
 	"github.com/bwmarrin/discordgo"
+	"ploxy/autosupport"
 	"ploxy/timings"
 )
 
@@ -16,9 +17,9 @@ func OnMessage(client *discordgo.Session, message *discordgo.MessageCreate) {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(analysis)
+
 	if len(analysis) >= 1 {
-		// get the first 20 resulsts
+		// get the first 20 results
 		if len(analysis) > 20 {
 			analysis = analysis[:20]
 		}
@@ -47,4 +48,5 @@ func OnMessage(client *discordgo.Session, message *discordgo.MessageCreate) {
 
 	}
 
+	autosupport.ProcessDiscordMessage(message, client)
 }
