@@ -4,11 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
-	"github.com/otiai10/gosseract/v2"
 	"github.com/rylans/getlang"
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"time"
 )
 
@@ -146,26 +146,15 @@ func processImage(linkToImage string, id string) string {
 }
 
 func getTextFromImage(linkToImage string) string {
-	client := gosseract.NewClient()
-	defer func(client *gosseract.Client) {
-		err := client.Close()
-		if err != nil {
-			fmt.Println(err)
-		}
-	}(client)
-	err := client.SetImage(linkToImage)
-	if err != nil {
-		fmt.Println(err)
-		return ""
-	}
-	text, err := client.Text()
 
+	cmd := exec.Command("tesseract", linkToImage, "stdout")
+	out, err := cmd.Output()
 	if err != nil {
 		fmt.Println(err)
 		return ""
 	}
 
-	return text
+	return string(out)
 }
 
 func downloadImage(URL, fileName string) error {
