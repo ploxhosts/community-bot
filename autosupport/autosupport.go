@@ -108,6 +108,7 @@ func ProcessDiscordMessage(message *discordgo.MessageCreate, session *discordgo.
 	for _, text := range textContents {
 
 		if processText(text) != "en" {
+
 			_, err := session.ChannelMessageSendReply(message.ChannelID, "Hi, I have detected your message is not english. Please create a ticket at https://support.plox.host/en/tickets/create/step1 for the best chances of a response.", message.Reference())
 			if err != nil {
 				fmt.Println(err)
@@ -121,8 +122,10 @@ func ProcessDiscordMessage(message *discordgo.MessageCreate, session *discordgo.
 }
 
 func processText(text string) string {
-
 	info := getlang.FromString(text)
+	if info.LanguageCode() == "und" {
+		return "en"
+	}
 	return info.LanguageCode()
 }
 
