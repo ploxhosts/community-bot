@@ -183,20 +183,33 @@ func ProcessDiscordMessage(message *discordgo.MessageCreate, session *discordgo.
 		}
 	}
 
-	var discordBotHosting map[string]string = map[string]string{
+	response := autoRespond(allText, imageText)
+	if response != "" {
+		_, err := session.ChannelMessageSendReply(message.ChannelID, response, message.Reference())
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+
+	issueSelectionEmbed(message, session)
+
+}
+
+func autoRespond(allText string, imageText string) string {
+	var discordBotHosting = map[string]string{
 		"run `npm audit fix` to fix them, or `npm audit` for details": "If you want to remove the error run `npm audit fix` to fix them, or `npm audit` for details` please download your code, run `npm audit fix` **on your own pc** and then upload the code again.",
 	}
 
 	for key, value := range discordBotHosting {
 		if strings.Contains(allText, key) {
-			_, err := session.ChannelMessageSendReply(message.ChannelID, value, message.Reference())
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-			return
+			return value
+		} else if strings.Contains(imageText, key) {
+			return value
 		}
 	}
+
+	return ""
 }
 
 func processText(text string) string {
