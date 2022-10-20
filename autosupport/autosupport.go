@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
+	"github.com/robfig/cron/v3"
 	"github.com/rylans/getlang"
 	"io"
 	"net/http"
@@ -15,10 +16,13 @@ import (
 // create array and the time the bot lasted responded to them
 // if the time is over 5 minutes, remove them from the array
 
-var lastMessaged = make(map[string]struct {
+type lastMessagedStruct struct {
 	toldToCreateTicket time.Time
 	lastSupportMessage time.Time
-})
+	askedForService    time.Time
+}
+
+var lastMessaged = make(map[string]lastMessagedStruct)
 
 func handleOutdatedCache(author string) {
 	// Prevent memory leak
@@ -28,50 +32,42 @@ func handleOutdatedCache(author string) {
 	}
 
 	if time.Since(lastMessaged[author].lastSupportMessage) > 5*time.Minute {
-		lastMessaged[author] = struct {
-			toldToCreateTicket time.Time
-			lastSupportMessage time.Time
-		}{
+		lastMessaged[author] = lastMessagedStruct{
 			toldToCreateTicket: lastMessaged[author].toldToCreateTicket,
 			lastSupportMessage: time.Now(),
 		}
 	}
 
 	if time.Since(lastMessaged[author].toldToCreateTicket) > 5*time.Minute {
-		lastMessaged[author] = struct {
-			toldToCreateTicket time.Time
-			lastSupportMessage time.Time
-		}{
+		lastMessaged[author] = lastMessagedStruct{
 			toldToCreateTicket: time.Now(),
 			lastSupportMessage: lastMessaged[author].lastSupportMessage,
 		}
 	}
 }
-func givenSupportMessage() {
-
-}
 
 func toldToCreateTicket(author string) {
-	lastMessaged[author] = struct {
-		toldToCreateTicket time.Time
-		lastSupportMessage time.Time
-	}{
+	lastMessaged[author] = lastMessagedStruct{
 		toldToCreateTicket: time.Now(),
 		lastSupportMessage: lastMessaged[author].lastSupportMessage,
 	}
 }
 
-func ProcessDiscordMessage(message *discordgo.MessageCreate, session *discordgo.Session) {
-	lastMessaged[message.Author.ID] = struct {
-		toldToCreateTicket time.Time
-		lastSupportMessage time.Time
-	}{
-		toldToCreateTicket: time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC),
-		lastSupportMessage: time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC),
+func removeOldEntries() {
+	for key, _ := range lastMessaged {
+		handleOutdatedCache(key)
 	}
+}
 
-	// if the user has not been told to create a ticket in the last 5 minutes
-	handleOutdatedCache(message.Author.ID)
+func ProcessDiscordMessage(message *discordgo.MessageCreate, session *discordgo.Session) {
+	// Check if author is in lastMessaged cache if not create cache object
+	if _, ok := lastMessaged[message.Author.ID]; !ok {
+		lastMessaged[message.Author.ID] = lastMessagedStruct{
+			toldToCreateTicket: time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC),
+			lastSupportMessage: time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC),
+			askedForService:    time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC),
+		}
+	}
 
 	if processText(message.Content) != "en" {
 		// if the user has not been told to create a ticket in the last 5 minutes
@@ -101,8 +97,17 @@ func ProcessDiscordMessage(message *discordgo.MessageCreate, session *discordgo.
 		}
 	}
 
-	if len(textContents) == 0 {
+	var allText string
+	var imageText string
+
+	for _, text := range textContents {
+		allText += text
+		imageText += text
+	}
+
+	if message.Content != "" {
 		textContents = append(textContents, message.Content)
+		allText += message.Content
 	}
 
 	for _, text := range textContents {
@@ -190,4 +195,15 @@ func downloadImage(URL, fileName string) error {
 	}
 
 	return nil
+}
+
+// register cron job to remove old entries from lastMessaged
+func init() {
+	c := cron.New()
+	_, err := c.AddFunc("0 */4 * * *", removeOldEntries)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	c.Start()
 }

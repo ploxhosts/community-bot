@@ -17,6 +17,8 @@ github.com/otiai10/gosseract/v2 v2.4.0/go.mod h1:fhbIDRh29bj13vni6RT3gtWKjKCAeqD
 github.com/otiai10/mint v1.3.0/go.mod h1:F5AjcsTsWUqX+Na9fpHb52P8pcRX2CI6A3ctIT91xUo=
 github.com/otiai10/mint v1.3.3 h1:7JgpsBaN0uMkyju4tbYHu0mnM55hNKVYLsXmwr15NQI=
 github.com/otiai10/mint v1.3.3/go.mod h1:/yxELlJQ0ufhjUwhshSj+wFjZ78CnZ48/1wtmBH1OTc=
+github.com/robfig/cron/v3 v3.0.1 h1:WdRxkvbJztn8LMz/QEvLN5sBU+xKpSqwwUO1Pjr4qDs=
+github.com/robfig/cron/v3 v3.0.1/go.mod h1:eQICP3HwyT7UooqI/z+Ov+PtYAWygg1TEWWzGIFLtro=
 github.com/rylans/getlang v0.0.0-20201227074721-9e7f44ff8aa0 h1:qSaU9YAEIxk/ozcmY1hiauktAYTpbwYIrPdQ0L2E8UM=
 github.com/rylans/getlang v0.0.0-20201227074721-9e7f44ff8aa0/go.mod h1:3vfmZI6aJd5Rb9W2TQ0Nmupl+qem21R05+hmCscI0Bk=
 golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b h1:7mWr3k41Qtv8XlltBkDkl8LoP3mpSgBW8BUoxtEdbXg=
