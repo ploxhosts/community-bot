@@ -3,44 +3,24 @@ package main
 import (
 	"fmt"
 	"github.com/bwmarrin/discordgo"
-	"github.com/joho/godotenv"
 	"os"
 	"os/signal"
 	"ploxy/commands"
 	"ploxy/events"
+	"ploxy/utils"
 	"syscall"
 )
 
 var Client *discordgo.Session
 
-// Bot variables
-var (
-	BotToken    string
-	BotId       string
-	TestGuildId string
-)
-
-func loadEnv() *error {
-	error := godotenv.Load()
-	if error != nil {
-		fmt.Println("Error loading .env file")
-		return &error
-	}
-
-	BotToken = os.Getenv("DISCORD_BOT_TOKEN")
-	BotId = os.Getenv("DISCORD_BOT_ID")
-	TestGuildId = os.Getenv("DISCORD_TEST_GUILD_ID")
-
-	fmt.Println("Loaded environment variables")
-	return nil
-}
-
 func main() {
-	if loadEnv() != nil {
+	ConfigErr, config := utils.LoadConfig()
+	if ConfigErr != nil {
+		fmt.Println(ConfigErr)
 		return
 	}
 
-	Client, err := discordgo.New("Bot " + BotToken)
+	Client, err := discordgo.New("Bot " + config.BotToken)
 	if err != nil {
 		fmt.Println("error starting Discord bot,", err)
 		return
@@ -52,7 +32,7 @@ func main() {
 		return
 	}
 	events.RegisterEvents(Client)
-	commands.RegisterCommands(Client, TestGuildId)
+	commands.RegisterCommands(Client, config.TestGuildId)
 
 	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
 	sc := make(chan os.Signal, 1)

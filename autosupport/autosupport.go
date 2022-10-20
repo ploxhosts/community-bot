@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"ploxy/utils"
 	"time"
 )
 
@@ -17,9 +18,11 @@ import (
 // if the time is over 5 minutes, remove them from the array
 
 type lastMessagedStruct struct {
-	toldToCreateTicket time.Time
-	lastSupportMessage time.Time
-	askedForService    time.Time
+	toldToCreateTicket    time.Time
+	lastSupportMessage    time.Time
+	askedForService       time.Time
+	previousMessages      []string
+	previousImageContents []string
 }
 
 var lastMessaged = make(map[string]lastMessagedStruct)
@@ -33,23 +36,32 @@ func handleOutdatedCache(author string) {
 
 	if time.Since(lastMessaged[author].lastSupportMessage) > 5*time.Minute {
 		lastMessaged[author] = lastMessagedStruct{
-			toldToCreateTicket: lastMessaged[author].toldToCreateTicket,
-			lastSupportMessage: time.Now(),
+			toldToCreateTicket:    lastMessaged[author].toldToCreateTicket,
+			lastSupportMessage:    time.Now(),
+			askedForService:       lastMessaged[author].askedForService,
+			previousMessages:      lastMessaged[author].previousMessages,
+			previousImageContents: lastMessaged[author].previousImageContents,
 		}
 	}
 
 	if time.Since(lastMessaged[author].toldToCreateTicket) > 5*time.Minute {
 		lastMessaged[author] = lastMessagedStruct{
-			toldToCreateTicket: time.Now(),
-			lastSupportMessage: lastMessaged[author].lastSupportMessage,
+			toldToCreateTicket:    time.Now(),
+			lastSupportMessage:    lastMessaged[author].lastSupportMessage,
+			askedForService:       lastMessaged[author].askedForService,
+			previousMessages:      lastMessaged[author].previousMessages,
+			previousImageContents: lastMessaged[author].previousImageContents,
 		}
 	}
 }
 
 func toldToCreateTicket(author string) {
 	lastMessaged[author] = lastMessagedStruct{
-		toldToCreateTicket: time.Now(),
-		lastSupportMessage: lastMessaged[author].lastSupportMessage,
+		toldToCreateTicket:    time.Now(),
+		lastSupportMessage:    lastMessaged[author].lastSupportMessage,
+		askedForService:       lastMessaged[author].askedForService,
+		previousMessages:      lastMessaged[author].previousMessages,
+		previousImageContents: lastMessaged[author].previousImageContents,
 	}
 }
 
@@ -60,12 +72,39 @@ func removeOldEntries() {
 }
 
 func ProcessDiscordMessage(message *discordgo.MessageCreate, session *discordgo.Session) {
+	config := utils.Config
+
+	for _, channel := range config.ForbiddenChannels {
+		if message.ChannelID == channel {
+			return
+		}
+	}
+
+	if message.Author.ID == session.State.User.ID {
+		return
+	}
+
+	if message.Author.Bot {
+		return
+	}
+
+	// check if user has forbidden role
+	for _, role := range message.Member.Roles {
+		for _, forbiddenRole := range config.ForbiddenRoles {
+			if role == forbiddenRole {
+				return
+			}
+		}
+	}
+
 	// Check if author is in lastMessaged cache if not create cache object
 	if _, ok := lastMessaged[message.Author.ID]; !ok {
 		lastMessaged[message.Author.ID] = lastMessagedStruct{
-			toldToCreateTicket: time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC),
-			lastSupportMessage: time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC),
-			askedForService:    time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC),
+			toldToCreateTicket:    time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC),
+			lastSupportMessage:    time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC),
+			askedForService:       time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC),
+			previousMessages:      []string{},
+			previousImageContents: []string{},
 		}
 	}
 
@@ -122,6 +161,17 @@ func ProcessDiscordMessage(message *discordgo.MessageCreate, session *discordgo.
 			toldToCreateTicket(message.Author.ID)
 			return
 		}
+	}
+
+	if len(textContents) == 0 {
+		lastMessaged[message.Author.ID] = lastMessagedStruct{
+			toldToCreateTicket:    lastMessaged[message.Author.ID].toldToCreateTicket,
+			lastSupportMessage:    lastMessaged[message.Author.ID].lastSupportMessage,
+			askedForService:       time.Now(),
+			previousMessages:      lastMessaged[message.Author.ID].previousMessages,
+			previousImageContents: append(lastMessaged[message.Author.ID].previousImageContents, imageText),
+		}
+		return
 	}
 
 }
