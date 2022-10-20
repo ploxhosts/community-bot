@@ -192,7 +192,7 @@ func ProcessDiscordMessage(message *discordgo.MessageCreate, session *discordgo.
 		}
 	}
 
-	issueSelectionEmbed(message, session)
+	IssueSelectionEmbed(message, session)
 
 }
 
