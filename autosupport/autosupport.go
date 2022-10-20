@@ -200,7 +200,7 @@ func downloadImage(URL, fileName string) error {
 // register cron job to remove old entries from lastMessaged
 func init() {
 	c := cron.New()
-	_, err := c.AddFunc("0 */4 * * *", removeOldEntries)
+	_, err := c.AddFunc("0 5 * * 1", removeOldEntries)
 	if err != nil {
 		fmt.Println(err)
 		return
