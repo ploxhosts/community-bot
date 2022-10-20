@@ -16,7 +16,6 @@ var Client *discordgo.Session
 func main() {
 	ConfigErr, config := utils.LoadConfig()
 	if ConfigErr != nil {
-		fmt.Println(ConfigErr)
 		return
 	}
 

@@ -23,6 +23,7 @@ func LoadConfig() (*error, *ConfigType) {
 		err := configFile.Close()
 		if err != nil {
 			fmt.Println(err)
+			fmt.Println("error closing config file")
 		}
 	}(configFile)
 	if err != nil {
@@ -32,6 +33,7 @@ func LoadConfig() (*error, *ConfigType) {
 	jsonParser := json.NewDecoder(configFile)
 	err = jsonParser.Decode(&Config)
 	if err != nil {
+		fmt.Println(err.Error() + " - Please create a config.json file or repair it.")
 		return &err, nil
 	}
 

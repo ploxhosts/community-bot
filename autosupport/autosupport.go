@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"ploxy/utils"
+	"strings"
 	"time"
 )
 
@@ -172,8 +173,30 @@ func ProcessDiscordMessage(message *discordgo.MessageCreate, session *discordgo.
 			previousImageContents: append(lastMessaged[message.Author.ID].previousImageContents, imageText),
 		}
 		return
+	} else {
+		lastMessaged[message.Author.ID] = lastMessagedStruct{
+			toldToCreateTicket:    lastMessaged[message.Author.ID].toldToCreateTicket,
+			lastSupportMessage:    lastMessaged[message.Author.ID].lastSupportMessage,
+			askedForService:       time.Now(),
+			previousMessages:      append(lastMessaged[message.Author.ID].previousMessages, allText),
+			previousImageContents: append(lastMessaged[message.Author.ID].previousImageContents, imageText),
+		}
 	}
 
+	var discordBotHosting map[string]string = map[string]string{
+		"run `npm audit fix` to fix them, or `npm audit` for details": "If you want to remove the error run `npm audit fix` to fix them, or `npm audit` for details` please download your code, run `npm audit fix` **on your own pc** and then upload the code again.",
+	}
+
+	for key, value := range discordBotHosting {
+		if strings.Contains(allText, key) {
+			_, err := session.ChannelMessageSendReply(message.ChannelID, value, message.Reference())
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			return
+		}
+	}
 }
 
 func processText(text string) string {
