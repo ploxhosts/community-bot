@@ -9,5 +9,8 @@ func RegisterEvents(client *discordgo.Session) {
 	client.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
 		OnMessage(s, m)
 	})
+	client.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		OnInteraction(s, i)
+	})
 
 }

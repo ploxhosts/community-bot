@@ -31,6 +31,10 @@ func RegisterCommands(client *discordgo.Session, TestGuildId string) {
 	CommandHandlers["book"] = Book
 
 	client.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		if i.Type != discordgo.InteractionApplicationCommand {
+			return
+		}
+
 		if h, ok := CommandHandlers[i.ApplicationCommandData().Name]; ok {
 			h(s, i)
 		}
