@@ -5,6 +5,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+// IssueSelectionEmbed *-problem_selection buttons
 func IssueSelectionEmbed(message *discordgo.MessageCreate, session *discordgo.Session) {
 	embed := &discordgo.MessageEmbed{
 		Title:       "Automated Assistance",
@@ -16,7 +17,6 @@ func IssueSelectionEmbed(message *discordgo.MessageCreate, session *discordgo.Se
 		Embed:     embed,
 		Reference: message.Reference(),
 		Components: []discordgo.MessageComponent{
-
 			discordgo.ActionsRow{
 				Components: []discordgo.MessageComponent{
 					discordgo.Button{
@@ -70,6 +70,7 @@ func IssueSelectionEmbed(message *discordgo.MessageCreate, session *discordgo.Se
 	}
 }
 
+// AskWhatServiceTheyHave service_selection_select menu and *-service_selection options
 func AskWhatServiceTheyHave() (*discordgo.MessageEmbed, *[]discordgo.MessageComponent, *error) {
 	embed := &discordgo.MessageEmbed{
 		Title:       "Automated Assistance",
@@ -110,6 +111,7 @@ func AskWhatServiceTheyHave() (*discordgo.MessageEmbed, *[]discordgo.MessageComp
 							Value:       "discordbot-service_selection",
 						},
 					},
+					CustomID: "service_selection_select",
 				},
 			},
 		},
@@ -118,6 +120,7 @@ func AskWhatServiceTheyHave() (*discordgo.MessageEmbed, *[]discordgo.MessageComp
 	return embed, components, nil
 }
 
+// ProblemSelected service_selection that provides service_selection_select menu and *-service_selection options
 func ProblemSelected(client *discordgo.Session, interaction *discordgo.InteractionCreate) {
 	customId := interaction.MessageComponentData().CustomID
 	fmt.Println("Button clicked:", customId)
@@ -135,9 +138,11 @@ func ProblemSelected(client *discordgo.Session, interaction *discordgo.Interacti
 				Embeds:     []*discordgo.MessageEmbed{embed},
 				Components: *components,
 				Flags:      discordgo.MessageFlagsEphemeral,
+				CustomID:   "service_selection",
 			},
 		})
 		if BotErr != nil {
+			fmt.Println(BotErr)
 			return
 		}
 	}
@@ -147,8 +152,10 @@ func ProblemSelected(client *discordgo.Session, interaction *discordgo.Interacti
 func ServiceSelected(client *discordgo.Session, interaction *discordgo.InteractionCreate) {
 	customId := interaction.MessageComponentData().CustomID
 	fmt.Println("Button clicked:", customId)
+	fmt.Println(interaction.MessageComponentData().Values)
+	valueClicked := "vps-service_selection"
 
-	if customId == "vps-service_selection" {
+	if valueClicked == "vps-service_selection" {
 		embed := &discordgo.MessageEmbed{
 			Title:       "Automated Assistance",
 			Description: "You have selected you are having issues with VPS hosting.\nDue to the nature of VPS hosting, we are unable to provide automated assistance for this product.\nIf you need help installing packages please use google to your advantage.\nIf you are downtime issues, create a ticket.\nIf you want to know if what you are doing is allowed, visit https://plox.host/terms-of-service\nFor anything else not listed here or if you are having trouble with instructions please [open a ticket with our support team](https://support.plox.host/en/tickets/create/step1) and they will be happy to assist you.",
@@ -158,15 +165,17 @@ func ServiceSelected(client *discordgo.Session, interaction *discordgo.Interacti
 		BotErr := client.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseUpdateMessage,
 			Data: &discordgo.InteractionResponseData{
-				Embeds: []*discordgo.MessageEmbed{embed},
-				Flags:  discordgo.MessageFlagsEphemeral,
+				Embeds:     []*discordgo.MessageEmbed{embed},
+				Flags:      discordgo.MessageFlagsEphemeral,
+				Components: []discordgo.MessageComponent{},
+				CustomID:   "VpsSelectedAndResponded",
 			},
 		})
 		if BotErr != nil {
 			fmt.Println(BotErr)
 			return
 		}
-	} else if customId == "dedicated-service_selection" {
+	} else if valueClicked == "dedicated-service_selection" {
 		embed := &discordgo.MessageEmbed{
 			Title:       "Automated Assistance",
 			Description: "You have selected you are having issues with Dedicated Server hosting.\nDue to the nature of Dedicated Server hosting, we are unable to provide automated assistance for this product.\nIf you need help installing packages please use google to your advantage.\nIf you are downtime issues, create a ticket.\nIf you want to know if what you are doing is allowed, visit https://plox.host/terms-of-service\nFor anything else not listed here or if you are having trouble with instructions please [open a ticket with our support team](https://support.plox.host/en/tickets/create/step1) and they will be happy to assist you.",
@@ -176,15 +185,16 @@ func ServiceSelected(client *discordgo.Session, interaction *discordgo.Interacti
 		BotErr := client.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseUpdateMessage,
 			Data: &discordgo.InteractionResponseData{
-				Embeds: []*discordgo.MessageEmbed{embed},
-				Flags:  discordgo.MessageFlagsEphemeral,
+				Embeds:   []*discordgo.MessageEmbed{embed},
+				Flags:    discordgo.MessageFlagsEphemeral,
+				CustomID: "DedicatedSelectedAndResponded",
 			},
 		})
 		if BotErr != nil {
 			fmt.Println(BotErr)
 			return
 		}
-	} else if customId == "shared-service_selection" {
+	} else if valueClicked == "shared-service_selection" {
 		embed := &discordgo.MessageEmbed{
 			Title:       "Automated Assistance",
 			Description: "You have selected you are having issues with Shared/Web Hosting.\nIf you want to know if what you are doing is allowed, visit https://plox.host/terms-of-service\nFor anything else not listed here or if you are having trouble with instructions please [open a ticket with our support team](https://support.plox.host/en/tickets/create/step1) and they will be happy to assist you.",
@@ -194,15 +204,17 @@ func ServiceSelected(client *discordgo.Session, interaction *discordgo.Interacti
 		BotErr := client.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseUpdateMessage,
 			Data: &discordgo.InteractionResponseData{
-				Embeds: []*discordgo.MessageEmbed{embed},
-				Flags:  discordgo.MessageFlagsEphemeral,
+				Embeds:     []*discordgo.MessageEmbed{embed},
+				Flags:      discordgo.MessageFlagsEphemeral,
+				Components: []discordgo.MessageComponent{},
+				CustomID:   "SharedSelectedAndResponded",
 			},
 		})
 		if BotErr != nil {
 			fmt.Println(BotErr)
 			return
 		}
-	} else if customId == "minecraft-service_selection" {
+	} else if valueClicked == "minecraft-service_selection" {
 		embed := &discordgo.MessageEmbed{
 			Title:       "Automated Assistance",
 			Description: "You have selected you are having issues with Minecraft Hosting. This will be updated in the future with more information to better assist you.\nIf you want to know if what you are doing is allowed, visit https://plox.host/terms-of-service\nFor anything else not listed here or if you are having trouble with instructions please [open a ticket with our support team](https://support.plox.host/en/tickets/create/step1) and they will be happy to assist you.",
@@ -212,15 +224,17 @@ func ServiceSelected(client *discordgo.Session, interaction *discordgo.Interacti
 		BotErr := client.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseUpdateMessage,
 			Data: &discordgo.InteractionResponseData{
-				Embeds: []*discordgo.MessageEmbed{embed},
-				Flags:  discordgo.MessageFlagsEphemeral,
+				Embeds:     []*discordgo.MessageEmbed{embed},
+				Flags:      discordgo.MessageFlagsEphemeral,
+				Components: []discordgo.MessageComponent{},
+				CustomID:   "MinecraftSelectedAndResponded",
 			},
 		})
 		if BotErr != nil {
 			fmt.Println(BotErr)
 			return
 		}
-	} else if customId == "discordbot-service_selection" {
+	} else if valueClicked == "discordbot-service_selection" {
 
 		embed := &discordgo.MessageEmbed{
 			Title:       "Automated Assistance",
@@ -231,8 +245,10 @@ func ServiceSelected(client *discordgo.Session, interaction *discordgo.Interacti
 		BotErr := client.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseUpdateMessage,
 			Data: &discordgo.InteractionResponseData{
-				Embeds: []*discordgo.MessageEmbed{embed},
-				Flags:  discordgo.MessageFlagsEphemeral,
+				Embeds:     []*discordgo.MessageEmbed{embed},
+				Flags:      discordgo.MessageFlagsEphemeral,
+				Components: []discordgo.MessageComponent{},
+				CustomID:   "DiscordBotSelectedAndResponded",
 			},
 		})
 
