@@ -137,7 +137,6 @@ func ProblemSelected(client *discordgo.Session, interaction *discordgo.Interacti
 			Data: &discordgo.InteractionResponseData{
 				Embeds:     []*discordgo.MessageEmbed{embed},
 				Components: *components,
-				Flags:      discordgo.MessageFlagsEphemeral,
 				CustomID:   "service_selection",
 			},
 		})
@@ -153,7 +152,7 @@ func ServiceSelected(client *discordgo.Session, interaction *discordgo.Interacti
 	customId := interaction.MessageComponentData().CustomID
 	fmt.Println("Button clicked:", customId)
 	fmt.Println(interaction.MessageComponentData().Values)
-	valueClicked := "vps-service_selection"
+	valueClicked := interaction.MessageComponentData().Values[0]
 
 	if valueClicked == "vps-service_selection" {
 		embed := &discordgo.MessageEmbed{
@@ -166,7 +165,6 @@ func ServiceSelected(client *discordgo.Session, interaction *discordgo.Interacti
 			Type: discordgo.InteractionResponseUpdateMessage,
 			Data: &discordgo.InteractionResponseData{
 				Embeds:     []*discordgo.MessageEmbed{embed},
-				Flags:      discordgo.MessageFlagsEphemeral,
 				Components: []discordgo.MessageComponent{},
 				CustomID:   "VpsSelectedAndResponded",
 			},
@@ -205,7 +203,6 @@ func ServiceSelected(client *discordgo.Session, interaction *discordgo.Interacti
 			Type: discordgo.InteractionResponseUpdateMessage,
 			Data: &discordgo.InteractionResponseData{
 				Embeds:     []*discordgo.MessageEmbed{embed},
-				Flags:      discordgo.MessageFlagsEphemeral,
 				Components: []discordgo.MessageComponent{},
 				CustomID:   "SharedSelectedAndResponded",
 			},
@@ -225,7 +222,6 @@ func ServiceSelected(client *discordgo.Session, interaction *discordgo.Interacti
 			Type: discordgo.InteractionResponseUpdateMessage,
 			Data: &discordgo.InteractionResponseData{
 				Embeds:     []*discordgo.MessageEmbed{embed},
-				Flags:      discordgo.MessageFlagsEphemeral,
 				Components: []discordgo.MessageComponent{},
 				CustomID:   "MinecraftSelectedAndResponded",
 			},
@@ -246,7 +242,6 @@ func ServiceSelected(client *discordgo.Session, interaction *discordgo.Interacti
 			Type: discordgo.InteractionResponseUpdateMessage,
 			Data: &discordgo.InteractionResponseData{
 				Embeds:     []*discordgo.MessageEmbed{embed},
-				Flags:      discordgo.MessageFlagsEphemeral,
 				Components: []discordgo.MessageComponent{},
 				CustomID:   "DiscordBotSelectedAndResponded",
 			},

@@ -14,6 +14,10 @@ func OnInteraction(client *discordgo.Session, interaction *discordgo.Interaction
 }
 
 func handleClick(client *discordgo.Session, interaction *discordgo.InteractionCreate) {
+	// check if author is the same
+	if interaction.Interaction.Member.User.ID != interaction.Interaction.Message.Author.ID {
+		return
+	}
 	customId := interaction.MessageComponentData().CustomID
 	fmt.Println("Handler:", customId)
 
