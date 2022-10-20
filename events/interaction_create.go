@@ -17,5 +17,7 @@ func handleButtonClick(client *discordgo.Session, interaction *discordgo.Interac
 
 	if strings.Split(customId, "-")[1] == "problem_selection" {
 		autosupport.ProblemSelected(client, interaction)
+	} else if strings.Split(customId, "-")[1] == "service_selection" {
+		autosupport.ServiceSelected(client, interaction)
 	}
 }
