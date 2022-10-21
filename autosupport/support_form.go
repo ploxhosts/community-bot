@@ -157,7 +157,7 @@ func ServiceSelected(client *discordgo.Session, interaction *discordgo.Interacti
 	if valueClicked == "vps-service_selection" {
 		embed := &discordgo.MessageEmbed{
 			Title:       "Automated Assistance",
-			Description: "You have selected you are having issues with VPS hosting.\nDue to the nature of VPS hosting, we are unable to provide automated assistance for this product.\nIf you need help installing packages please use google to your advantage.\nIf you are downtime issues, create a ticket.\nIf you want to know if what you are doing is allowed, visit https://plox.host/terms-of-service\nFor anything else not listed here or if you are having trouble with instructions please [open a ticket with our support team](https://support.plox.host/en/tickets/create/step1) and they will be happy to assist you.",
+			Description: "You have selected you are having issues with VPS hosting.\nDue to the nature of VPS hosting, we are unable to provide automated assistance for this product.\nIf you need help installing packages please use google to your advantage.\nIf you want to know if what you are doing is allowed, visit https://plox.host/terms-of-service\nFor anything else not listed here or if you are having trouble with instructions please [open a ticket with our support team](https://support.plox.host/en/tickets/create/step1) and they will be happy to assist you.",
 			Color:       0x00ff00,
 		}
 
@@ -176,7 +176,7 @@ func ServiceSelected(client *discordgo.Session, interaction *discordgo.Interacti
 	} else if valueClicked == "dedicated-service_selection" {
 		embed := &discordgo.MessageEmbed{
 			Title:       "Automated Assistance",
-			Description: "You have selected you are having issues with Dedicated Server hosting.\nDue to the nature of Dedicated Server hosting, we are unable to provide automated assistance for this product.\nIf you need help installing packages please use google to your advantage.\nIf you are downtime issues, create a ticket.\nIf you want to know if what you are doing is allowed, visit https://plox.host/terms-of-service\nFor anything else not listed here or if you are having trouble with instructions please [open a ticket with our support team](https://support.plox.host/en/tickets/create/step1) and they will be happy to assist you.",
+			Description: "You have selected you are having issues with Dedicated Server hosting.\nDue to the nature of Dedicated Server hosting, we are unable to provide automated assistance for this product.\nIf you need help installing packages please use google to your advantage.\nIf you want to know if what you are doing is allowed, visit https://plox.host/terms-of-service\nFor anything else not listed here or if you are having trouble with instructions please [open a ticket with our support team](https://support.plox.host/en/tickets/create/step1) and they will be happy to assist you.",
 			Color:       0x00ff00,
 		}
 
