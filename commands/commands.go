@@ -37,6 +37,50 @@ func RegisterCommands(client *discordgo.Session, TestGuildId string) {
 				},
 			},
 		},
+		{
+			Name:        "suggestions",
+			Description: "Manage suggestions",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Name:        "accept",
+					Description: "Accept a suggestion",
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "id",
+							Description: "The ID of the suggestion",
+							Required:    true,
+						},
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "reason",
+							Description: "The reason for accepting the suggestion",
+							Required:    false,
+						},
+					},
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Name:        "deny",
+					Description: "Deny a suggestion",
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "id",
+							Description: "The ID of the suggestion",
+							Required:    true,
+						},
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "reason",
+							Description: "The reason for denying the suggestion",
+							Required:    false,
+						},
+					},
+				},
+			},
+		},
 	}
 
 	CommandHandlers["ping"] = PingCommand
