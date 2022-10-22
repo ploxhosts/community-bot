@@ -25,10 +25,23 @@ func RegisterCommands(client *discordgo.Session, TestGuildId string) {
 				},
 			},
 		},
+		{
+			Name:        "suggest",
+			Description: "Suggest a new feature",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "suggestion",
+					Description: "The suggestion to make",
+					Required:    true,
+				},
+			},
+		},
 	}
 
 	CommandHandlers["ping"] = PingCommand
 	CommandHandlers["book"] = Book
+	CommandHandlers["suggest"] = SuggestCommand
 
 	client.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if i.Type != discordgo.InteractionApplicationCommand {

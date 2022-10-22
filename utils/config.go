@@ -7,10 +7,12 @@ import (
 )
 
 type ConfigType struct {
-	BotToken          string   `json:"DISCORD_BOT_TOKEN"`
-	TestGuildId       string   `json:"DISCORD_GUILD_ID"`
-	ForbiddenChannels []string `json:"FORBIDDEN_CHANNELS"`
-	ForbiddenRoles    []string `json:"FORBIDDEN_ROLES"`
+	BotToken            string   `json:"DISCORD_BOT_TOKEN"`
+	TestGuildId         string   `json:"DISCORD_GUILD_ID"`
+	ForbiddenChannels   []string `json:"FORBIDDEN_CHANNELS"`
+	ForbiddenRoles      []string `json:"FORBIDDEN_ROLES"`
+	SuggestionChannelId string   `json:"SUGGESTION_CHANNEL_ID"`
+	ApprovalChannelId   string   `json:"APPROVAL_CHANNEL_ID"`
 }
 
 var Config ConfigType
