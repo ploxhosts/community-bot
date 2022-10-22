@@ -37,22 +37,6 @@ func IssueSelectionEmbed(message *discordgo.MessageCreate, session *discordgo.Se
 					},
 					discordgo.Button{
 						Emoji: discordgo.ComponentEmoji{
-							Name: "📧",
-						},
-						Label:    "Email Issues",
-						Style:    discordgo.PrimaryButton,
-						CustomID: "email_issues-problem_selection",
-					},
-					discordgo.Button{
-						Emoji: discordgo.ComponentEmoji{
-							Name: "🔒",
-						},
-						Label:    "Account Issues",
-						Style:    discordgo.PrimaryButton,
-						CustomID: "account_issues-problem_selection",
-					},
-					discordgo.Button{
-						Emoji: discordgo.ComponentEmoji{
 							Name: "📝",
 						},
 						Label:    "Other",
@@ -148,6 +132,22 @@ func ProblemSelected(client *discordgo.Session, interaction *discordgo.Interacti
 		embed := &discordgo.MessageEmbed{
 			Title:       "Automated Assistance",
 			Description: "- If you have recently bought a vps/kvm, you will have to create a ticket at https://support.plox.host/en/tickets/create/step1 to have it manually approved.\n- If you bought something using crypto and haven't recieved your product, please create a ticket at https://support.plox.host/en/tickets/create/step1 and wait for a reply.\n- **If you have been charged twice**, please create a ticket at https://support.plox.host/en/tickets/create/step1 and wait for a reply. This is because you refreshed the page during purchase.\n- If you want to request a refund, please create a ticket at https://support.plox.host/en/tickets/create/step1 and wait for a reply.\n- If you have any other billing/payment issues, please create a ticket at https://support.plox.host/en/tickets/create/step1 and wait for a reply, **we cannot help you over discord.**",
+		}
+
+		BotErr := client.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseUpdateMessage,
+			Data: &discordgo.InteractionResponseData{
+				Embeds: []*discordgo.MessageEmbed{embed},
+			},
+		})
+		if BotErr != nil {
+			fmt.Println(BotErr)
+			return
+		}
+	} else if customId == "other-problem_selection" {
+		embed := &discordgo.MessageEmbed{
+			Title:       "Automated Assistance",
+			Description: "Please create a ticket at https://support.plox.host/en/tickets/create/step1 and wait for a reply. It may take up to 24 hours for a reply.",
 		}
 
 		BotErr := client.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
