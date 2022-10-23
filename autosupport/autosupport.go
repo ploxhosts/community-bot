@@ -180,9 +180,27 @@ func ProcessDiscordMessage(message *discordgo.MessageCreate, session *discordgo.
 			fmt.Println(err)
 			return
 		}
+		lastMessaged[message.Author.ID] = lastMessagedStruct{
+			toldToCreateTicket:    lastMessaged[message.Author.ID].toldToCreateTicket,
+			lastSupportMessage:    time.Now(),
+			askedForService:       lastMessaged[message.Author.ID].askedForService,
+			previousMessages:      lastMessaged[message.Author.ID].previousMessages,
+			previousImageContents: lastMessaged[message.Author.ID].previousImageContents,
+		}
+		return
 	}
 
+	if time.Since(lastMessaged[message.Author.ID].askedForService) < 10*time.Minute {
+		return
+	}
 	IssueSelectionEmbed(message, session)
+	lastMessaged[message.Author.ID] = lastMessagedStruct{
+		toldToCreateTicket:    time.Now(),
+		lastSupportMessage:    time.Now(),
+		askedForService:       time.Now(),
+		previousMessages:      lastMessaged[message.Author.ID].previousMessages,
+		previousImageContents: lastMessaged[message.Author.ID].previousImageContents,
+	}
 
 }
 
