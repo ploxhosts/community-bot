@@ -1,9 +1,11 @@
 package commands
 
 import (
+	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"ploxy/utils"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -64,30 +66,35 @@ func SuggestCommand(client *discordgo.Session, interaction *discordgo.Interactio
 	channel, err := client.Channel(utils.Config.SuggestionChannelId)
 
 	if err != nil {
+		fmt.Println("Error getting channel: ", err)
 		handleError(client, interaction)
 		return
 	}
 
 	message, err := client.ChannelMessageSendEmbed(channel.ID, embed)
 	if err != nil {
+		fmt.Println("Error sending message: ", err)
 		handleError(client, interaction)
 		return
 	}
 
 	err = client.MessageReactionAdd(message.ChannelID, message.ID, "✅")
 	if err != nil {
+		fmt.Println("Error adding reaction: ", err)
 		handleError(client, interaction)
 		return
 	}
 
 	err = client.MessageReactionAdd(message.ChannelID, message.ID, "🟧")
 	if err != nil {
+		fmt.Println("Error adding reaction: ", err)
 		handleError(client, interaction)
 		return
 	}
 
 	err = client.MessageReactionAdd(message.ChannelID, message.ID, "❌")
 	if err != nil {
+		fmt.Println("Error adding reaction: ", err)
 		handleError(client, interaction)
 		return
 	}
@@ -95,8 +102,19 @@ func SuggestCommand(client *discordgo.Session, interaction *discordgo.Interactio
 	var suggestions []Suggestion
 	fileErr := utils.ReadJsonFile("suggestions.json", &suggestions)
 	if fileErr != nil {
-		handleError(client, interaction)
-		return
+
+		// check if file exists
+		if strings.Contains(fileErr.Error(), "no such file or directory") {
+			err := utils.WriteToJsonFile("suggestions.json", suggestions)
+			if err != nil {
+				handleError(client, interaction)
+				return
+			}
+		} else {
+			fmt.Println("Error reading file: ", fileErr)
+			handleError(client, interaction)
+			return
+		}
 	}
 
 	suggestions = append(suggestions, Suggestion{
@@ -114,6 +132,7 @@ func SuggestCommand(client *discordgo.Session, interaction *discordgo.Interactio
 
 	fileErr = utils.WriteToJsonFile("suggestions.json", suggestions)
 	if fileErr != nil {
+		fmt.Println("Error writing to file: ", fileErr)
 		handleError(client, interaction)
 		return
 	}
@@ -125,6 +144,7 @@ func SuggestCommand(client *discordgo.Session, interaction *discordgo.Interactio
 		},
 	})
 	if err != nil {
+		fmt.Println("Error responding to interaction: ", err)
 		return
 	}
 
