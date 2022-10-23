@@ -42,3 +42,46 @@ func LoadConfig() (*error, *ConfigType) {
 	fmt.Println("Loaded config.json")
 	return nil, &Config
 }
+
+func ReadJsonFile(path string, target interface{}) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(file)
+
+	decoder := json.NewDecoder(file)
+	err = decoder.Decode(target)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func WriteToJsonFile(path string, target interface{}) error {
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(file)
+
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ")
+	err = encoder.Encode(target)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
