@@ -25,3 +25,5 @@ config.json
 config.yaml
 config.yml
 suggestions.json
+.DS_Store
+.idea
