@@ -24,3 +24,4 @@ go.work
 config.json
 config.yaml
 config.yml
+suggestions.json
