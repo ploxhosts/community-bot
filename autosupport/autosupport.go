@@ -150,20 +150,6 @@ func ProcessDiscordMessage(message *discordgo.MessageCreate, session *discordgo.
 		allText += message.Content
 	}
 
-	for _, text := range textContents {
-
-		if processText(text) != "en" {
-
-			_, err := session.ChannelMessageSendReply(message.ChannelID, "Hi, I have detected your message is not english. Please create a ticket at https://support.plox.host/en/tickets/create/step1 for the best chances of a response.", message.Reference())
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-			toldToCreateTicket(message.Author.ID)
-			return
-		}
-	}
-
 	if len(textContents) == 0 {
 		lastMessaged[message.Author.ID] = lastMessagedStruct{
 			toldToCreateTicket:    lastMessaged[message.Author.ID].toldToCreateTicket,
@@ -181,6 +167,10 @@ func ProcessDiscordMessage(message *discordgo.MessageCreate, session *discordgo.
 			previousMessages:      append(lastMessaged[message.Author.ID].previousMessages, allText),
 			previousImageContents: append(lastMessaged[message.Author.ID].previousImageContents, imageText),
 		}
+	}
+
+	if time.Since(lastMessaged[message.Author.ID].lastSupportMessage) < 5*time.Minute {
+		return
 	}
 
 	response := autoRespond(allText, imageText)
