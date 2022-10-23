@@ -86,6 +86,7 @@ func RegisterCommands(client *discordgo.Session, TestGuildId string) {
 	CommandHandlers["ping"] = PingCommand
 	CommandHandlers["book"] = Book
 	CommandHandlers["suggest"] = SuggestCommand
+	CommandHandlers["suggestions"] = SuggestionsCommand
 
 	client.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if i.Type != discordgo.InteractionApplicationCommand {
