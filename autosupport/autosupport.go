@@ -30,7 +30,7 @@ var lastMessaged = make(map[string]lastMessagedStruct)
 
 func handleOutdatedCache(author string) {
 	// Prevent memory leak
-	if time.Since(lastMessaged[author].lastSupportMessage) > 5*time.Minute && time.Since(lastMessaged[author].toldToCreateTicket) > 5*time.Minute {
+	if time.Since(lastMessaged[author].lastSupportMessage) > 20*time.Minute && time.Since(lastMessaged[author].toldToCreateTicket) > 20*time.Minute {
 		delete(lastMessaged, author)
 		return
 	}
@@ -109,21 +109,6 @@ func ProcessDiscordMessage(message *discordgo.MessageCreate, session *discordgo.
 		}
 	}
 
-	if processText(message.Content) != "en" {
-		// if the user has not been told to create a ticket in the last 5 minutes
-		if time.Since(lastMessaged[message.Author.ID].toldToCreateTicket) < 5*time.Minute {
-			return
-		}
-		_, err := session.ChannelMessageSendReply(message.ChannelID, "Hi, I have detected your message is not english. Please create a ticket at https://support.plox.host/en/tickets/create/step1 for the best chances of a response.", message.Reference())
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		toldToCreateTicket(message.Author.ID)
-		return
-	}
-
 	textContents := make([]string, 0)
 	if len(message.Attachments) > 0 {
 		for _, attachment := range message.Attachments {
@@ -190,7 +175,7 @@ func ProcessDiscordMessage(message *discordgo.MessageCreate, session *discordgo.
 		return
 	}
 
-	if time.Since(lastMessaged[message.Author.ID].askedForService) < 10*time.Minute {
+	if time.Since(lastMessaged[message.Author.ID].askedForService) < 30*time.Minute {
 		return
 	}
 	IssueSelectionEmbed(message, session)
