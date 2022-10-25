@@ -1,8 +1,10 @@
 package utils
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/go-redis/redis/v9"
 	"os"
 )
 
@@ -13,9 +15,14 @@ type ConfigType struct {
 	ForbiddenRoles      []string `json:"FORBIDDEN_ROLES"`
 	SuggestionChannelId string   `json:"SUGGESTION_CHANNEL_ID"`
 	ApprovalChannelId   string   `json:"APPROVAL_CHANNEL_ID"`
+	RedisHost           string   `json:"REDIS_HOST"`
+	RedisPassword       string   `json:"REDIS_PASSWORD"`
+	RedisDb             int      `json:"REDIS_DB"`
 }
 
 var Config ConfigType
+var RedisCtx = context.Background()
+var RedisClient *redis.Client
 
 func LoadConfig() (*error, *ConfigType) {
 
@@ -40,6 +47,13 @@ func LoadConfig() (*error, *ConfigType) {
 	}
 
 	fmt.Println("Loaded config.json")
+
+	RedisClient = redis.NewClient(&redis.Options{
+		Addr:     Config.RedisHost,
+		Password: Config.RedisPassword, // no password set
+		DB:       Config.RedisDb,       // use default DB
+	})
+
 	return nil, &Config
 }
 
