@@ -23,6 +23,15 @@ func ProcessDiscordMessage(message *discordgo.MessageCreate, session *discordgo.
 		if message.ChannelID == channel {
 			return
 		}
+		// Check if channel parent is forbidden
+		channelInfo, err := session.Channel(message.ChannelID)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		if channelInfo.ParentID == channel {
+			return
+		}
 	}
 
 	if message.Author.ID == session.State.User.ID {
@@ -83,7 +92,7 @@ func ProcessDiscordMessage(message *discordgo.MessageCreate, session *discordgo.
 		fmt.Println(err)
 		lstAsked = 0
 	}
-	
+
 	lastAsked := time.Unix(lstAsked, 0)
 
 	if time.Since(lastAsked) < 5*time.Minute {
