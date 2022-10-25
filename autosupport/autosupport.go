@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"ploxy/utils"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -44,11 +45,6 @@ func ProcessDiscordMessage(message *discordgo.MessageCreate, session *discordgo.
 	rCtx := utils.RedisCtx
 	rdb := utils.RedisClient
 
-	userGotSupport, err := rdb.Get(rCtx, message.Author.ID+":lastSupportMessage").Result()
-	if err != nil && err != redis.Nil {
-		fmt.Println(err)
-	}
-
 	textContents := make([]string, 0)
 	if len(message.Attachments) > 0 {
 		for _, attachment := range message.Attachments {
@@ -75,13 +71,20 @@ func ProcessDiscordMessage(message *discordgo.MessageCreate, session *discordgo.
 		allText += message.Content
 	}
 
-	// TODO: Check if the user has already been told to create a ticket
-	// get duration from string
-	lastAsked, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", userGotSupport)
+	userGotSupport, err := rdb.Get(rCtx, message.Author.ID+":lastSupportMessage").Result()
+	if err == redis.Nil {
+		userGotSupport = "0"
+	} else if err != nil {
+		fmt.Println(err)
+	}
+
+	lstAsked, err := strconv.ParseInt(userGotSupport, 10, 64)
 	if err != nil {
 		fmt.Println(err)
-		return
+		lstAsked = 0
 	}
+	
+	lastAsked := time.Unix(lstAsked, 0)
 
 	if time.Since(lastAsked) < 5*time.Minute {
 		return
@@ -95,7 +98,7 @@ func ProcessDiscordMessage(message *discordgo.MessageCreate, session *discordgo.
 			return
 		}
 
-		err = rdb.Set(rCtx, message.Author.ID+":lastSupportMessage", time.Now().String(), 30*time.Minute).Err()
+		err = rdb.Set(rCtx, message.Author.ID+":lastSupportMessage", time.Now().Unix(), 30*time.Minute).Err()
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -108,7 +111,7 @@ func ProcessDiscordMessage(message *discordgo.MessageCreate, session *discordgo.
 	}
 
 	IssueSelectionEmbed(message, session)
-	err = rdb.Set(rCtx, message.Author.ID+":lastSupportMessage", time.Now().String(), 30*time.Minute).Err()
+	err = rdb.Set(rCtx, message.Author.ID+":lastSupportMessage", time.Now().Unix(), 30*time.Minute).Err()
 	if err != nil {
 		fmt.Println(err)
 		return
