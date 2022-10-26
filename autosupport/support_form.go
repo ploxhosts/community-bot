@@ -3,17 +3,23 @@ package autosupport
 import (
 	"fmt"
 	"github.com/bwmarrin/discordgo"
+	"ploxy/utils"
+	"time"
 )
 
 // IssueSelectionEmbed *-problem_selection buttons
 func IssueSelectionEmbed(message *discordgo.MessageCreate, session *discordgo.Session) {
+
+	rCtx := utils.RedisCtx
+	rdb := utils.RedisClient
+
 	embed := &discordgo.MessageEmbed{
 		Title:       "Automated Assistance",
 		Description: "Please select an issue from the buttons below for me to better assist you.",
 		Color:       0x00ff00,
 	}
 
-	_, err := session.ChannelMessageSendComplex(message.ChannelID, &discordgo.MessageSend{
+	supportMessage, err := session.ChannelMessageSendComplex(message.ChannelID, &discordgo.MessageSend{
 		Embed:     embed,
 		Reference: message.Reference(),
 		Components: []discordgo.MessageComponent{
@@ -52,6 +58,9 @@ func IssueSelectionEmbed(message *discordgo.MessageCreate, session *discordgo.Se
 		fmt.Println(err)
 		return
 	}
+
+	// Set the support message ID in redis
+	rdb.Set(rCtx, "message:"+supportMessage.ID, message.Author.ID, 60*time.Minute)
 }
 
 // AskWhatServiceTheyHave service_selection_select menu and *-service_selection options
@@ -106,6 +115,7 @@ func AskWhatServiceTheyHave() (*discordgo.MessageEmbed, *[]discordgo.MessageComp
 
 // ProblemSelected service_selection that provides service_selection_select menu and *-service_selection options
 func ProblemSelected(client *discordgo.Session, interaction *discordgo.InteractionCreate) {
+	fmt.Println("ProblemSelected")
 	customId := interaction.MessageComponentData().CustomID
 	fmt.Println("Button clicked:", customId)
 
