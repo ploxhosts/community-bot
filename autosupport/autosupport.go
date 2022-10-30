@@ -119,12 +119,12 @@ func ProcessDiscordMessage(message *discordgo.MessageCreate, session *discordgo.
 		return
 	}
 
-	IssueSelectionEmbed(message, session)
-	err = rdb.Set(rCtx, message.Author.ID+":lastSupportMessage", time.Now().Unix(), 30*time.Minute).Err()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	//IssueSelectionEmbed(message, session)
+	//err = rdb.Set(rCtx, message.Author.ID+":lastSupportMessage", time.Now().Unix(), 30*time.Minute).Err()
+	//if err != nil {
+	//	fmt.Println(err)
+	//	return
+	//}
 
 }
 
