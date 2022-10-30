@@ -4,35 +4,15 @@ import (
 	"errors"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
-	"github.com/go-redis/redis/v9"
 	"github.com/rylans/getlang"
 	"io"
 	"net/http"
 	"os"
 	"os/exec"
-	"ploxy/utils"
-	"strconv"
 	"strings"
-	"time"
 )
 
 func ProcessDiscordMessage(message *discordgo.MessageCreate, session *discordgo.Session) {
-	config := utils.Config
-
-	for _, channel := range config.ForbiddenChannels {
-		if message.ChannelID == channel {
-			return
-		}
-		// Check if channel parent is forbidden
-		channelInfo, err := session.Channel(message.ChannelID)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		if channelInfo.ParentID == channel {
-			return
-		}
-	}
 
 	if message.Author.ID == session.State.User.ID {
 		return
@@ -41,18 +21,6 @@ func ProcessDiscordMessage(message *discordgo.MessageCreate, session *discordgo.
 	if message.Author.Bot {
 		return
 	}
-
-	// check if user has forbidden role
-	for _, role := range message.Member.Roles {
-		for _, forbiddenRole := range config.ForbiddenRoles {
-			if role == forbiddenRole {
-				return
-			}
-		}
-	}
-
-	rCtx := utils.RedisCtx
-	rdb := utils.RedisClient
 
 	textContents := make([]string, 0)
 	if len(message.Attachments) > 0 {
@@ -80,25 +48,6 @@ func ProcessDiscordMessage(message *discordgo.MessageCreate, session *discordgo.
 		allText += message.Content
 	}
 
-	userGotSupport, err := rdb.Get(rCtx, message.Author.ID+":lastSupportMessage").Result()
-	if err == redis.Nil {
-		userGotSupport = "0"
-	} else if err != nil {
-		fmt.Println(err)
-	}
-
-	lstAsked, err := strconv.ParseInt(userGotSupport, 10, 64)
-	if err != nil {
-		fmt.Println(err)
-		lstAsked = 0
-	}
-
-	lastAsked := time.Unix(lstAsked, 0)
-
-	if time.Since(lastAsked) < 5*time.Minute {
-		return
-	}
-
 	response := autoRespond(allText, imageText)
 	if response != "" {
 		_, err := session.ChannelMessageSendReply(message.ChannelID, response, message.Reference())
@@ -107,31 +56,76 @@ func ProcessDiscordMessage(message *discordgo.MessageCreate, session *discordgo.
 			return
 		}
 
+		return
+	}
+
+	/*
+		config := utils.Config
+
+		for _, channel := range config.ForbiddenChannels {
+			if message.ChannelID == channel {
+				return
+			}
+			// Check if channel parent is forbidden
+			channelInfo, err := session.Channel(message.ChannelID)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			if channelInfo.ParentID == channel {
+				return
+			}
+		}
+
+		// check if user has forbidden role
+		for _, role := range message.Member.Roles {
+			for _, forbiddenRole := range config.ForbiddenRoles {
+				if role == forbiddenRole {
+					return
+				}
+			}
+		}
+
+		rCtx := utils.RedisCtx
+		rdb := utils.RedisClient
+
+		userGotSupport, err := rdb.Get(rCtx, message.Author.ID+":lastSupportMessage").Result()
+		if err == redis.Nil {
+			userGotSupport = "0"
+		} else if err != nil {
+			fmt.Println(err)
+		}
+
+		lstAsked, err := strconv.ParseInt(userGotSupport, 10, 64)
+		if err != nil {
+			fmt.Println(err)
+			lstAsked = 0
+		}
+
+		lastAsked := time.Unix(lstAsked, 0)
+
+		if time.Since(lastAsked) < 5*time.Minute {
+			return
+		}
+
+		if time.Since(lastAsked) < 30*time.Minute {
+			return
+		}
+
+		IssueSelectionEmbed(message, session)
 		err = rdb.Set(rCtx, message.Author.ID+":lastSupportMessage", time.Now().Unix(), 30*time.Minute).Err()
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
-		return
-	}
-
-	if time.Since(lastAsked) < 30*time.Minute {
-		return
-	}
-
-	//IssueSelectionEmbed(message, session)
-	//err = rdb.Set(rCtx, message.Author.ID+":lastSupportMessage", time.Now().Unix(), 30*time.Minute).Err()
-	//if err != nil {
-	//	fmt.Println(err)
-	//	return
-	//}
+	*/
 
 }
 
 func autoRespond(allText string, imageText string) string {
 	var discordBotHosting = map[string]string{
 		"run `npm audit fix` to fix them, or `npm audit` for details": "If you want to remove the error run `npm audit fix` to fix them, or `npm audit` for details` please download your code, run `npm audit fix` **on your own pc** and then upload the code again.",
-		"create a ticket": "You can create a ticket on: https://support.plox.host/en/tickets/create/step1",
+		"create a ticket": "You can create a ticket at: https://support.plox.host/en/tickets/create/step1",
 	}
 
 	for key, value := range discordBotHosting {
