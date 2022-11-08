@@ -50,7 +50,7 @@ func ProcessDiscordMessage(message *discordgo.MessageCreate, session *discordgo.
 
 	response := autoRespond(allText, imageText)
 	if response != "" {
-		_, err := session.ChannelMessageSendReply(message.ChannelID, response, message.Reference())
+		_, err := session.ChannelMessageSend(message.ChannelID, response)
 		if err != nil {
 			fmt.Println(err)
 			return
