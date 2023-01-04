@@ -15,10 +15,25 @@ func OnMessage(client *discordgo.Session, message *discordgo.MessageCreate) {
 	analysis, err := timings.TimingsAnalysis(message.Content)
 	if err != nil {
 		fmt.Println(err)
+
+		embed := &discordgo.MessageEmbed{
+			Title:       "Timings Analysis",
+			Description: "❌️ I could not read the timings file. Please make sure you have uploaded the timings file correctly. This is likely a fault with Ploxy, please report this to the developer.",
+			Color:       0xFF0000, // Red
+			Fields:      []*discordgo.MessageEmbedField{},
+		}
+
+		_, err := client.ChannelMessageSendEmbedReply(message.ChannelID, embed, message.Reference())
+
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
 		return
 	}
 
-	if len(analysis) >= 1 {
+	if analysis != nil {
 		// get the first 20 results
 		if len(analysis) > 20 {
 			analysis = analysis[:20]

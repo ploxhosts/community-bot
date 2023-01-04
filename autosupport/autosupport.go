@@ -123,6 +123,7 @@ func ProcessDiscordMessage(message *discordgo.MessageCreate, session *discordgo.
 }
 
 func autoRespond(allText string, imageText string) string {
+	allText = strings.ToLower(allText)
 	var discordBotHosting = map[string]string{
 		"run `npm audit fix` to fix them, or `npm audit` for details": "If you want to remove the error run `npm audit fix` to fix them, or `npm audit` for details` please download your code, run `npm audit fix` **on your own pc** and then upload the code again.",
 		"create a ticket":                  "You can create a ticket at: https://support.plox.host/en/tickets/create/step1",
