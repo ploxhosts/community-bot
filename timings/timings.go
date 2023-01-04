@@ -2,6 +2,7 @@ package timings
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -472,8 +473,41 @@ func TimingsAnalysis(url string) ([]EmbedField, error) {
 	}
 
 	var pluginsInUse []string
-	for _, plugin := range timingsData.TimingsMaster.Plugins {
-		pluginsInUse = append(pluginsInUse, plugin.Name)
+	var pluginsParsed = make(map[string]Plugin)
+
+	switch v := timingsData.TimingsMaster.Plugins.(type) {
+	case []string:
+		for _, a := range v {
+			if a != "" {
+				pluginsInUse = append(pluginsInUse, a)
+			}
+		}
+	case map[string]interface{}:
+		for s, i := range v {
+			var plugin = Plugin{}
+			for s2, a := range i.(map[string]interface{}) {
+				switch s2 {
+				case "version":
+					plugin.Version = a.(string)
+				case "authors":
+					plugin.Authors = a.(string)
+				case "name":
+					plugin.Name = a.(string)
+				case "description":
+					plugin.Description = a.(string)
+				case ":cls":
+					plugin.Cls = a.(float64)
+				}
+			}
+
+			if i != "" {
+				pluginsInUse = append(pluginsInUse, s)
+			}
+
+			pluginsParsed[s] = plugin
+		}
+	default:
+		fmt.Println("Unknown type for plugins")
 	}
 
 	// Check for plugins

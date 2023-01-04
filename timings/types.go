@@ -50,14 +50,7 @@ type Timings struct {
 			EntityTypeMap map[string]string `json:"entityTypeMap"`
 			Cls           int               `json:":cls"`
 		} `json:"idmap"`
-		Plugins map[string]struct {
-			Name        string      `json:"name"`
-			Version     string      `json:"version"`
-			Description string      `json:"description"`
-			Website     interface{} `json:"website"`
-			Authors     string      `json:"authors"`
-			Cls         int         `json:":cls"`
-		} `json:"plugins"`
+		Plugins interface{} `json:"plugins"`
 
 		Data []struct {
 			Id         int   `json:"id"`
@@ -718,4 +711,12 @@ type PluginsJson struct {
 		Warning string `json:"warning"`
 		Reason  string `json:"reason"`
 	} `json:"purpur"`
+}
+
+type Plugin struct {
+	Name        string  `json:"name"`
+	Version     string  `json:"version"`
+	Description string  `json:"description"`
+	Authors     string  `json:"authors"`
+	Cls         float64 `json:":cls"`
 }
