@@ -112,7 +112,7 @@ func ReactionAdd(client *discordgo.Session, reaction *discordgo.MessageReactionA
 		addVotes(reaction, false, true, false)
 	} else if reaction.ChannelID == utils.Config.SuggestionChannelId && reaction.Emoji.Name == "❌" {
 		addVotes(reaction, false, false, true)
-	} else {
+	} else if reaction.ChannelID == utils.Config.SuggestionChannelId {
 		// Remove the reaction if it was not a checkmark.
 		err := client.MessageReactionRemove(reaction.ChannelID, reaction.MessageID, reaction.Emoji.APIName(), reaction.UserID)
 		if err != nil {
