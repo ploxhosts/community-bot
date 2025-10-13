@@ -14,23 +14,29 @@ import (
 var Client *discordgo.Session
 
 func main() {
-	ConfigErr, config := utils.LoadConfig()
-	if ConfigErr != nil {
+	config, err := utils.LoadConfig()
+	if err != nil {
 		return
 	}
 
-	Client, err := discordgo.New("Bot " + config.BotToken)
+	Client, err = discordgo.New("Bot " + config.BotToken)
 	if err != nil {
 		fmt.Println("error starting Discord bot,", err)
 		return
 	}
+
+	Client.Identify.Intents = discordgo.IntentsGuilds |
+		discordgo.IntentsGuildMessages |
+		discordgo.IntentsGuildMessageReactions |
+		discordgo.IntentsMessageContent
+
+	events.RegisterEvents(Client)
 
 	err = Client.Open()
 	if err != nil {
 		fmt.Println("error opening connection to Discord,", err)
 		return
 	}
-	events.RegisterEvents(Client)
 	commands.RegisterCommands(Client, config.TestGuildId)
 
 	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
