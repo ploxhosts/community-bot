@@ -24,10 +24,14 @@ var Config ConfigType
 var RedisCtx = context.Background()
 var RedisClient *redis.Client
 
-func LoadConfig() (*error, *ConfigType) {
+func LoadConfig() (*ConfigType, error) {
 
 	// Get from config.json
 	configFile, err := os.Open("config.json")
+	if err != nil {
+		fmt.Println(err.Error() + " - Please create a config.json file or repair it.")
+		return nil, err
+	}
 	defer func(configFile *os.File) {
 		err := configFile.Close()
 		if err != nil {
@@ -35,15 +39,12 @@ func LoadConfig() (*error, *ConfigType) {
 			fmt.Println("error closing config file")
 		}
 	}(configFile)
-	if err != nil {
-		fmt.Println(err.Error() + " - Please create a config.json file or repair it.")
-		return &err, nil
-	}
+
 	jsonParser := json.NewDecoder(configFile)
 	err = jsonParser.Decode(&Config)
 	if err != nil {
 		fmt.Println(err.Error() + " - Please create a config.json file or repair it.")
-		return &err, nil
+		return nil, err
 	}
 
 	fmt.Println("Loaded config.json")
@@ -54,7 +55,7 @@ func LoadConfig() (*error, *ConfigType) {
 		DB:       Config.RedisDb,       // use default DB
 	})
 
-	return nil, &Config
+	return &Config, nil
 }
 
 func ReadJsonFile(path string, target interface{}) error {

@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"fmt"
+
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -8,6 +10,16 @@ var Commands []*discordgo.ApplicationCommand
 var CommandHandlers = map[string]func(client *discordgo.Session, interaction *discordgo.InteractionCreate){}
 
 func RegisterCommands(client *discordgo.Session, TestGuildId string) {
+	botID := client.State.User.ID
+	if botID == "" {
+		me, err := client.User("@me")
+		if err != nil {
+			fmt.Println("Unable to determine bot user for command registration:", err)
+			return
+		}
+		botID = me.ID
+	}
+
 	Commands = []*discordgo.ApplicationCommand{
 		{
 			Name:        "ping",
@@ -103,13 +115,13 @@ func RegisterCommands(client *discordgo.Session, TestGuildId string) {
 	registeredCommands := make([]*discordgo.ApplicationCommand, len(Commands))
 	for i, command := range Commands {
 		if TestGuildId == "" {
-			registeredCommand, err := client.ApplicationCommandCreate(client.State.User.ID, "", command)
+			registeredCommand, err := client.ApplicationCommandCreate(botID, "", command)
 			if err != nil {
 				println("Error adding command:", err)
 			}
 			registeredCommands[i] = registeredCommand
 		} else {
-			registeredCommand, err := client.ApplicationCommandCreate(client.State.User.ID, TestGuildId, command)
+			registeredCommand, err := client.ApplicationCommandCreate(botID, TestGuildId, command)
 			if err != nil {
 				println("Error adding command:", err)
 			}
